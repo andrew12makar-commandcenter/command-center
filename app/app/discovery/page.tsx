@@ -19,13 +19,13 @@ export default async function Discovery({searchParams}:{searchParams:Promise<{ad
     <Link className="btn" href="/app/leads/import">Review {queue??0} pending →</Link>
   </div>
   <div className="mt-8 grid gap-5 sm:grid-cols-3">
-    {[
+    {([
       ['CRM businesses',total??'—',Building2],
       ['Awaiting review',queue??'—',FileCheck2],
       ['Geographic pilot','Allston → Brighton → Brookline',MapPinned],
-    ].map(([label,value,Icon])=><section className="panel p-6" key={String(label)}>
-      <div className="flex items-center gap-3"><Icon size={19} className="text-cyan-300"/><span className="muted text-sm">{label as string}</span></div>
-      <p className="mt-5 text-xl font-semibold">{value as string|number}</p>
+     ] as const).map(([label,value,Icon])=><section className="panel p-6" key={label}>
+      <div className="flex items-center gap-3"><Icon size={19} className="text-cyan-300"/><span className="muted text-sm">{label}</span></div>
+      <p className="mt-5 text-xl font-semibold">{value}</p>
     </section>)}
   </div>
   {(p.added!==undefined||p.error)&&<div role="status" className="panel mt-6 p-5">
