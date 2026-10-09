@@ -44,3 +44,18 @@ Do **not** rerun 0001. Do **not** create another organization or owner record. E
 ## Tests
 
 Run `npm run typecheck` then `npm run build`. The branch also has a GitHub Actions CI workflow. Do not merge until CI and a manual login/CRM smoke test pass.
+
+## Demo improvement loop (migration 0003)
+
+The demo generator began as a layout skeleton. The next increment makes it evaluable and editable:
+
+- Apply `supabase/migrations/0003_demo_learning.sql` **once** to the existing Command Center Supabase database; do not rerun 0001/0002.
+- New demos let an operator choose **Editorial**, **Bold**, or **Auto**.
+- Rate each demo/version 1–5, tag specific issues, and leave notes. Ratings are stored per operator/demo/revision.
+- Edit draft copy and confirmed services, then save a new version; prior copy is preserved in `demo_revisions` using an atomic database function.
+- **Auto style** changes default selection only when each style has at least five distinct rated examples in the same template category and the challenger scores clearly higher.
+- This is rules-based learning from user evaluations, **not** self-training a language model, autonomous image generation, or automatic validation of business claims.
+- Approved images, client edit controls, full hosted website builds, and password-protected external share links remain future work.
+
+### Local update
+Use GitHub Desktop to pull `feature/nextjs-foundation`, apply migration 0003 in Supabase SQL Editor, then restart the local Next.js server. You do **not** need to create new users, keys, or projects.

@@ -86,6 +86,11 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
           <p className="muted mt-3 text-sm">Create reusable, clearly marked demo drafts without inventing client testimonials, licenses or results.</p>
           <form action={createDemo} className="mt-5 flex flex-wrap gap-3"><input type="hidden" name="business_id" value={id}/>
           <select name="template">{[['landscaping','Home services'],['medical','Medical / dental'],['universal','Professional / general']].map(([key,name])=><option key={key} value={key}>{name}</option>)}</select>
+          <select name="visual_variant" aria-label="Design style">
+            <option value="auto">Auto style</option>
+            <option value="editorial">Editorial</option>
+            <option value="bold">Bold</option>
+          </select>
           <button className="btn" type="submit">Generate internal demo →</button></form>
           <div className="mt-5 space-y-2">{(demos??[]).map(d=><Link className="block rounded-xl border border-[#253a46] p-3 text-sm hover:bg-[#122531]" key={d.id} href={'/app/demos/'+d.id}>{d.template} · {d.status} ↗</Link>)}</div>
         </section>

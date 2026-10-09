@@ -25,6 +25,13 @@ export default async function DemoStudio({searchParams}:{searchParams:Promise<{c
             <option value="medical">Medical / dental</option>
             <option value="universal">Professional services / universal</option>
           </select></label>
+          <label className="mt-4 block text-sm">Design direction
+            <select name="visual_variant" className="mt-2">
+              <option value="auto">Auto: use feedback after enough reviews</option>
+              <option value="editorial">Editorial / minimal</option>
+              <option value="bold">Bold / high contrast</option>
+            </select>
+          </label>
           <div className="mt-4 max-h-80 overflow-y-auto rounded-xl border border-[#273b48] p-3">
             {(businesses??[]).map(b=><label key={b.id} className="flex cursor-pointer items-center gap-3 border-b border-[#273b48] p-3 text-sm">
               <input type="checkbox" className="h-4 w-4 shrink-0" name="business_ids" value={b.id}/>
@@ -53,6 +60,6 @@ export default async function DemoStudio({searchParams}:{searchParams:Promise<{c
       </tbody></table>
       {!demos?.length&&!error&&<p className="muted p-6 text-sm">No drafts yet. Select real prospects above or generate one from its CRM record.</p>}
     </section>
-    <p className="muted mt-4 text-xs">All previews are internal and behind Command Center authentication. Password-protected expiring client share links are scheduled for the next release.</p>
+    <p className="muted mt-4 text-xs">All previews are private and authenticated. Ratings and revision history are recorded separately; after at least five distinct ratings per variant, the automatic design recommendation may adapt. Public sharing is not yet enabled.</p>
   </main>;
 }
