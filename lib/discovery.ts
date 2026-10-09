@@ -96,23 +96,80 @@ async function getBoston(source:'boston-certified'|'boston-food',area:Area):Prom
  if(!mapped.length)throw Error('No matching businesses for this neighborhood; the source may have different field names.');
  return mapped;
 }
-async function getOsm(area:Area):Promise<Candidate[]>{
- const a=areas[area],where=`(around:${a.radius},${a.lat},${a.lon})`;
- const q=`[out:json][timeout:20];(nwr${where}["name"]["shop"];nwr${where}["name"]["craft"];nwr${where}["name"]["office"];nwr${where}["name"]["amenity"~"^(dentist|doctors|clinic|veterinary|restaurant|cafe|bar|pub)$"];);out center qt;`;
- const res=await fetch('https://overpass-api.de/api/interpreter',{
-  method:'POST',body:new URLSearchParams({data:q}),
-  headers:{'Content-Type':'application/x-www-form-urlencoded','Accept':'application/json',
-   'User-Agent':'CommandCenterLeadResearch/0.1 (single user manual scans)'},
-  signal:AbortSignal.timeout(27000),cache:'no-store'
- });
- if(!res.ok)throw Error('Community map server unavailable (HTTP '+res.status+'). Wait before retrying if rate limited.');
- const raw=await res.text();
- if(raw.length>4_000_000)throw Error('Map response too large; stop and narrow the source.');
- const d=JSON.parse(raw) as {elements?:OsmElement[]};
- if(!Array.isArray(d.elements))throw Error('Community map returned unexpected data.');
- return parseOsm(d.elements,area);
+// A targeted bounding-box query is substantially cheaper than the original
+// four repeated 1.6 km radius searches. The lower-cost backup query only reads
+// nodes in a smaller area to avoid repeating an expensive request after a 504.
+export function osmQuery(area:Area,reduced=false):string{
+ const a=areas[area],meters=reduced?650:900;
+ const dLat=meters/111_320,dLon=meters/(111_320*Math.cos(a.lat*Math.PI/180));
+ const bbox=[
+   a.lat-dLat,a.lon-dLon,a.lat+dLat,a.lon+dLon
+ ].map(x=>x.toFixed(5)).join(',');
+ const obj=reduced?'node':'nwr';
+ const category=(tag:string)=>`${obj}["name"]["${tag}"](${bbox});`;
+ return `[out:json][timeout:12][maxsize:67108864];(${category('shop')}${category('craft')}${category('office')}${obj}["name"]["amenity"~"^(dentist|doctors|clinic|veterinary|restaurant|cafe|bar|pub)$"](${bbox}););out center ${reduced?90:180};`;
+}
+const overpassServers=[
+ 'https://overpass.private.coffee/api/interpreter',
+ 'https://overpass-api.de/api/interpreter',
+] as const;
+// Within a running application process, avoid hammering shared servers on
+// repeated button presses and reuse successful scans for ten minutes.
+const recentOsm=new Map<Area,{at:number;results:Candidate[]}>();
+let lastOsmAttempt=0;
+export async function queryOsm(area:Area, requester:typeof fetch=fetch):Promise<Candidate[]>{
+ const cached=recentOsm.get(area);
+ if(cached&&Date.now()-cached.at<600_000)return cached.results;
+ if(requester===fetch && Date.now()-lastOsmAttempt<30_000){
+   throw Error('Please wait about 30 seconds before another OpenStreetMap scan. You can try the Boston datasets while waiting.');
+ }
+ if(requester===fetch)lastOsmAttempt=Date.now();
+ const errors:string[]=[];
+ for(let i=0;i<overpassServers.length;i++){
+  const url=overpassServers[i],reduced=i===1;
+  try{
+   const res=await requester(url,{
+    method:'POST',body:new URLSearchParams({data:osmQuery(area,reduced)}),
+    headers:{
+      'Content-Type':'application/x-www-form-urlencoded',
+      'Accept':'application/json',
+      'User-Agent':'CommandCenterManualDiscovery/0.2 (low-volume local research)'
+    },
+    cache:'no-store',signal:AbortSignal.timeout(reduced?17_000:18_000),
+    redirect:'error',
+   });
+   if(res.status===429){
+    throw Error('OpenStreetMap is rate limiting requests (HTTP 429). Wait before trying again or use a Boston public dataset. No records were added.');
+   }
+   if(!res.ok){
+    if([502,503,504].includes(res.status)){
+      errors.push(`Server ${i+1}: HTTP ${res.status}`);
+      continue;
+    }
+    throw Error('OpenStreetMap request failed (HTTP '+res.status+'). Check the source or use an official Boston dataset.');
+   }
+   const raw=await res.text();
+   if(raw.length>1_500_000)throw Error('OpenStreetMap response was too large for the manual pilot.');
+   const data=JSON.parse(raw) as {elements?:OsmElement[];remark?:string};
+   // Overpass can respond 200 with partial data plus a runtime failure message.
+   if(data.remark){
+      errors.push(`Server ${i+1}: incomplete response`);
+      continue;
+   }
+   if(!Array.isArray(data.elements))throw Error('OpenStreetMap returned unexpected data. Try the City of Boston datasets.');
+   const records=parseOsm(data.elements,area);
+   recentOsm.set(area,{at:Date.now(),results:records});
+   return records;
+  }catch(err){
+   const msg=err instanceof Error?err.message:'unknown error';
+   if(msg.includes('429')||msg.includes('request failed (HTTP')||
+      msg.includes('too large')||msg.includes('unexpected data'))throw err;
+   errors.push(`Server ${i+1}: ${err instanceof Error && err.name==='TimeoutError'?'timed out':'connection failed'}`);
+  }
+ }
+ throw Error('Both OpenStreetMap servers could not complete a small search ('+errors.join('; ')+'). No records were changed. Try a Boston directory or wait before retrying.');
 }
 export async function discover(source:Source,area:Area):Promise<Candidate[]>{
- if(source==='osm')return getOsm(area);
+ if(source==='osm')return queryOsm(area);
  return getBoston(source,area);
 }
