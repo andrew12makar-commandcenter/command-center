@@ -2,7 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireWorkspace, shortText, validUuid } from '@/lib/workspace';
-import type { DemoCopy } from '@/lib/demo-engine';
+import { derivePreferences, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
 const issueTags=['layout','visuals','generic_copy','missing_content','navigation','mobile','other'];
 
 export async function rateDemo(form:FormData) {
@@ -51,4 +51,34 @@ export async function saveDemoCopy(form:FormData) {
  if(error) throw new Error('Could not save version: '+error.message);
  revalidatePath('/app/demos/'+id);revalidatePath('/app/demos'); 
  redirect('/app/demos/'+id+'?saved=copy');
+}
+
+// Apply the accumulated personal preference profile to this draft as a new
+// version. Past copy stays unchanged; only supported design controls adapt.
+export async function applyLearnedPreferences(form:FormData) {
+ const {supabase,organizationId,user}=await requireWorkspace(true);
+ const id=shortText(form.get('demo_id'),64);
+ const expectedRevision=Number(form.get('revision_no'));
+ if(!validUuid(id)||!Number.isInteger(expectedRevision)||expectedRevision<1) throw new Error('Invalid draft.');
+ const {data:demo,error:loadError}=await supabase.from('demo_sites')
+   .select('id,template,revision_no,draft_content,visual_variant')
+   .eq('id',id).eq('organization_id',organizationId).maybeSingle();
+ if(loadError||!demo) throw new Error('The demo could not be loaded.');
+ const {data:ratings,error:feedbackError}=await supabase.from('demo_feedback')
+   .select('demo_id,user_id,template,visual_variant,rating,issue_tags,notes,created_at')
+   .eq('organization_id',organizationId).eq('user_id',user.id)
+   .order('created_at',{ascending:false}).limit(200);
+ if(feedbackError) throw new Error('Your feedback could not be loaded.');
+ const preferences=derivePreferences((ratings??[]) as FeedbackSample[],demo.template as Template);
+ const existing=(demo.draft_content??{}) as DemoCopy;
+ const updated={...existing,design:preferences};
+ if(JSON.stringify(existing.design??{})===JSON.stringify(preferences)) {
+    redirect('/app/demos/'+id+'?saved=unchanged');
+ }
+ const {error}=await supabase.rpc('save_demo_revision',{
+   p_demo_id:id,p_expected_revision:expectedRevision,p_content:updated,
+ });
+ if(error) throw new Error('Could not save learned revision: '+error.message);
+ revalidatePath('/app/demos/'+id);
+ redirect('/app/demos/'+id+'?saved=adapted');
 }
