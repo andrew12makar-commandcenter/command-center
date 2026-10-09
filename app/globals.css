@@ -1,0 +1,18 @@
+@import "tailwindcss";
+:root { color-scheme: dark; --bg: #070c11; --panel: #101821; --edge: #243745; --accent: #58d8ec; --text: #e8f0f4; --muted: #9bafb9; }
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: Arial, Helvetica, sans-serif; }
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; }
+.shell { min-height: 100vh; }
+.panel { background: linear-gradient(135deg, #121d27, #0c151d); border: 1px solid var(--edge); border-radius: 20px; }
+.kicker { color: var(--accent); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700; }
+.muted { color: var(--muted); }
+.btn { display: inline-block; padding: 0.75rem 1rem; border: 1px solid #2b6a77; border-radius: 12px; background: #16333d; color: #d3f8fd; font-weight: 600; cursor: pointer; }
+.btn:hover { background: #1e4854; }
+input { background: #0d1720; color: var(--text); border: 1px solid var(--edge); border-radius: 10px; padding: 0.7rem; width: 100%; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+td, th { padding: 1rem; border-bottom: 1px solid var(--edge); text-align: left; }
+th { color: var(--muted); font-weight: 500; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
