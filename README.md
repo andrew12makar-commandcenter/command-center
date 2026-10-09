@@ -65,3 +65,16 @@ Use GitHub Desktop to pull `feature/nextjs-foundation`, apply migration 0003 in 
 No new SQL migration is required beyond 0003. Every saved feedback event is already written to `demo_feedback`; the generator now reads authenticated user's feedback for every new site instead of waiting for five reviews. "What was learned" is visible below each demo. Numeric ratings and selected issue tags drive rules-based changes immediately. Unrecognized prose is stored for review but does not automatically prompt an AI or create unknown design changes. Optional "Apply my preferences" creates a revision of the current draft.
 
 The feedback form layout also has properly sized, responsive radio and checkbox inputs; global text-input styling no longer stretches selection inputs.
+
+## Manual local-business discovery pilot (Phase 4)
+
+A new `/app/discovery` page offers **explicit user-triggered** sources:
+- City of Boston certified-business directory (certified vendors only)
+- City of Boston food establishment licenses
+- OpenStreetMap local business POIs around Allston, Brighton or Brookline.
+
+Every scan uses a bounded public-source request and stages at most 25/50/75 new records in the existing `lead_import_rows` review queue. The original source, source ID and raw details are retained. No new migration or API key is needed.
+
+**Important limitations:** Boston Open Data APIs may return 403 or redirect to unapproved storage hosts. The interface displays a failure and leaves the database unchanged if so. You can instead download the official CSV and use the existing manual import page. OpenStreetMap is community data, subject to availability, attribution and ODbL licensing, and is not governmental verification. The source is only a lead to investigate. A bounded scan is not yet recurring automation. Duplicate protection currently checks known staged source IDs and a limited set of existing normalized names; more robust deduplication is needed before 500+ scale.
+
+No third-party listings are presumed claimed. No prospect is marked verified by these scans. Source terms/rate limits must be respected before scheduling or scaling.
