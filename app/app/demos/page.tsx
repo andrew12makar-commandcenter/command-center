@@ -27,7 +27,7 @@ export default async function DemoStudio({searchParams}:{searchParams:Promise<{c
           </select></label>
           <label className="mt-4 block text-sm">Design direction
             <select name="visual_variant" className="mt-2">
-              <option value="auto">Auto: use feedback after enough reviews</option>
+              <option value="auto">Auto: use your latest ratings immediately</option>
               <option value="editorial">Editorial / minimal</option>
               <option value="bold">Bold / high contrast</option>
             </select>
@@ -60,6 +60,6 @@ export default async function DemoStudio({searchParams}:{searchParams:Promise<{c
       </tbody></table>
       {!demos?.length&&!error&&<p className="muted p-6 text-sm">No drafts yet. Select real prospects above or generate one from its CRM record.</p>}
     </section>
-    <p className="muted mt-4 text-xs">All previews are private and authenticated. Ratings and revision history are recorded separately; after at least five distinct ratings per variant, the automatic design recommendation may adapt. Public sharing is not yet enabled.</p>
+    <p className="muted mt-4 text-xs">All previews are private and authenticated. Ratings and revision history are recorded separately; each rating immediately informs the next generated draft for your account and industry. Public sharing is not yet enabled.</p>
   </main>;
 }

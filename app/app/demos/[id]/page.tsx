@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireWorkspace } from '@/lib/workspace';
-import { rateDemo,saveDemoCopy } from '../feedback-actions';
-import type { DemoCopy } from '@/lib/demo-engine';
+import { rateDemo,saveDemoCopy,applyLearnedPreferences } from '../feedback-actions';
+import { derivePreferences, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
 import { ArrowUpRight, ArrowDown, Check, Phone, Mail, MapPin, Leaf, Sparkles, ShieldCheck, BadgeInfo } from 'lucide-react';
 
 const variants = {
@@ -31,7 +31,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
   const {data:demo,error}=await supabase.from('demo_sites').select('*')
     .eq('id',id).eq('organization_id',organizationId).maybeSingle();
   if(error||!demo) notFound();
-  const [{data:business},{data:feedback},{data:revisions},{data:myFeedback}]=await Promise.all([
+  const [{data:business},{data:feedback},{data:revisions},{data:myFeedback},{data:myRatings}]=await Promise.all([
     supabase.from('businesses').select('name,city,phone,contact_email,website_url,category')
       .eq('id',demo.business_id).eq('organization_id',organizationId).maybeSingle(),
     supabase.from('demo_feedback').select('rating,issue_tags,notes,created_at,revision_no')
@@ -39,11 +39,15 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
     supabase.from('demo_revisions').select('revision_no,created_at')
       .eq('demo_id',id).eq('organization_id',organizationId).order('revision_no',{ascending:false}).limit(10),
     supabase.from('demo_feedback').select('rating,issue_tags,notes')
-      .eq('demo_id',id).eq('organization_id',organizationId).eq('user_id',user.id).eq('revision_no',demo.revision_no).maybeSingle()
+      .eq('demo_id',id).eq('organization_id',organizationId).eq('user_id',user.id).eq('revision_no',demo.revision_no).maybeSingle(),
+    supabase.from('demo_feedback').select('demo_id,user_id,template,visual_variant,rating,issue_tags,notes,created_at')
+      .eq('organization_id',organizationId).eq('user_id',user.id).order('created_at',{ascending:false}).limit(200)
   ]);
   const copy=(demo.draft_content??{}) as Partial<DemoCopy>;
-  const variant=(demo.visual_variant==='bold'?'bold':'editorial') as keyof typeof variants;
+  const preferences=derivePreferences((myRatings??[]) as FeedbackSample[],demo.template as Template);
+  const variant=(copy.design?.variant??demo.visual_variant)==='bold'?'bold':'editorial';
   const style=variants[variant];
+  const design=copy.design;
   const info=sectorInfo[demo.template]??sectorInfo.universal;
   const MainIcon=info.icon;
   const name=copy.brand||business?.name||'Business name pending';
@@ -60,7 +64,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
       <Link className="btn" href={'/app/leads/'+demo.business_id}>CRM record <ArrowUpRight size={15}/></Link></div>
     </div>
     {saved&&<p role="status" className="mb-4 rounded-xl border border-[#2f726b] bg-[#14372f] p-3 text-sm text-[#bbebd8]">
-      <Check className="mr-2 inline" size={16}/>{saved==='rating'?'Feedback saved. Future recommendations will use sufficient rated examples.':'Copy saved as a new revision.'}
+      <Check className="mr-2 inline" size={16}/>{saved==='rating'?'Feedback saved. Your next generated demo now uses your updated preferences.':saved==='adapted'?'A new revision was created with your learned layout preferences.':saved==='unchanged'?'This demo already reflects your saved preferences.':'Copy saved as a new revision.'}
     </p>}
     <div className="mb-5 rounded-xl border border-amber-700/40 bg-amber-950/20 px-5 py-3 text-sm text-amber-200">
       <BadgeInfo className="mr-2 inline" size={16}/>Private concept. This is not an approved business website. Verify facts and obtain permission before sharing.
@@ -68,21 +72,21 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
     <div className={`overflow-hidden rounded-[24px] shadow-2xl shadow-black/30 ${style.surface}`}>
       <header className={`flex flex-wrap items-center justify-between gap-5 px-7 py-6 sm:px-12 ${style.surface}`}>
         <a href="#home" className="max-w-xs text-xl font-semibold tracking-tight">{name}</a>
-        <nav aria-label="Demo navigation" className="flex flex-wrap gap-7 text-xs font-bold uppercase tracking-wider">
+        <nav aria-label="Demo navigation" className={`flex flex-wrap gap-5 text-xs font-bold uppercase tracking-wider ${design?.prominentNav?'rounded-full border border-current/20 px-5 py-3':''}`}>
           <a href="#services" className="hover:underline">Services</a><a href="#about" className="hover:underline">About</a><a href="#contact" className="hover:underline">Contact</a>
         </nav>
       </header>
-      <section id="home" className={`relative grid items-center gap-12 overflow-hidden px-7 py-16 sm:px-12 lg:grid-cols-[1.1fr_.9fr] lg:py-20 ${style.hero}`}>
+      <section id="home" className={`relative grid items-center gap-10 overflow-hidden px-7 sm:px-12 lg:grid-cols-[1.1fr_.9fr] ${design?.compact?'py-10 lg:py-12':'py-16 lg:py-20'} ${style.hero}`}>
         <div className="relative z-10">
           <div className={`mb-7 inline-flex items-center gap-2 rounded-full border border-current/25 px-4 py-2 text-[10px] font-bold uppercase tracking-[.2em] ${style.eyebrow}`}><MainIcon size={15}/>{copy.eyebrow||info.label}</div>
-          <h2 className="max-w-[680px] text-[clamp(2.4rem,4.2vw,5rem)] font-semibold leading-[1.06] tracking-[-.055em]">{copy.headline||info.intro}</h2>
+          <h2 className="max-w-[680px] text-[clamp(2.2rem,3.8vw,4.5rem)] font-semibold leading-[1.06] tracking-[-.055em]">{copy.headline||info.intro}</h2>
           <p className="mt-7 max-w-lg text-base leading-8 opacity-80">{copy.description||'Business-approved messaging will appear here.'}</p>
           <div className="mt-9 flex flex-wrap items-center gap-6">
             <a href="#contact" className={`inline-flex items-center gap-3 rounded-full px-7 py-4 text-sm font-semibold ${style.action}`}>{copy.primaryAction||'Get in touch'}<ArrowUpRight size={18}/></a>
             <a href="#services" className="inline-flex items-center gap-2 text-sm font-semibold underline underline-offset-4">{copy.secondaryAction||'View services'}<ArrowDown size={16}/></a>
           </div>
         </div>
-        <div className={`relative mx-auto flex min-h-[350px] w-full max-w-[530px] items-center justify-center overflow-hidden rounded-[24px] ${style.dark}`}>
+        <div className={`relative mx-auto flex ${design?.compact?'min-h-[250px]':'min-h-[350px]'} w-full max-w-[530px] items-center justify-center overflow-hidden rounded-[24px] ${style.dark}`}>
           <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border border-white/25"></div>
           <div className="absolute -left-28 -bottom-28 h-80 w-80 rounded-full border border-white/20"></div>
           <div className="absolute inset-8 rounded-[200px_200px_30px_30px] border border-white/20"></div>
@@ -119,17 +123,42 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
       </section>
       <footer className="px-7 py-7 text-xs opacity-65 sm:px-12">{copy.disclaimer||'Independent demo concept. Details require verification.'}</footer>
     </div>
-    <div id="demo-feedback" className="mt-9 grid scroll-mt-8 gap-6 xl:grid-cols-2">
-      <section className="panel p-7"><p className="kicker">Iterative improvement</p><h2 className="mt-2 text-xl font-semibold">Rate this version</h2>
-        <p className="muted mt-3 text-sm">Feedback stays with revision {demo.revision_no??1}. Future drafts can use patterns across rated designs, not blind AI guesses.</p>
+    <div id="demo-feedback" className="mt-9 grid scroll-mt-8 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <section className="panel min-w-0 p-5 sm:p-7"><p className="kicker">Iterative improvement</p><h2 className="mt-2 text-xl font-semibold">Rate this version</h2>
+        <p className="muted mt-3 text-sm">Your rating immediately shapes the next demo. Criticisms like cramped navigation or generic copy also become design settings.</p>
         <form action={rateDemo} className="mt-6 space-y-4"><input type="hidden" name="demo_id" value={id}/>
-          <fieldset><legend className="text-sm">Overall design quality</legend><div className="mt-3 flex flex-wrap gap-3">{[1,2,3,4,5].map(n=><label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#35515c] px-3 py-2" key={n}>
-            <input type="radio" className="h-4 w-4" name="rating" value={n} defaultChecked={myFeedback?.rating===n} required/><span className="text-sm">{n} / 5</span></label>)}</div></fieldset>
-          <fieldset><legend className="text-sm">What needs improving?</legend><div className="mt-3 grid gap-3 sm:grid-cols-2">{issueOptions.map(([key,label])=><label key={key} className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="h-4 w-4" name="issues" value={key} defaultChecked={myFeedback?.issue_tags?.includes(key)}/>{label}</label>)}</div></fieldset>
-          <label className="block text-sm">Specific feedback<textarea name="notes" className="mt-2" rows={4} maxLength={1200} defaultValue={myFeedback?.notes??''} placeholder="What looks weak? What would make this good enough for a client?"/></label>
+          <fieldset><legend className="text-sm font-semibold">Overall design quality</legend>
+            <div className="mt-3 grid grid-cols-5 gap-2" role="radiogroup" aria-label="Overall design quality">
+              {[1,2,3,4,5].map(n=><label className="feedback-rating" key={n}>
+                <input type="radio" name="rating" value={n} defaultChecked={myFeedback?.rating===n} required aria-label={n+' out of 5'}/>
+                <span>{n}</span>
+              </label>)}
+            </div><p className="muted mt-2 text-xs">1 = Needs major work · 5 = Ready for refinement</p>
+          </fieldset>
+          <fieldset><legend className="text-sm font-semibold">What needs improving?</legend>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {issueOptions.map(([key,label])=><label key={key} className="feedback-choice text-sm">
+                <input type="checkbox" name="issues" value={key} defaultChecked={myFeedback?.issue_tags?.includes(key)}/>
+                <span className="min-w-0 leading-5">{label}</span>
+              </label>)}
+            </div>
+          </fieldset>
+          <label className="block text-sm">Specific feedback<textarea name="notes" className="mt-2" rows={4} maxLength={1200} defaultValue={myFeedback?.notes??''} placeholder="For example: smaller headline, tighter spacing, less copy, more visible contact button…"/></label>
           <button type="submit" className="btn">Save feedback</button>
         </form>
+        <div className="mt-7 rounded-2xl border border-[#2e5861] bg-[#112a35] p-5">
+          <p className="kicker">Your learned direction · Updated after every rating</p>
+          <h3 className="mt-2 text-base font-semibold">{preferences.feedbackCount} rating{preferences.feedbackCount===1?'':'s'} considered</h3>
+          <div className="mt-4 space-y-2">
+            {preferences.learnedFrom.length?preferences.learnedFrom.map(line=><p key={line} className="flex items-start gap-2 text-sm text-[#c6dae0]"><Check size={15} className="mt-0.5 shrink-0 text-cyan-300"/>{line}</p>):<p className="muted text-sm">Rate this version to start adapting future layouts.</p>}
+          </div>
+          <p className="muted mt-4 text-xs">New demos use these settings automatically. Free-form feedback is saved; only recognized instructions currently change the generator. No AI model is retrained.</p>
+          {preferences.feedbackCount>0&&<form action={applyLearnedPreferences} className="mt-4">
+            <input type="hidden" name="demo_id" value={id}/><input type="hidden" name="revision_no" value={demo.revision_no??1}/>
+            <button type="submit" className="btn w-full">Apply my preferences to this demo →</button>
+            <p className="muted mt-2 text-xs">Creates a new version without overwriting this one or changing your verified copy.</p>
+          </form>}
+        </div>
         <div className="mt-7 border-t border-[#2e424c] pt-5"><h3 className="text-sm font-semibold">Recent feedback</h3>
           {(feedback??[]).map((f,i)=><div className="mt-3 rounded-xl border border-[#2a3d46] p-3 text-sm" key={i}>
             <strong>{f.rating}/5 · revision {f.revision_no}</strong><p className="muted mt-1">{f.issue_tags?.join(', ')||'No issue categories'}</p>{f.notes&&<p className="mt-2">{f.notes}</p>}

@@ -53,9 +53,15 @@ The demo generator began as a layout skeleton. The next increment makes it evalu
 - New demos let an operator choose **Editorial**, **Bold**, or **Auto**.
 - Rate each demo/version 1–5, tag specific issues, and leave notes. Ratings are stored per operator/demo/revision.
 - Edit draft copy and confirmed services, then save a new version; prior copy is preserved in `demo_revisions` using an atomic database function.
-- **Auto style** changes default selection only when each style has at least five distinct rated examples in the same template category and the challenger scores clearly higher.
+- **Auto style now reacts to each saved rating immediately.** Recent per-user feedback for the same category takes priority; if none exists, other-category feedback provides a fallback. Low-scoring variants lose preference, high-scoring variants gain preference. Issue tags and recognized wording in feedback directly influence hero spacing, copy concision, and navigation in new drafts. The rated demo remains unchanged until the user chooses **Apply my preferences**; that creates a preserved revision.
 - This is rules-based learning from user evaluations, **not** self-training a language model, autonomous image generation, or automatic validation of business claims.
 - Approved images, client edit controls, full hosted website builds, and password-protected external share links remain future work.
 
 ### Local update
 Use GitHub Desktop to pull `feature/nextjs-foundation`, apply migration 0003 in Supabase SQL Editor, then restart the local Next.js server. You do **not** need to create new users, keys, or projects.
+
+## One-rating learning update
+
+No new SQL migration is required beyond 0003. Every saved feedback event is already written to `demo_feedback`; the generator now reads authenticated user's feedback for every new site instead of waiting for five reviews. "What was learned" is visible below each demo. Numeric ratings and selected issue tags drive rules-based changes immediately. Unrecognized prose is stored for review but does not automatically prompt an AI or create unknown design changes. Optional "Apply my preferences" creates a revision of the current draft.
+
+The feedback form layout also has properly sized, responsive radio and checkbox inputs; global text-input styling no longer stretches selection inputs.

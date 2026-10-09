@@ -9,14 +9,16 @@ export async function rateDemo(form:FormData) {
  const {supabase,organizationId,user}=await requireWorkspace(true);
  const id=shortText(form.get('demo_id'),64), rating=Number(form.get('rating'));
  if(!validUuid(id) || !Number.isInteger(rating) || rating<1 || rating>5) throw new Error('Choose a rating between 1 and 5.');
- const {data:demo}=await supabase.from('demo_sites').select('id,revision_no,template,visual_variant')
+ const {data:demo}=await supabase.from('demo_sites').select('id,revision_no,template,visual_variant,draft_content')
    .eq('id',id).eq('organization_id',organizationId).single();
  if(!demo) throw new Error('Demo not found.');
  const tags=Array.from(new Set(form.getAll('issues').map(String))).filter(t=>issueTags.includes(t));
  const notes=shortText(form.get('notes'),1200);
  const {error}=await supabase.from('demo_feedback').upsert({
     organization_id:organizationId,demo_id:id,user_id:user.id,
-    revision_no:demo.revision_no,template:demo.template,visual_variant:demo.visual_variant,
+    revision_no:demo.revision_no,template:demo.template,
+    visual_variant:demo.draft_content?.design?.variant === 'bold'?'bold':
+      demo.draft_content?.design?.variant === 'editorial'?'editorial':demo.visual_variant,
     rating,issue_tags:tags,notes
  },{onConflict:'demo_id,user_id,revision_no'});
  if(error) throw new Error('Cannot save feedback: '+error.message);

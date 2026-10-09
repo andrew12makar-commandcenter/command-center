@@ -11,7 +11,13 @@ button,input,select,textarea {font:inherit;}
 .muted {color:var(--muted);}
 .btn {display:inline-flex;align-items:center;justify-content:center;padding:.75rem 1rem;border:1px solid #326c79;border-radius:11px;background:linear-gradient(140deg,#173b47,#132d37);color:#dbfaff;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap;}
 .btn:hover {background:#215261;border-color:#55b4c7;}
-input,select,textarea {background:#0b1822;color:var(--text);border:1px solid var(--edge);border-radius:11px;padding:.72rem;width:100%;}
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),select,textarea {background:#0b1822;color:var(--text);border:1px solid var(--edge);border-radius:11px;padding:.72rem;width:100%;}
+input[type="radio"],input[type="checkbox"] {width:1rem;height:1rem;min-width:1rem;flex:0 0 1rem;margin:0;padding:0;accent-color:#70dce9;cursor:pointer;}
+fieldset{min-width:0;}
+.feedback-choice {display:flex;min-width:0;align-items:center;gap:.75rem;cursor:pointer;border:1px solid #334b58;border-radius:13px;padding:.85rem 1rem;transition:border-color .15s,background .15s;}
+.feedback-choice:hover,.feedback-choice:has(input:checked){border-color:#5ca8b8;background:#18323d;}
+.feedback-rating {display:flex;min-width:0;align-items:center;justify-content:center;gap:.55rem;cursor:pointer;border:1px solid #334b58;border-radius:13px;padding:.9rem .5rem;font-size:.9rem;transition:border-color .15s,background .15s;}
+.feedback-rating:hover,.feedback-rating:has(input:checked){border-color:#5dd3e4;background:#19414a;}
 input[type=file] {font-size:.85rem;}
 textarea {resize:vertical;}
 input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid #6de2ef;outline-offset:2px;}
