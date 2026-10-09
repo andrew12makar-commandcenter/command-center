@@ -67,6 +67,8 @@ export async function updateLead(form: FormData) {
     next_follow_up_on:followUp(shortText(form.get('next_follow_up_on'),10)),
     contact_name:shortText(form.get('contact_name')),
     contact_email:shortText(form.get('contact_email')),
+    website_url:webUrl(form.get('website_url')),
+    google_business_url:webUrl(form.get('google_business_url')),
     notes:shortText(form.get('notes'),3000),
     updated_at:new Date().toISOString(),
     ...(stage!==prior.pipeline_status && ['contacted','visited','proposal_sent','won'].includes(stage) ? {last_contact_at:new Date().toISOString()}:{}),

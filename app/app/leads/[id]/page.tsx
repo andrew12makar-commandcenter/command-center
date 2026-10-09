@@ -42,6 +42,9 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
             <label className="text-sm">Next follow-up<input name="next_follow_up_on" className="mt-2" type="date" defaultValue={b.next_follow_up_on??''}/></label>
             <label className="text-sm">Contact name<input name="contact_name" className="mt-2" defaultValue={b.contact_name??''}/></label>
             <label className="text-sm">Contact email<input name="contact_email" type="email" className="mt-2" defaultValue={b.contact_email??''}/></label>
+            <label className="text-sm">Confirmed business website<input name="website_url" type="url" className="mt-2" defaultValue={b.website_url??''} placeholder="https://official-business-site.com"/></label>
+            <label className="text-sm">Google Business Profile link, if found<input name="google_business_url" type="url" className="mt-2" defaultValue={b.google_business_url??''} placeholder="https://maps.google.com/…"/></label>
+            <p className="muted text-xs md:col-span-2">Only enter a website or listing URL you independently matched to this business. A missing link in map data does not mean the business has none.</p>
             <label className="text-sm">Priority score (0–100)<input name="priority_score" type="number" min="0" max="100" className="mt-2" defaultValue={b.priority_score??''}/></label>
             <label className="text-sm">Evidence behind score<input name="score_rationale" className="mt-2" defaultValue={b.score_rationale??''} placeholder="Observed, checkable reasons"/></label>
             <label className="text-sm md:col-span-2">Working notes<textarea name="notes" rows={4} className="mt-2" defaultValue={b.notes??''}/></label>
