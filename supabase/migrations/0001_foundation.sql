@@ -150,3 +150,14 @@ for update to authenticated using (
  organization_id in (select organization_id from public.organization_members where user_id = (select auth.uid()) and role in ('owner','admin','editor'))
  and exists (select 1 from public.businesses b where b.id = business_id and b.organization_id = organization_id)
 );
+
+-- Supabase project setting "Automatically expose new tables" is OFF.
+-- Grant only the Data API privileges that the current app actually needs.
+-- These SQL grants do not bypass any of the row-level policies above.
+grant usage on schema public to authenticated;
+grant select on public.organizations to authenticated;
+grant select on public.organization_members to authenticated;
+grant select, insert, update on public.businesses to authenticated;
+grant select, insert on public.business_sources to authenticated;
+grant select, insert on public.website_assessments to authenticated;
+grant select, insert, update on public.demo_sites to authenticated;
