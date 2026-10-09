@@ -7,7 +7,7 @@ import { requireWorkspace, shortText, validUuid, webUrl } from '@/lib/workspace'
 import { parseCsv, normalizedHeader, normalizeBusiness } from '@/lib/csv';
 
 const STAGES = ['not_contacted','contacted','visited','proposal_sent','won','lost'];
-const VERIFICATIONS = ['unverified','pending','verified'];
+const OPERATIONS = ['unknown','operating','opening','closed'];
 const ACTIVITIES = ['note','call','email','visit','meeting','proposal','status'];
 
 function followUp(s:string): string | null {
@@ -52,6 +52,8 @@ export async function updateLead(form: FormData) {
   if(!validUuid(id)) throw new Error('Invalid lead ID.');
   const stage=shortText(form.get('pipeline_status'));
   if(!STAGES.includes(stage)) throw new Error('Invalid pipeline stage.');
+  const operational_status=shortText(form.get('operational_status'));
+  if(!OPERATIONS.includes(operational_status)) throw new Error('Invalid operating status.');
   const priority_score=scoreInput(shortText(form.get('priority_score'),4));
   const score_rationale=shortText(form.get('score_rationale'),500);
   if(priority_score!==null && score_rationale.length<8) throw new Error('Opportunity scores need an evidence-based rationale.');
@@ -59,7 +61,8 @@ export async function updateLead(form: FormData) {
     .select('pipeline_status').eq('id',id).eq('organization_id',organizationId).single();
   if(!prior) throw new Error('Lead not found.');
   const { error } = await supabase.from('businesses').update({
-    pipeline_status:stage,
+    pipeline_status:stage,operational_status,
+    ...(operational_status !== 'operating' ? {verification_status:'pending'} : {}),
     priority_score,score_rationale,
     next_follow_up_on:followUp(shortText(form.get('next_follow_up_on'),10)),
     contact_name:shortText(form.get('contact_name')),
@@ -127,6 +130,9 @@ export async function markVerified(form: FormData) {
   const {supabase,organizationId}=await requireWorkspace(true);
   const id=shortText(form.get('business_id'),64);
   if(!validUuid(id)) throw new Error('Invalid lead ID.');
+  const {data:lead}=await supabase.from('businesses').select('operational_status')
+    .eq('id',id).eq('organization_id',organizationId).maybeSingle();
+  if(lead?.operational_status!=='operating') throw new Error('Confirm that the business is currently operating before marking verified.');
   const {count,error:sourceError}=await supabase.from('business_sources')
     .select('id',{count:'exact',head:true})
     .eq('business_id',id).eq('organization_id',organizationId).eq('confidence','matched');

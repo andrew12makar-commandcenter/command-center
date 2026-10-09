@@ -1,52 +1,46 @@
 # Command Center
 
-Private Next.js command center for a local-business services venture, designed to support a separate MCAT module later. This repository is **not** affiliated with the Campus2Care codebase.
+Private Next.js infrastructure for the for-profit local-business services venture (separate from nonprofit Campus2Care). The MCAT module is scheduled separately.
 
-## Requirements
-- Node.js **24 LTS** (recommended; use a version manager with `.nvmrc`)
-- npm
-- A **separate** Supabase project, created under the for-profit venture
-- Optional Vercel project for deployment
+## Current build
 
-## Run locally
+- Supabase-authenticated private workspace, organization memberships, and row-level access control.
+- Live overview showing actual database counts.
+- Business CRM: create business, update sales stage, assign evidence-based score, track contacts/follow-ups, and log activity.
+- Business source links, manual source confirmation, separate operational/identity verification.
+- CSV staging queue, up to 500 records per upload. Each row is individually reviewed before promotion. Possible exact normalized name+city duplicates are flagged, not merged automatically. CSV intake is **not** automated registry discovery.
+- Demo studio with landscaping/home-services, medical/dental, and universal business concepts; one-off and batches of up to 20. Previews remain internal. No invented marketing claims.
+
+## Local setup
+
+Use Node.js 24 LTS when possible. Clone `feature/nextjs-foundation` (or use GitHub Desktop), then:
+
 ```bash
-git clone https://github.com/andrew12makar-commandcenter/command-center.git
-cd command-center
 npm install
 cp .env.example .env.local
+npm run typecheck
 npm run dev
 ```
-Visit http://localhost:3000. Without Supabase credentials, the public holding page works and private routes display a setup message.
 
-## Connect Supabase
-1. Create a **new Supabase project** for Command Center.
-2. In the SQL editor, run `supabase/migrations/0001_foundation.sql`.
-3. Copy project URL and **publishable** API key into `.env.local`; never commit secrets.
-4. Create your first user in Supabase Authentication.
-5. From the SQL editor (admin-only), replace the user ID below with the auth user ID, then run:
+Populate `.env.local` only with the Supabase project URL and **publishable** key, not the database password or service role key. The personal project has already been provisioned as of October 9, 2026.
 
-```sql
-with org as (
-  insert into public.organizations(name) values ('Command Center') returning id
-)
-insert into public.organization_members (organization_id, user_id, role)
-select id, 'REPLACE_WITH_AUTH_USER_UUID'::uuid, 'owner' from org;
-```
+## Database migrations
 
-6. Restart `npm run dev`, then sign in at `/login`.
+- `0001_foundation.sql`: original organization/data model, already applied manually to the separate Command Center Supabase project.
+- **`0002_sales_workflows.sql`: NEW. Open in Supabase SQL Editor and execute once before using the new CRM screens.** Adds follow-up/contact fields, business activity and CSV staging, with explicit row-level policies and grants.
 
-## Security and scope
-- `/app` is authenticated server-side through Supabase Auth.
-- Organization data is isolated through database Row Level Security.
-- No service-role key is shipped to the browser.
-- Shared client-demo links, CSV import, production scan jobs, and public client marketing pages are **not yet implemented**. This is the first infrastructure increment, not the full MVP.
-- All external-business facts must retain provenance. Never mark a business verified based solely on AI inference.
+Do **not** rerun 0001. Do **not** create another organization or owner record. Existing login and org membership will continue working.
 
-## Project milestones
-1. [x] Repository foundation, authorization structure, initial schema, dashboard shell.
-2. [ ] Authenticated local run with independent Supabase project.
-3. [ ] Verified government-data ingestion, review queue, deduplication, first 500+ researched companies.
-4. [ ] Lead scoring and visit pipeline.
-5. [ ] Three integrated customizable demo templates; secure client sharing.
-6. [ ] Scheduled discovery, weekly website checks, monthly registration rechecks.
-7. [ ] Refined futuristic HUD visual system and voice command affordances after design review.
+## Security and limitations
+
+- Organization-scoped RLS, no service-role keys in the client.
+- Manual evidence review does not guarantee real-time business operation: field check still required. The app requires confirmed operating status and one reviewed source for a verification designation.
+- Staged records are not verified; detected duplicates are review flags only.
+- CSV matching currently checks up to the first 1,000 business records; this is not full entity resolution. Improve before scaling beyond initial cohort.
+- Internal concept previews are **not public client websites**. Password-protected expiring sharing, content editing, and actual hosted client demos still need implementation.
+- Automated registry ingestion, scanning schedules, website audits, map view, opportunity scoring model, Vercel deployment, visual HUD/voice layer, and MCAT platform are **not yet built**.
+- Do not use nonprofit-owned infrastructure or subscriptions for unrelated for-profit operations without explicit authorization.
+
+## Tests
+
+Run `npm run typecheck` then `npm run build`. The branch also has a GitHub Actions CI workflow. Do not merge until CI and a manual login/CRM smoke test pass.

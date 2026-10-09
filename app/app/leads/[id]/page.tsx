@@ -30,6 +30,9 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
       <div className="space-y-6">
         <section className="panel p-7"><p className="kicker">Sales operations</p><h2 className="mt-2 text-xl font-semibold">Pipeline & next action</h2>
           <form action={updateLead} className="mt-6 grid gap-4 md:grid-cols-2"><input type="hidden" name="id" value={id}/>
+            <label className="text-sm">Operating status<select name="operational_status" className="mt-2" defaultValue={b.operational_status}>
+              <option value="unknown">Not checked</option><option value="operating">Confirmed operating</option><option value="opening">Opening soon</option><option value="closed">Closed</option>
+            </select></label>
             <label className="text-sm">Pipeline status<select name="pipeline_status" className="mt-2" defaultValue={b.pipeline_status}>{stages.map(x=><option value={x} key={x}>{label(x)}</option>)}</select></label>
             <label className="text-sm">Next follow-up<input name="next_follow_up_on" className="mt-2" type="date" defaultValue={b.next_follow_up_on??''}/></label>
             <label className="text-sm">Contact name<input name="contact_name" className="mt-2" defaultValue={b.contact_name??''}/></label>
@@ -76,7 +79,7 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
           {b.verification_status!=='verified' && <form action={markVerified} className="mt-5 border-t border-[#243745] pt-5">
             <input type="hidden" name="business_id" value={id}/>
             <button type="submit" className="btn">Mark business verified</button>
-            <p className="muted mt-2 text-xs">Requires at least one manually confirmed matching source.</p>
+            <p className="muted mt-2 text-xs">Requires a manually matched source and confirmed operating status.</p>
           </form>}
         </section>
         <section className="panel p-7"><p className="kicker">Proposal accelerator</p><h2 className="mt-2 text-xl font-semibold">Website demo drafts</h2>
