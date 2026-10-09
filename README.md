@@ -78,3 +78,15 @@ Every scan uses a bounded public-source request and stages at most 25/50/75 new 
 **Important limitations:** Boston Open Data APIs may return 403 or redirect to unapproved storage hosts. The interface displays a failure and leaves the database unchanged if so. You can instead download the official CSV and use the existing manual import page. OpenStreetMap is community data, subject to availability, attribution and ODbL licensing, and is not governmental verification. The source is only a lead to investigate. A bounded scan is not yet recurring automation. Duplicate protection currently checks known staged source IDs and a limited set of existing normalized names; more robust deduplication is needed before 500+ scale.
 
 No third-party listings are presumed claimed. No prospect is marked verified by these scans. Source terms/rate limits must be respected before scheduling or scaling.
+
+## Phase 5: Evidence-based Website Intelligence
+
+At `/app/intelligence` users can trigger a single mobile Lighthouse website check against an **approved CRM prospect**. The app calls Google's `PageSpeed Insights v5` REST API and saves a curated timestamped record to the existing RLS-protected `website_assessments` table. **No new Supabase migration is required.**
+
+No direct backend requests are made to prospect websites. The site URL is restricted to public HTTP/HTTPS domain names without embedded credentials, and query strings are stripped before sending to Google. The PageSpeed endpoint is always a fixed Google domain. Optional `PAGESPEED_API_KEY` may be provided privately in `.env.local` if Google requires an API key or the public quota is exhausted.
+
+Each successful assessment reports mobile lab performance and SEO categories, basic title/meta/viewport/crawlability audits, and a reproducible preliminary technical-improvement score. Missing API results, rate limits and website errors are recorded as **inconclusive**, never passed off as website defects. An owner can repeat scans no more than every 20 minutes per business.
+
+**This is not overall lead scoring.** It does not estimate client budget, Google Business Profile ownership, competitive ranking or whether a business has *no* website. The existing manually entered `priority_score` remains untouched. This is a live external integration, so its network success must be tested from the user's running Next.js application.
+
+Next: review the 25 Brighton candidates; promote genuine matches and link their actual websites; test a handful of Lighthouse checks; then build a composite scored priority with explicit unknown data and business value weighting. Avoid any claim that PageSpeed alone proves sales opportunity.

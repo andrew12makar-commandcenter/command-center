@@ -26,6 +26,11 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
       <div className="flex gap-3">{b.website_url && <a className="btn" target="_blank" rel="noreferrer" href={b.website_url}>Visit website ↗</a>}
         {b.google_business_url && <a className="btn" target="_blank" rel="noreferrer" href={b.google_business_url}>Google profile ↗</a>}</div>
     </div>
+    <section className="panel mt-7 flex flex-wrap items-center justify-between gap-4 p-5">
+      <div><p className="kicker">Website Intelligence</p><h2 className="mt-2 text-lg font-semibold">Inspect performance and technical SEO</h2>
+      <p className="muted mt-2 text-sm">Evidence-backed mobile PageSpeed results, separate from your manual sales priority.</p></div>
+      <Link href="/app/intelligence" className="btn">Open website audits →</Link>
+    </section>
     <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
       <div className="space-y-6">
         <section className="panel p-7"><p className="kicker">Sales operations</p><h2 className="mt-2 text-xl font-semibold">Pipeline & next action</h2>

@@ -3,12 +3,13 @@ import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { hasSupabaseConfig } from '@/lib/supabase/config';
 import { signOut } from '@/app/login/actions';
-import { LayoutDashboard, Building2, Upload, PanelsTopLeft, ShieldCheck, ScanSearch } from 'lucide-react';
+import { LayoutDashboard, Building2, Upload, PanelsTopLeft, ShieldCheck, ScanSearch, Activity } from 'lucide-react';
 
 const links=[
   {href:'/app',icon:LayoutDashboard,label:'Mission Control'},
   {href:'/app/leads',icon:Building2,label:'Business CRM'},
   {href:'/app/discovery',icon:ScanSearch,label:'Prospect Discovery'},
+  {href:'/app/intelligence',icon:Activity,label:'Website Intelligence'},
   {href:'/app/leads/import',icon:Upload,label:'Lead intake'},
   {href:'/app/demos',icon:PanelsTopLeft,label:'Demo studio'},
 ];
