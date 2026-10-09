@@ -2,29 +2,20 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireWorkspace, shortText, validUuid } from '@/lib/workspace';
+import { chooseVariant, createDraft, templates, variants, type Template, type Variant, type FeedbackSample } from '@/lib/demo-engine';
 
-const templates=['landscaping','medical','universal'] as const;
-type Template=typeof templates[number];
-
-function draftFor(name:string,city:string|null,category:string|null,template:Template){
-  // Never invent service offerings, years of experience, ratings, or credentials.
-  const tag:Record<Template,string>={
-    landscaping:'Thoughtful outdoor spaces, built around your goals',
-    medical:'An easier way for patients to get in touch',
-    universal:'A clearer way to discover and contact your business'
-  };
-  return {
-    brand:name,eyebrow:city||'Local services',
-    headline:tag[template],
-    description:`Explore how a modern website could present ${name} to prospective customers. Service descriptions, credentials and contact details require client confirmation.`,
-    primaryAction:'Contact the business',
-    secondaryAction:'Explore services',
-    services:['Service offering to confirm','Service offering to confirm','Service offering to confirm'],
-    disclaimer:'Concept demo only. This website is not affiliated with or approved by the business unless expressly confirmed.',
-    category:category||'Services',
-  };
+async function getVariant(
+  supabase: Awaited<ReturnType<typeof requireWorkspace>>['supabase'],
+  organizationId:string, template:Template, requested:string
+):Promise<Variant> {
+  if(variants.includes(requested as Variant)) return requested as Variant;
+  const {data,error}=await supabase.from('demo_feedback')
+    .select('demo_id,user_id,visual_variant,rating')
+    .eq('organization_id',organizationId).eq('template',template)
+    .order('created_at',{ascending:false}).limit(500);
+  if(error) throw new Error('Unable to read design feedback: '+error.message);
+  return chooseVariant((data??[]) as FeedbackSample[]);
 }
-
 export async function createDemo(form:FormData){
   const {supabase,organizationId}=await requireWorkspace(true);
   const id=shortText(form.get('business_id'),64);
@@ -33,9 +24,10 @@ export async function createDemo(form:FormData){
   const {data:b}=await supabase.from('businesses').select('id,name,city,category')
     .eq('id',id).eq('organization_id',organizationId).maybeSingle();
   if(!b) throw new Error('Business not found.');
+  const variant=await getVariant(supabase,organizationId,template,shortText(form.get('visual_variant')));
   const {data,error}=await supabase.from('demo_sites').insert({
-    organization_id:organizationId,business_id:id,template,status:'draft',
-    draft_content:draftFor(b.name,b.city,b.category,template),
+    organization_id:organizationId,business_id:id,template,visual_variant:variant,status:'draft',
+    draft_content:createDraft(b.name,b.city,b.category,template),
   }).select('id').single();
   if(error||!data) throw new Error(error?.message??'Demo could not be saved.');
   revalidatePath('/app');revalidatePath('/app/demos');revalidatePath('/app/leads/'+id);
@@ -50,9 +42,10 @@ export async function createDemoBatch(form:FormData){
   const {data:businesses,error:findError}=await supabase.from('businesses')
     .select('id,name,city,category').eq('organization_id',organizationId).in('id',ids);
   if(findError||businesses?.length!==ids.length) throw new Error('One or more businesses were not found in your organization.');
+  const variant=await getVariant(supabase,organizationId,template,shortText(form.get('visual_variant')));
   const {error}=await supabase.from('demo_sites').insert(businesses.map(b=>({
-    organization_id:organizationId,business_id:b.id,template,status:'draft',
-    draft_content:draftFor(b.name,b.city,b.category,template),
+    organization_id:organizationId,business_id:b.id,template,visual_variant:variant,status:'draft',
+    draft_content:createDraft(b.name,b.city,b.category,template),
   })));
   if(error) throw new Error('Batch creation failed: '+error.message);
   revalidatePath('/app');revalidatePath('/app/demos');
