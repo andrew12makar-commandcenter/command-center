@@ -36,13 +36,13 @@ export default async function WebsiteIntelligence({
    {p.audited&&<div className="panel mt-7 border-[#29615f] p-5 text-cyan-100" role="status">
       The test result was saved. Review its measured findings below. A partial or failed Google request is recorded as inconclusive, not a bad website.</div>}
    <div className="mt-8 grid gap-5 sm:grid-cols-3">
-    {[
+    {([
      ['CRM businesses',businesses?.length??0,Globe2],
      ['Awaiting lead review',pending??0,ScanSearch],
      ['Recorded assessments',assessments?.length??0,Activity]
-    ].map(([label,value,Icon])=><section key={label as string} className="panel p-6">
-      <div className="flex items-center gap-3"><Icon size={18} className="text-cyan-300"/><span className="muted text-sm">{label as string}</span></div>
-      <p className="mt-5 text-3xl font-semibold">{value as number}</p>
+    ] as const).map(([label,value,Icon])=><section key={label} className="panel p-6">
+      <div className="flex items-center gap-3"><Icon size={18} className="text-cyan-300"/><span className="muted text-sm">{label}</span></div>
+      <p className="mt-5 text-3xl font-semibold">{value}</p>
     </section>)}
    </div>
    <section className="panel mt-7 overflow-x-auto">
