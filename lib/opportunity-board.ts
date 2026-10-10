@@ -4,14 +4,14 @@ import {classifyIndustry,researchPriority} from './business-classification.ts';
 export type OpportunityBusiness={
  id:string;name:string;category:string|null;city:string|null;
  service_area:string|null;website_url:string|null;
- verification_status:string;operational_status:string;
+ verification_status:string;operational_status:string;pipeline_status:string;
  priority_score:number|null;phone:string|null;contact_email:string|null;
 };
 export type AuditRecord={
  business_id:string;website_url:string|null;status:string;assessed_at:string;
  findings:Record<string,unknown>|null;
 };
-export type BoardStage='technical_review'|'verify_business'|'audit_website'|'research_website'|'no_measured_gaps'|'inconclusive';
+export type BoardStage='technical_review'|'verify_business'|'audit_website'|'research_website'|'no_measured_gaps'|'inconclusive'|'inactive';
 export type BoardItem={
  business:OpportunityBusiness;stage:BoardStage;
  technicalScore:number|null;researchScore:number;reason:string;
@@ -55,7 +55,12 @@ export function scoreOpportunity(
  const sector=industry.confidence==='unknown'?'Industry not classified':industry.template==='medical'?
   'Medical/clinical sector hint':industry.template==='landscaping'?'Home/field-services sector hint':'Other recorded industry';
  let stage:BoardStage,reason:string;
- if(!business.website_url){
+ if(business.operational_status==='closed'||business.pipeline_status==='won'||business.pipeline_status==='lost'){
+  stage='inactive';
+  reason=business.operational_status==='closed'?'Marked closed in CRM; do not prospect without reconfirmation.':
+   business.pipeline_status==='won'?'Already won in the sales pipeline; manage as a client rather than a new prospect.':
+   'Previously marked lost; do not automatically restart outreach.';
+ }else if(!business.website_url){
   stage='research_website';
   reason=sector+'; no website recorded, which does not prove absence.';
  }else if(!latest){
@@ -79,7 +84,7 @@ export function scoreOpportunity(
 }
 const stageOrder:Record<BoardStage,number>={
  technical_review:0,verify_business:1,audit_website:2,research_website:3,
- inconclusive:4,no_measured_gaps:5
+ inconclusive:4,no_measured_gaps:5,inactive:6
 };
 export function sortOpportunities(items:BoardItem[]):BoardItem[]{
  return [...items].sort((a,b)=>stageOrder[a.stage]-stageOrder[b.stage]||
@@ -93,5 +98,6 @@ export const stageLabels:Record<BoardStage,string>={
  audit_website:'Website audit needed',
  research_website:'Find / confirm website',
  inconclusive:'Inconclusive audit',
- no_measured_gaps:'No measured technical gaps'
+ no_measured_gaps:'No measured technical gaps',
+ inactive:'Inactive / already handled'
 };
