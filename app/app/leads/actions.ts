@@ -249,6 +249,7 @@ export async function linkImportedDuplicate(form:FormData){
  const {supabase,organizationId}=await requireWorkspace(true);
  const id=shortText(form.get('row_id'),64),businessId=shortText(form.get('matched_business_id'),64);
  if(!validUuid(id)||!validUuid(businessId))throw new Error('Invalid staging or business record.');
+ if(form.get('confirm_same')!=='yes')throw Error('Confirm that the staged record and CRM record refer to the same business.');
  const [{data:row,error:rowError},{data:business,error:businessError}]=await Promise.all([
   supabase.from('lead_import_rows').select('*').eq('organization_id',organizationId)
     .eq('id',id).eq('review_status','pending').maybeSingle(),
