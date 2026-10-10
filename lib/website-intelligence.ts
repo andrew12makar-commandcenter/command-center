@@ -50,7 +50,7 @@ function score100(v:unknown):number|null{
  return Math.round(v*100);
 }
 function short(value:unknown,n=240){return String(value??'').slice(0,n);}
-export function interpretPageSpeed(data:PageSpeedResponse,requested:string,at='2026-10-09T00:00:00.000Z'):Assessment{
+export function interpretPageSpeed(data:PageSpeedResponse,requested:string,at=new Date().toISOString()):Assessment{
  const report=data.lighthouseResult;
  const fallback=(note:string):Assessment=>({
   status:'inconclusive',evidence:[],
@@ -61,18 +61,19 @@ export function interpretPageSpeed(data:PageSpeedResponse,requested:string,at='2
  });
  if(!report || report.runtimeError)return fallback(
   report?.runtimeError?'Lighthouse reported a runtime error. No technical findings were confirmed.':'PageSpeed returned no Lighthouse audit results.');
+ const measuredAt=report.fetchTime||at;
  const perf=score100(report.categories?.performance?.score),
        seo=score100(report.categories?.seo?.score);
  const evidence:AuditEvidence[]=auditIds.map(id=>{
   const a=report.audits?.[id],s=score100(a?.score);
   return {id,title:short(a?.title||id,130),
-   score:s,result:s===null?'unknown':s===0?'failed':'passed',
-   detail:short(a?.displayValue||'',200),source:'Google Lighthouse' as const,measured_at:at};
+   score:s,result:s===null?'unknown':s<100?'failed':'passed',
+   detail:short(a?.displayValue||'',200),source:'Google Lighthouse' as const,measured_at:measuredAt};
  });
  let score:number|null=null;
  // Both categories must be present to make scores comparable across websites.
  // A single mobile lab test is a technical signal, not business spend or market value.
- if(perf!==null&&seo!==null){
+ if(perf!==null&&seo!==null&&evidence.every(x=>x.result!=='unknown')){
    const base=(100-perf)*0.4+(100-seo)*0.35;
    const flags:{[id:string]:number}={'document-title':9,'meta-description':9,'viewport':7,'is-crawlable':0};
    score=Math.round(Math.max(0,Math.min(100,base+evidence.reduce((n,x)=>n+(x.result==='failed'?(flags[x.id]||0):0),0))));
@@ -82,15 +83,15 @@ export function interpretPageSpeed(data:PageSpeedResponse,requested:string,at='2
  const performanceGap=perf!==null && perf<50;
  const seoGap=seo!==null && seo<80;
  const status:AuditStatus=failed.length||performanceGap||seoGap?'verified_gaps':
-   perf===null||seo===null?'inconclusive':'no_gaps';
+   perf===null||seo===null||measured<auditIds.length?'inconclusive':'no_gaps';
  return {status,evidence,findings:{
   version:1,provider:'Google PageSpeed Insights',strategy:'mobile',
-  analyzed_url:requested,final_url:report.finalUrl||null,measured_at:report.fetchTime||at,
+  analyzed_url:requested,final_url:report.finalUrl||null,measured_at:measuredAt,
   performance_score:perf,seo_score:seo,technical_opportunity_score:score,
   measured_checks:measured,flagged_checks:failed.length+(performanceGap?1:0)+(seoGap?1:0),
   note:status==='verified_gaps'?'One mobile Lighthouse test found possible improvement opportunities. Confirm before pitching.':
     status==='no_gaps'?'No issues detected in these limited Lighthouse checks; not proof a website is problem-free.':
-    'Some audit categories were unavailable. Do not rank this site from missing metrics.'
+    'Some audit categories or checks were unavailable. Do not rank this site from incomplete metrics.'
  }};
 }
 export function inconclusiveAudit(url:string,message:string,at=new Date().toISOString()):Assessment{
@@ -121,6 +122,7 @@ export async function analyzeWebsite(
    const response=await requester(endpoint,{cache:'no-store',signal:AbortSignal.timeout(45_000),
      redirect:'error',headers:{Accept:'application/json'}});
    if(response.status===429)return inconclusiveAudit(url,'Google PageSpeed is rate limiting requests (HTTP 429). Try later.',now);
+   if(response.status===401||response.status===403)return inconclusiveAudit(url,'Google PageSpeed denied the request (HTTP '+response.status+'). Check API access and server-side PAGESPEED_API_KEY configuration.',now);
    if(!response.ok)return inconclusiveAudit(url,'Google PageSpeed could not complete the test (HTTP '+response.status+'). Check API availability or key configuration.',now);
    const data=await response.json() as PageSpeedResponse;
    return interpretPageSpeed(data,url,now);
