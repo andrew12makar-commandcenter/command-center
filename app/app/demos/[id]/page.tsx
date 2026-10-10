@@ -16,6 +16,29 @@ const variants = {
    action:'bg-[#aa4f30] text-white',detail:'bg-[#e0ccb0]',border:'border-[#d6bca0]',dark:'bg-[#302920] text-white',
  }
 } as const;
+
+// Clinical demos should never inherit the garden-green landscaping visual identity.
+const medicalVariants={
+ editorial:{
+  surface:'bg-[#f8fbff] text-[#142d47]',hero:'bg-[#eaf2f9]',eyebrow:'text-[#296688]',
+  action:'bg-[#15466e] text-white',detail:'bg-[#e0ecf5]',border:'border-[#cadbe9]',dark:'bg-[#123750] text-white'
+ },
+ bold:{
+  surface:'bg-[#f8fbff] text-[#102945]',hero:'bg-[#dceaf9]',eyebrow:'text-[#155f8d]',
+  action:'bg-[#075a8c] text-white',detail:'bg-[#cfe1f1]',border:'border-[#b4cbde]',dark:'bg-[#102d53] text-white'
+ }
+} as const;
+const professionalVariants={
+ editorial:{
+  surface:'bg-[#faf9f6] text-[#252c38]',hero:'bg-[#eceef0]',eyebrow:'text-[#596f83]',
+  action:'bg-[#293a50] text-white',detail:'bg-[#e0e5e8]',border:'border-[#ced5dd]',dark:'bg-[#283849] text-white'
+ },
+ bold:{
+  surface:'bg-[#fafafa] text-[#212a39]',hero:'bg-[#e6ebf3]',eyebrow:'text-[#345b88]',
+  action:'bg-[#2f5080] text-white',detail:'bg-[#d5dfec]',border:'border-[#bac7d9]',dark:'bg-[#1c3558] text-white'
+ }
+} as const;
+
 const sectorInfo:Record<string,{label:string;intro:string;icon:typeof Leaf}> = {
  landscaping:{label:'OUTDOOR SERVICES',intro:'Thoughtful spaces begin with a straightforward conversation.',icon:Leaf},
  medical:{label:'PATIENT SERVICES',intro:'A simpler starting point for patients and families.',icon:ShieldCheck},
@@ -49,7 +72,8 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
   const copy=(demo.draft_content??{}) as Partial<DemoCopy>;
   const preferences=derivePreferences((myRatings??[]) as FeedbackSample[],demo.template as Template);
   const variant=(copy.design?.variant??demo.visual_variant)==='bold'?'bold':'editorial';
-  const style=variants[variant];
+  const style=demo.template==='medical'?medicalVariants[variant]:
+    demo.template==='universal'?professionalVariants[variant]:variants[variant];
   const design=copy.design;
   const info=sectorInfo[demo.template]??sectorInfo.universal;
   const MainIcon=info.icon;
@@ -85,28 +109,32 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
       <section id="home" className={`relative grid items-center gap-10 overflow-hidden px-7 sm:px-12 lg:grid-cols-[1.1fr_.9fr] ${design?.compact?'py-10 lg:py-12':'py-16 lg:py-20'} ${style.hero}`}>
         <div className="relative z-10">
           <div className={`mb-7 inline-flex items-center gap-2 rounded-full border border-current/25 px-4 py-2 text-[10px] font-bold uppercase tracking-[.2em] ${style.eyebrow}`}><MainIcon size={15}/>{copy.eyebrow||info.label}</div>
-          <h2 className="max-w-[680px] text-[clamp(2.2rem,3.8vw,4.5rem)] font-semibold leading-[1.06] tracking-[-.055em]">{copy.headline||info.intro}</h2>
+          <h2 className="max-w-[650px] text-[clamp(2.1rem,3.5vw,3.9rem)] font-semibold leading-[1.06] tracking-[-.055em]">{copy.headline||info.intro}</h2>
           <p className="mt-7 max-w-lg text-base leading-8 opacity-80">{copy.description||'Business-approved messaging will appear here.'}</p>
           <div className="mt-9 flex flex-wrap items-center gap-6">
             <a href="#contact" className={`inline-flex items-center gap-3 rounded-full px-7 py-4 text-sm font-semibold ${style.action}`}>{copy.primaryAction||'Get in touch'}<ArrowUpRight size={18}/></a>
             <a href="#services" className="inline-flex items-center gap-2 text-sm font-semibold underline underline-offset-4">{copy.secondaryAction||'View services'}<ArrowDown size={16}/></a>
           </div>
         </div>
-        <div className={`relative mx-auto flex ${design?.compact?'min-h-[250px]':'min-h-[350px]'} w-full max-w-[530px] items-center justify-center overflow-hidden rounded-[24px] ${style.dark}`}>
-          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border border-white/25"></div>
-          <div className="absolute -left-28 -bottom-28 h-80 w-80 rounded-full border border-white/20"></div>
-          <div className="absolute inset-8 rounded-[200px_200px_30px_30px] border border-white/20"></div>
-          <div className="relative z-10 p-12 text-center">
-            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-white/30 bg-white/10"><MainIcon size={46} strokeWidth={1}/></div>
-            <p className="mt-7 text-xs font-bold tracking-[.3em] opacity-60">DESIGNED FOR</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight">{business?.city||'Local communities'}</p>
-            <p className="mt-3 text-sm opacity-70">{info.label.replaceAll('_',' ').toLowerCase()}</p>
-          </div>
+        <div className={`relative mx-auto flex ${design?.compact?'min-h-[260px]':'min-h-[360px]'} w-full max-w-[530px] items-center justify-center overflow-hidden rounded-[24px] ${style.dark}`}>
+          {copy.heroImageUrl?
+            <img src={copy.heroImageUrl} alt={`Approved imagery for ${name} design concept`} className="absolute inset-0 h-full w-full object-cover" loading="eager"/>:
+            <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+              <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border border-white/25"></div>
+              <div className="absolute -left-28 -bottom-28 h-80 w-80 rounded-full border border-white/20"></div>
+              <div className="absolute inset-8 rounded-[28px] border border-white/15"></div>
+            </div>}
+          {!copy.heroImageUrl&&<div className="relative z-10 p-10 text-center">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl border border-white/25 bg-white/10"><MainIcon size={38} strokeWidth={1.2}/></div>
+            <p className="mt-7 text-[11px] font-bold tracking-[.24em] opacity-65">{demo.template==='medical'?'PATIENT INFORMATION':demo.template==='landscaping'?'OUTDOOR SERVICES':'PROFESSIONAL SERVICES'}</p>
+            <p className="mt-3 text-2xl font-semibold tracking-tight">{business?.city||'Local community'}</p>
+            <p className="mt-3 text-sm opacity-70">Add an approved business photo for a personalized concept</p>
+          </div>}
         </div>
       </section>
       <section id="services" className="px-7 py-16 sm:px-12 lg:py-24">
         <div className="max-w-2xl"><p className={`text-xs font-bold uppercase tracking-[.22em] ${style.eyebrow}`}>What we can showcase</p>
-          <h3 className="mt-4 text-3xl font-semibold tracking-tight sm:text-5xl">Make it easy to understand the work.</h3></div>
+          <h3 className="mt-4 text-3xl font-semibold tracking-tight sm:text-5xl">{demo.template==='medical'?'Clear information for patients.':demo.template==='landscaping'?'Explore the work and services.':'Understand the services at a glance.'}</h3></div>
         {services.length ? <div className="mt-10 grid gap-4 md:grid-cols-3">{services.map((item,i)=><article key={item+i} className={`min-h-44 rounded-2xl border p-7 ${style.border}`}>
           <p className="mb-9 text-xs opacity-50">0{i+1}</p><h4 className="text-xl font-semibold">{item}</h4>
         </article>)}</div> : <div className={`mt-10 rounded-2xl border border-dashed px-8 py-10 ${style.border}`}>
@@ -115,12 +143,12 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
       </section>
       <section id="about" className={`grid gap-8 px-7 py-16 sm:px-12 lg:grid-cols-2 lg:items-center lg:py-20 ${style.detail}`}>
         <div><p className={`text-xs font-bold uppercase tracking-widest ${style.eyebrow}`}>A clearer customer journey</p>
-          <h3 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Good websites answer the right questions.</h3></div>
+          <h3 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{demo.template==='medical'?'Information patients can find easily.':demo.template==='landscaping'?'A better way to plan the next project.':'A better first impression starts with clarity.'}</h3></div>
         <p className="max-w-lg text-base leading-8 opacity-75">Services, location, availability, and how to get in touch. This layout is designed to organize those details, once they are verified with the business.</p>
       </section>
       <section id="contact" className={`flex flex-wrap items-center justify-between gap-9 px-7 py-16 sm:px-12 lg:py-20 ${style.dark}`}>
         <div><p className="text-xs font-bold uppercase tracking-[.22em] opacity-60">Connect</p>
-          <h3 className="mt-4 max-w-xl text-3xl font-semibold tracking-tight sm:text-5xl">Ready to start a conversation?</h3>
+          <h3 className="mt-4 max-w-xl text-3xl font-semibold tracking-tight sm:text-5xl">{demo.template==='medical'?'Find the next step.':demo.template==='landscaping'?'Start your next project.':'Ready to connect?'}</h3>
           <p className="mt-5 text-sm opacity-70">{hasContact?'Contact information was supplied in the CRM and should be verified before publishing.':'Confirm the business contact details before this concept is shared.'}</p></div>
         <div className="flex flex-col gap-3 text-sm">{phoneHref&&<a className="flex items-center gap-3 underline" href={phoneHref}><Phone size={18}/> Call business</a>}
           {emailHref&&<a className="flex items-center gap-3 underline" href={emailHref}><Mail size={18}/> Email business</a>}
@@ -180,6 +208,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
           <label className="text-sm">Location eyebrow<input className="mt-2" name="eyebrow" maxLength={130} defaultValue={copy.eyebrow??''}/></label>
           <label className="text-sm">Headline<input className="mt-2" name="headline" maxLength={200} defaultValue={copy.headline??''} required/></label>
           <label className="text-sm">Description<textarea className="mt-2" name="description" rows={4} maxLength={800} defaultValue={copy.description??''}/></label>
+          <label className="text-sm">Approved hero image URL<input className="mt-2" type="url" name="heroImageUrl" defaultValue={copy.heroImageUrl??''} placeholder="https://business.example/images/photo.jpg"/><small className="muted mt-2 block">Use only an image you have permission to display. The app does not invent company photography.</small></label>
           <label className="text-sm">Confirmed services (one per line)<textarea className="mt-2" name="services" rows={5} maxLength={1000} defaultValue={services.join('\n')} placeholder="Only services verified by the business"/></label>
           <label className="text-sm">Primary button text<input className="mt-2" name="primaryAction" maxLength={65} defaultValue={copy.primaryAction??''}/></label>
           <label className="text-sm">Secondary button text<input className="mt-2" name="secondaryAction" maxLength={65} defaultValue={copy.secondaryAction??''}/></label>
