@@ -124,7 +124,8 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
            <form action={linkImportedDuplicate} className="mt-2">
              <input type="hidden" name="row_id" value={row.id}/>
              <input type="hidden" name="matched_business_id" value={m.id}/>
-             <button type="submit" className="text-amber-200 underline">Link to this existing record</button>
+             <label className="mt-2 block text-xs text-amber-100"><input type="checkbox" name="confirm_same" value="yes" className="mr-1" required/>I confirmed this is the same business.</label>
+             <button type="submit" className="mt-2 text-amber-200 underline">Link to this existing record</button>
            </form>
          </div>)}
        </div>:<span className="muted text-xs">No same-name CRM match</span>}</td>
