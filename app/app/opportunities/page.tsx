@@ -89,7 +89,7 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
      <td className="max-w-sm text-sm leading-6">{x.reason}</td>
      <td><div className="flex flex-col gap-2 text-sm">
       <Link className="text-cyan-300 underline" href={'/app/leads/'+x.business.id}>Review company →</Link>
-      {x.business.website_url&&<Link className="text-cyan-300 underline" href="/app/intelligence">Website Intelligence →</Link>}
+      {x.business.website_url&&<Link className="text-cyan-300 underline" href={'/app/intelligence?business='+x.business.id}>Audit this website →</Link>}
      </div></td>
     </tr>)}</tbody></table>
    {!results.length&&<p className="muted p-8 text-sm">No CRM businesses match these filters. Discovered businesses enter this board after manual intake approval.</p>}
