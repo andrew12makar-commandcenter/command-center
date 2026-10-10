@@ -17,6 +17,8 @@ export type DemoCopy = {
   brand: string; eyebrow: string; headline: string; description: string;
   services: string[]; primaryAction: string; secondaryAction: string;
   disclaimer: string; category: string; design?: DesignPreferences;
+  // Optional, user-supplied approved business photography. No stock images invented.
+  heroImageUrl?: string;
 };
 export type FeedbackSample = {
   demo_id: string;
