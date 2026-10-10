@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { requireWorkspace } from '@/lib/workspace';
 import { addActivity,addSource,confirmSource,markVerified,updateLead } from '../actions';
 import { createDemo } from '@/app/app/demos/actions';
+import {classifyIndustry,industryLabel} from '@/lib/business-classification';
 
 const stages=['not_contacted','contacted','visited','proposal_sent','won','lost'];
 const label=(s:string)=>s.replaceAll('_',' ');
@@ -12,6 +13,7 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
   const {supabase,organizationId}=await requireWorkspace();
   const {data:b,error}=await supabase.from('businesses').select('*').eq('organization_id',organizationId).eq('id',id).maybeSingle();
   if(error||!b) notFound();
+  const industry=classifyIndustry(b.name,b.category);
   const [{data:sources},{data:activities},{data:demos}]=await Promise.all([
     supabase.from('business_sources').select('*').eq('organization_id',organizationId).eq('business_id',id).order('recorded_at',{ascending:false}),
     supabase.from('business_activities').select('*').eq('organization_id',organizationId).eq('business_id',id).order('occurred_at',{ascending:false}).limit(30),
@@ -35,6 +37,7 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
       <div className="space-y-6">
         <section className="panel p-7"><p className="kicker">Sales operations</p><h2 className="mt-2 text-xl font-semibold">Pipeline & next action</h2>
           <form action={updateLead} className="mt-6 grid gap-4 md:grid-cols-2"><input type="hidden" name="id" value={id}/>
+            <label className="text-sm">Business industry / service category<input name="category" className="mt-2" maxLength={180} defaultValue={b.category??''} placeholder="e.g., Family medicine, landscaping, legal services"/></label>
             <label className="text-sm">Operating status<select name="operational_status" className="mt-2" defaultValue={b.operational_status}>
               <option value="unknown">Not checked</option><option value="operating">Confirmed operating</option><option value="opening">Opening soon</option><option value="closed">Closed</option>
             </select></label>
@@ -91,16 +94,16 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
           </form>}
         </section>
         <section className="panel p-7"><p className="kicker">Proposal accelerator</p><h2 className="mt-2 text-xl font-semibold">Website demo drafts</h2>
-          <p className="muted mt-3 text-sm">Create reusable, clearly marked demo drafts without inventing client testimonials, licenses or results.</p>
+          <p className="muted mt-3 text-sm">Industry suggestion: <strong>{industryLabel(industry)}</strong>. {industry.explanation}. Check or correct the industry category above before creating a draft. Old mismatched drafts are not silently overwritten.</p>
           <form action={createDemo} className="mt-5 flex flex-wrap gap-3"><input type="hidden" name="business_id" value={id}/>
-          <select name="template">{[['landscaping','Home services'],['medical','Medical / dental'],['universal','Professional / general']].map(([key,name])=><option key={key} value={key}>{name}</option>)}</select>
+          <select name="template" aria-label="Website industry template"><option value="auto">Auto-match industry (recommended)</option>{[['landscaping','Home services if unclassified'],['medical','Medical / dental if unclassified'],['universal','Professional / general if unclassified']].map(([key,name])=><option key={key} value={key}>{name}</option>)}</select>
           <select name="visual_variant" aria-label="Design style">
             <option value="auto">Auto style</option>
             <option value="editorial">Editorial</option>
             <option value="bold">Bold</option>
           </select>
           <button className="btn" type="submit">Generate internal demo →</button></form>
-          <div className="mt-5 space-y-2">{(demos??[]).map(d=><Link className="block rounded-xl border border-[#253a46] p-3 text-sm hover:bg-[#122531]" key={d.id} href={'/app/demos/'+d.id}>{d.template} · {d.status} ↗</Link>)}</div>
+          <div className="mt-5 space-y-2">{(demos??[]).map(d=><Link className="block rounded-xl border border-[#253a46] p-3 text-sm hover:bg-[#122531]" key={d.id} href={'/app/demos/'+d.id}>{d.template} · {d.status}{industry.template&&industry.template!==d.template?' · MISMATCH: regenerate':''} ↗</Link>)}</div>
         </section>
       </div>
     </div>
