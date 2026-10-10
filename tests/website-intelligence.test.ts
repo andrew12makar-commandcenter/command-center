@@ -44,3 +44,41 @@ test('endpoint has both SEO and performance categories, without secret key by de
  assert.deepEqual(x.searchParams.getAll('category'),['performance','seo']);
  assert.equal(x.searchParams.get('key'),null);
 });
+
+test('positive category scores without required checks remain inconclusive',()=>{
+ const a=interpretPageSpeed({lighthouseResult:{
+  categories:{performance:{score:.94},seo:{score:1}},
+  audits:{'document-title':{id:'document-title',score:1}}
+ }},'https://example.com/');
+ assert.equal(a.status,'inconclusive');
+ assert.equal(a.findings.measured_checks,1);
+ assert.equal(a.findings.technical_opportunity_score,null);
+});
+test('fully measured clean report can be classified no gaps',()=>{
+ const checks=Object.fromEntries(['document-title','meta-description','viewport','is-crawlable']
+   .map(id=>[id,{id,score:1}]));
+ const at='2026-10-10T16:20:00.000Z';
+ const a=interpretPageSpeed({lighthouseResult:{
+  fetchTime:at,categories:{performance:{score:.96},seo:{score:1}},audits:checks
+ }},'https://example.com/');
+ assert.equal(a.status,'no_gaps');
+ assert.equal(a.findings.measured_checks,4);
+ assert.equal(a.findings.measured_at,at);
+ assert.ok(a.evidence.every(e=>e.measured_at===at));
+});
+test('partially failing audits count as gaps rather than clean passes',()=>{
+ const checks=Object.fromEntries(['document-title','meta-description','viewport','is-crawlable']
+   .map(id=>[id,{id,score:id==='meta-description'?.5:1}]));
+ const a=interpretPageSpeed({lighthouseResult:{
+  categories:{performance:{score:.95},seo:{score:.91}},audits:checks
+ }},'https://example.com/');
+ assert.equal(a.status,'verified_gaps');
+ assert.equal(a.findings.flagged_checks,1);
+ assert.equal(a.evidence.find(e=>e.id==='meta-description')?.result,'failed');
+});
+test('PageSpeed 403 is inconclusive with actionable configuration guidance',async()=>{
+ const mock:typeof fetch=async()=>new Response('Forbidden',{status:403});
+ const a=await analyzeWebsite('https://example.com',mock);
+ assert.equal(a.status,'inconclusive');
+ assert.match(a.findings.error||'',/PAGESPEED_API_KEY/);
+});
