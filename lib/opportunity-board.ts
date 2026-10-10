@@ -22,7 +22,9 @@ function sameWebsite(a:string,b:string):boolean{
  try{
   const u=new URL(a),v=new URL(b);
   // Query strings are not a new site, but a different host is.
-  return u.hostname.toLowerCase().replace(/^www\./,'')===v.hostname.toLowerCase().replace(/^www\./,'');
+  const hostMatch=u.hostname.toLowerCase().replace(/^www\./,'')===v.hostname.toLowerCase().replace(/^www\./,'');
+  const path=(value:URL)=>value.pathname.replace(/\/+$/,'')||'/';
+  return hostMatch&&path(u)===path(v);
  }catch{return false;}
 }
 export function currentAudit(
