@@ -4,7 +4,7 @@ import {redirect} from 'next/navigation';
 import {revalidatePath} from 'next/cache';
 import {requireWorkspace,shortText} from '@/lib/workspace';
 import {discover,areas,type Area,type Source} from '@/lib/discovery';
-import {normalizeBusiness} from '@/lib/csv';
+import {collectAllPages,streetFromRaw,postcodeFromRaw,strongLocationKey} from '@/lib/lead-identity';
 
 export async function scanAndStage(form:FormData){
  const {supabase,organizationId,user}=await requireWorkspace(true);
@@ -20,22 +20,39 @@ export async function scanAndStage(form:FormData){
    console.warn('Discovery request failed:',reason);
    redirect('/app/discovery?error='+encodeURIComponent(reason.slice(0,240)));
  }
- const [{data:existing,error:stageError},{data:crm,error:crmError}]=await Promise.all([
-  supabase.from('lead_import_rows').select('raw_data,name,city,source_type')
-    .eq('organization_id',organizationId).order('created_at',{ascending:false}).limit(1000),
-  supabase.from('businesses').select('name,city').eq('organization_id',organizationId).limit(1000)
+ // Both collections are paged. Otherwise the first 1,000 records masquerade as a complete deduplication check.
+ const [existing,crm]=await Promise.all([
+  collectAllPages<{raw_data:Record<string,unknown>|null;name:string|null;city:string|null;source_type:string}>(async(from,to)=>{
+   const {data,error}=await supabase.from('lead_import_rows')
+    .select('raw_data,name,city,source_type').eq('organization_id',organizationId)
+    .order('created_at',{ascending:true}).order('id',{ascending:true}).range(from,to);
+   return {data,error};
+  }),
+  collectAllPages<{name:string;city:string|null;street_address:string|null;postal_code:string|null}>(async(from,to)=>{
+   const {data,error}=await supabase.from('businesses')
+    .select('name,city,street_address,postal_code').eq('organization_id',organizationId)
+    .order('created_at',{ascending:true}).order('id',{ascending:true}).range(from,to);
+   return {data,error};
+  })
  ]);
- if(stageError||crmError) throw Error('Cannot check duplicates before discovery; no candidates staged.');
- const sourceIds=new Set((existing??[]).map(x=>String(x.raw_data?.external_id??'')).filter(Boolean));
- const names=new Set([...existing??[],...crm??[]].filter(x=>x.name && x.city)
-   .map(x=>normalizeBusiness(x.name)+'|'+normalizeBusiness(x.city)));
+ const sourceIds=new Set(existing.map(x=>x.source_type+'|'+String(x.raw_data?.external_id||'')).filter(x=>!x.endsWith('|')));
+ const locations=new Set<string>();
+ for(const x of existing){
+  const key=strongLocationKey(x.name||'',streetFromRaw(x.raw_data),x.city||'',postcodeFromRaw(x.raw_data));
+  if(key)locations.add(key);
+ }
+ for(const x of crm){
+  const key=strongLocationKey(x.name||'',x.street_address||'',x.city||'',x.postal_code||'');
+  if(key)locations.add(key);
+ }
  const batchId=randomUUID(),nowRows=[],seen=new Set<string>();
  let skipped=0;
  for(const x of candidates){
-   const key=normalizeBusiness(x.name)+'|'+normalizeBusiness(x.city);
-   if(sourceIds.has(x.external_id)||seen.has(x.external_id)||
-      (x.city && names.has(key))){skipped++;continue;}
-   seen.add(x.external_id);if(x.city)names.add(key);
+   const externalKey=x.source_type+'|'+x.external_id;
+   const locationKey=strongLocationKey(x.name,streetFromRaw(x.raw_data),x.city,postcodeFromRaw(x.raw_data));
+   if(sourceIds.has(externalKey)||seen.has(externalKey)||
+      (locationKey!==null && locations.has(locationKey))){skipped++;continue;}
+   seen.add(externalKey);if(locationKey)locations.add(locationKey);
    nowRows.push({
     organization_id:organizationId,submitted_by:user.id,batch_id:batchId,row_number:nowRows.length+1,
     name:x.name,city:x.city,category:x.category,website_url:x.website_url,
