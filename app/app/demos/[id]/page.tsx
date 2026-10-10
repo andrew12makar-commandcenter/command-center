@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { requireWorkspace } from '@/lib/workspace';
 import { rateDemo,saveDemoCopy,applyLearnedPreferences } from '../feedback-actions';
 import { derivePreferences, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
+import {classifyIndustry} from '@/lib/business-classification';
 import { ArrowUpRight, ArrowDown, Check, Phone, Mail, MapPin, Leaf, Sparkles, ShieldCheck, BadgeInfo } from 'lucide-react';
 
 const variants = {
@@ -43,6 +44,8 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
     supabase.from('demo_feedback').select('demo_id,user_id,template,visual_variant,rating,issue_tags,notes,created_at')
       .eq('organization_id',organizationId).eq('user_id',user.id).order('created_at',{ascending:false}).limit(200)
   ]);
+  const industry=classifyIndustry(business?.name||'',business?.category);
+  const industryMismatch=Boolean(industry.template&&industry.template!==demo.template);
   const copy=(demo.draft_content??{}) as Partial<DemoCopy>;
   const preferences=derivePreferences((myRatings??[]) as FeedbackSample[],demo.template as Template);
   const variant=(copy.design?.variant??demo.visual_variant)==='bold'?'bold':'editorial';
@@ -66,6 +69,9 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
     {saved&&<p role="status" className="mb-4 rounded-xl border border-[#2f726b] bg-[#14372f] p-3 text-sm text-[#bbebd8]">
       <Check className="mr-2 inline" size={16}/>{saved==='rating'?'Feedback saved. Your next generated demo now uses your updated preferences.':saved==='adapted'?'A new revision was created with your learned layout preferences.':saved==='unchanged'?'This demo already reflects your saved preferences.':'Copy saved as a new revision.'}
     </p>}
+    {industryMismatch&&<div role="alert" className="mb-5 rounded-xl border border-amber-600 bg-amber-950/30 px-5 py-4 text-sm text-amber-100">
+      <strong>Wrong industry template in saved draft.</strong> The current CRM category suggests {industry.template}, but this older draft uses {demo.template}. Do not use it for outreach. <Link href={'/app/leads/'+demo.business_id} className="underline">Open the CRM and regenerate using Auto-match ↗</Link>
+    </div>}
     <div className="mb-5 rounded-xl border border-amber-700/40 bg-amber-950/20 px-5 py-3 text-sm text-amber-200">
       <BadgeInfo className="mr-2 inline" size={16}/>Private concept. This is not an approved business website. Verify facts and obtain permission before sharing.
     </div>
