@@ -13,7 +13,7 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
  const [businesses,audits]=await Promise.all([
   collectAllPages<OpportunityBusiness>(async(from,to)=>{
    const {data,error}=await supabase.from('businesses').select(
-    'id,name,category,city,service_area,website_url,verification_status,operational_status,priority_score,phone,contact_email')
+    'id,name,category,city,service_area,website_url,verification_status,operational_status,pipeline_status,priority_score,phone,contact_email')
     .eq('organization_id',organizationId).order('created_at',{ascending:false})
     .order('id',{ascending:true}).range(from,to);
    return {data,error};
