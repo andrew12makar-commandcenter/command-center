@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import {requireWorkspace} from '@/lib/workspace';
-import {approveImportedRow,skipImportedRow,stageCsv} from '../actions';
+import {approveImportedRow,linkImportedDuplicate,skipImportedRow,stageCsv} from '../actions';
+import {collectAllPages,potentialMatches,type BusinessIdentity} from '@/lib/lead-identity';
 import {classifyIndustry,industryLabel,researchPriority} from '@/lib/business-classification';
 
 function safeExternalUrl(value:string|null|undefined):string|null{
@@ -11,7 +12,7 @@ function safeExternalUrl(value:string|null|undefined):string|null{
 type Params={staged?:string;error?:string;query?:string;industry?:string;website?:string;sort?:string;page?:string};
 type StagedRow={
  id:string;name:string|null;city:string|null;category:string|null;
- source_url:string|null;website_url:string|null;review_status:string;
+ source_url:string|null;website_url:string|null;phone:string|null;review_status:string;
  matched_business_id:string|null;row_number:number;created_at:string;raw_data:Record<string,unknown>|null
 };
 const PAGE_SIZE=40;
@@ -19,13 +20,24 @@ const PAGE_SIZE=40;
 export default async function ImportPage({searchParams}:{searchParams:Promise<Params>}){
  const {supabase,organizationId}=await requireWorkspace();
  const p=await searchParams;
- const [{data,count,error:loadError}]=await Promise.all([
-   supabase.from('lead_import_rows')
-    .select('id,name,city,category,source_url,website_url,review_status,matched_business_id,row_number,created_at,raw_data',{count:'exact'})
-    .eq('organization_id',organizationId).eq('review_status','pending')
-    .order('created_at',{ascending:false}).order('row_number',{ascending:true}).limit(1000)
+ const [all,businesses]=await Promise.all([
+   collectAllPages<StagedRow>(async (from,to)=>{
+     const {data,error}=await supabase.from('lead_import_rows')
+      .select('id,name,city,category,source_url,website_url,phone,review_status,matched_business_id,row_number,created_at,raw_data')
+      .eq('organization_id',organizationId).eq('review_status','pending')
+      .order('created_at',{ascending:false}).order('row_number',{ascending:true})
+      .order('id',{ascending:true}).range(from,to);
+     return {data,error};
+   }),
+   collectAllPages<BusinessIdentity>(async (from,to)=>{
+     const {data,error}=await supabase.from('businesses')
+       .select('id,name,city,street_address,postal_code,phone,website_url')
+       .eq('organization_id',organizationId).order('created_at',{ascending:true})
+       .order('id',{ascending:true}).range(from,to);
+     return {data,error};
+   })
  ]);
- const all=(data??[]) as StagedRow[];
+ const count=all.length;
  const industry=['medical','landscaping','universal','unknown'].includes(p.industry||'')?p.industry||'':'';
  const website=['yes','no'].includes(p.website||'')?p.website||'':'';
  const sort=['newest','oldest'].includes(p.sort||'')?p.sort!:'priority';
@@ -33,7 +45,7 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
  const normalized=query.toLocaleLowerCase();
  const scored=all.map(row=>{
    const decision=classifyIndustry(row.name||'',row.category);
-   return {row,decision,priority:researchPriority(row.name||'',row.category,row.website_url,row.source_url,row.city)};
+   return {row,decision,priority:researchPriority(row.name||'',row.category,row.website_url,row.source_url,row.city),matches:potentialMatches(row,businesses)};
  });
  const filtered=scored.filter(x=>{
    const row=x.row;
@@ -76,7 +88,7 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
    <section className="panel mt-7 p-6">
      <div className="flex flex-wrap items-baseline justify-between gap-3">
        <div><p className="kicker">Research triage</p><h2 className="mt-2 text-xl font-semibold">Filter discovered businesses</h2></div>
-       <span className="muted text-xs">{count??0} pending total · reviewing up to 1,000 newest</span>
+       <span className="muted text-xs">{count} pending total · all records evaluated</span>
      </div>
      <form method="get" action="/app/leads/import" className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
        <label className="text-sm">Search name / area<input className="mt-2" name="query" defaultValue={query} maxLength={100} placeholder="e.g., dentist, Brookline"/></label>
@@ -95,29 +107,46 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
    <section className="panel mt-7 overflow-x-auto">
      <div className="flex flex-wrap items-center justify-between gap-4 p-6">
        <h2 className="text-xl font-semibold">Review queue</h2>
-       <p className="muted text-xs">{filtered.length} matching in fetched records · page {page}/{pages} · {PAGE_SIZE} per page</p>
+       <p className="muted text-xs">{filtered.length} matching · page {page}/{pages} · {PAGE_SIZE} per page</p>
      </div>
-     {loadError&&<p className="p-5 text-red-300">Cannot read staged leads. Check database connectivity and organization access.</p>}
-     {(count??0)>1000&&<p className="mx-6 mb-3 text-sm text-amber-300">More than 1,000 records are pending. The research filters currently cover the newest 1,000; older rows require an expanded server-side queue.</p>}
-     <table><thead><tr><th>Business</th><th>Location</th><th>Industry hint</th><th>Source</th><th>Website</th><th>Action</th></tr></thead>
-     <tbody>{shown.map(({row,decision})=><tr key={row.id}>
+     <table><thead><tr><th>Business</th><th>Location</th><th>Industry hint</th><th>Source</th><th>Website</th><th>Possible match</th><th>Action</th></tr></thead>
+     <tbody>{shown.map(({row,decision,matches})=><tr key={row.id}>
        <td className="font-medium">{row.name||'Missing name'}<small className="muted mt-1 block">{row.category||'No source category'}</small></td>
        <td>{row.city||<span className="muted text-xs">{typeof row.raw_data?.search_area==='string'?row.raw_data.search_area+' scan area (not confirmed city)':'Unknown'}</span>}</td>
        <td><span className="text-xs">{industryLabel(decision)}</span><small className="muted block">{decision.confidence==='unknown'?'Review required':decision.confidence==='name_hint'?'Name hint · verify':'From category · verify'}</small></td>
        <td>{safeExternalUrl(row.source_url)?<a className="break-all text-xs text-cyan-300 underline" href={safeExternalUrl(row.source_url)!} target="_blank" rel="noopener noreferrer">Original evidence ↗</a>:<span className="muted text-xs">{row.source_url?'Invalid URL':'No source recorded'}</span>}</td>
        <td>{safeExternalUrl(row.website_url)?<a className="break-all text-xs text-cyan-300 underline" href={safeExternalUrl(row.website_url)!} target="_blank" rel="noopener noreferrer">Inspect site ↗</a>:<span className="muted text-xs">{row.website_url?'Invalid URL':'Not recorded'}</span>}</td>
-       <td><div className="flex flex-wrap gap-2">
-         <form action={approveImportedRow}><input type="hidden" name="row_id" value={row.id}/><button className="btn text-xs" type="submit">Import to CRM</button></form>
+       <td>{matches.length?<div className="space-y-3 text-xs">
+         <span className="text-amber-200">Review {matches.length} possible CRM match{matches.length===1?'':'es'}</span>
+         {matches.map(m=><div key={m.id} className="rounded-lg border border-amber-900/40 p-2">
+           <Link className="text-cyan-300 underline" href={'/app/leads/'+m.id} target="_blank">{m.name} ↗</Link>
+           <small className="muted block">{m.city||'Location not recorded'} · {m.reason}</small>
+           <form action={linkImportedDuplicate} className="mt-2">
+             <input type="hidden" name="row_id" value={row.id}/>
+             <input type="hidden" name="matched_business_id" value={m.id}/>
+             <button type="submit" className="text-amber-200 underline">Link to this existing record</button>
+           </form>
+         </div>)}
+       </div>:<span className="muted text-xs">No same-name CRM match</span>}</td>
+       <td><div className="flex flex-col items-start gap-3">
+         <form action={approveImportedRow} className="space-y-2">
+           <input type="hidden" name="row_id" value={row.id}/>
+           {matches.length>0&&<label className="block max-w-48 text-xs leading-5 text-amber-100">
+             <input type="checkbox" name="confirm_distinct" value="yes" className="mr-2" required/>
+             I checked these records and this is a separate business.
+           </label>}
+           <button className="btn text-xs" type="submit">{matches.length?'Import separately':'Import to CRM'}</button>
+         </form>
          <form action={skipImportedRow}><input type="hidden" name="row_id" value={row.id}/><button className="text-xs text-slate-400 underline" type="submit">Skip</button></form>
        </div></td>
      </tr>)}</tbody></table>
-     {!shown.length&&!loadError&&<p className="muted p-8 text-sm">No pending candidates match these filters.</p>}
+     {!shown.length&&<p className="muted p-8 text-sm">No pending candidates match these filters.</p>}
      {pages>1&&<nav aria-label="Queue pages" className="flex items-center justify-end gap-5 border-t border-[#273b48] p-5 text-sm">
        {page>1&&<Link className="text-cyan-300 underline" href={pageHref(page-1)}>← Previous</Link>}
        <span className="muted">{page} of {pages}</span>
        {page<pages&&<Link className="text-cyan-300 underline" href={pageHref(page+1)}>Next →</Link>}
      </nav>}
    </section>
-   <p className="muted mt-4 text-xs">Duplicate detection uses normalized name and city among existing CRM records. Source category and industry hints are not verified. Do not send generated sales demos before confirming each business's details.</p>
+   <p className="muted mt-4 text-xs">Possible matches are name-based warnings, not automatic merges. If the same business already exists, link the staged record to it to preserve provenance; otherwise confirm that it is a separate location. Do not send demos without verifying identity and details.</p>
  </main>;
 }
