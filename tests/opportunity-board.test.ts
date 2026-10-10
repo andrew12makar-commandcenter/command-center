@@ -6,7 +6,7 @@ const now=new Date('2026-10-10T20:00:00Z');
 const lead=(updates:Partial<OpportunityBusiness>={}):OpportunityBusiness=>({
  id:'business-1',name:'Brighton Dental Associates',category:'amenity: dentist',
  city:'Brighton',service_area:null,website_url:'https://dental.example/',
- verification_status:'pending',operational_status:'unknown',
+ verification_status:'pending',operational_status:'unknown',pipeline_status:'not_contacted',
  priority_score:null,phone:null,contact_email:null,...updates
 });
 const report=(updates:Partial<AuditRecord>={}):AuditRecord=>({
@@ -68,4 +68,16 @@ test('opportunity ordering prefers verified technical review over unverified and
  const third=scoreOpportunity(lead({id:'c'}),[report({business_id:'c'})],now);
  const sorted=sortOpportunities([second,third,first]);
  assert.deepEqual(sorted.map(x=>x.business.id),['a','c','b']);
+});
+
+test('closed, won, and lost businesses are not active prospect opportunities',()=>{
+ const changes:Partial<OpportunityBusiness>[]=[
+  {operational_status:'closed',verification_status:'verified'},
+  {pipeline_status:'won',verification_status:'verified',operational_status:'operating'},
+  {pipeline_status:'lost',verification_status:'verified',operational_status:'operating'}
+ ];
+ for(const change of changes){
+  const item=scoreOpportunity(lead(change),[report()],now);
+  assert.equal(item.stage,'inactive');
+ }
 });
