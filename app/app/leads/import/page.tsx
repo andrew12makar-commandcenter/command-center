@@ -12,7 +12,7 @@ type Params={staged?:string;error?:string;query?:string;industry?:string;website
 type StagedRow={
  id:string;name:string|null;city:string|null;category:string|null;
  source_url:string|null;website_url:string|null;review_status:string;
- matched_business_id:string|null;row_number:number;created_at:string
+ matched_business_id:string|null;row_number:number;created_at:string;raw_data:Record<string,unknown>|null
 };
 const PAGE_SIZE=40;
 // This queue is research triage. It does not certify businesses or estimate revenue.
@@ -21,7 +21,7 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
  const p=await searchParams;
  const [{data,count,error:loadError}]=await Promise.all([
    supabase.from('lead_import_rows')
-    .select('id,name,city,category,source_url,website_url,review_status,matched_business_id,row_number,created_at',{count:'exact'})
+    .select('id,name,city,category,source_url,website_url,review_status,matched_business_id,row_number,created_at,raw_data',{count:'exact'})
     .eq('organization_id',organizationId).eq('review_status','pending')
     .order('created_at',{ascending:false}).order('row_number',{ascending:true}).limit(1000)
  ]);
@@ -40,7 +40,7 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
    if(industry&&(x.decision.template||'unknown')!==industry)return false;
    if(website==='yes'&&!row.website_url)return false;
    if(website==='no'&&row.website_url)return false;
-   if(normalized&&![row.name,row.city,row.category].some(v=>(v||'').toLocaleLowerCase().includes(normalized)))return false;
+   if(normalized&&![row.name,row.city,row.category,typeof row.raw_data?.search_area==='string'?row.raw_data.search_area:''].some(v=>(v||'').toLocaleLowerCase().includes(normalized)))return false;
    return true;
  }).sort((a,b)=>sort==='newest'?
    b.row.created_at.localeCompare(a.row.created_at):
@@ -102,7 +102,7 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
      <table><thead><tr><th>Business</th><th>Location</th><th>Industry hint</th><th>Source</th><th>Website</th><th>Action</th></tr></thead>
      <tbody>{shown.map(({row,decision})=><tr key={row.id}>
        <td className="font-medium">{row.name||'Missing name'}<small className="muted mt-1 block">{row.category||'No source category'}</small></td>
-       <td>{row.city||'Unknown'}</td>
+       <td>{row.city||<span className="muted text-xs">{typeof row.raw_data?.search_area==='string'?row.raw_data.search_area+' scan area (not confirmed city)':'Unknown'}</span>}</td>
        <td><span className="text-xs">{industryLabel(decision)}</span><small className="muted block">{decision.confidence==='unknown'?'Review required':decision.confidence==='name_hint'?'Name hint · verify':'From category · verify'}</small></td>
        <td>{safeExternalUrl(row.source_url)?<a className="break-all text-xs text-cyan-300 underline" href={safeExternalUrl(row.source_url)!} target="_blank" rel="noopener noreferrer">Original evidence ↗</a>:<span className="muted text-xs">{row.source_url?'Invalid URL':'No source recorded'}</span>}</td>
        <td>{safeExternalUrl(row.website_url)?<a className="break-all text-xs text-cyan-300 underline" href={safeExternalUrl(row.website_url)!} target="_blank" rel="noopener noreferrer">Inspect site ↗</a>:<span className="muted text-xs">{row.website_url?'Invalid URL':'Not recorded'}</span>}</td>
