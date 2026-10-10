@@ -25,6 +25,14 @@ export function postcodeFromRaw(raw:Record<string,unknown>|null|undefined):strin
 export function researchServiceArea(raw:Record<string,unknown>|null|undefined):string{
  return clean(raw?.search_area).slice(0,180);
 }
+
+// A name in a city is too weak to collapse franchises or multiple locations.
+// Only use a full street-level identity for automatic discovery deduplication.
+export function strongLocationKey(name:string,street:string,city:string,postcode:string):string|null{
+ const n=normalizeBusiness(name),s=normalizeBusiness(street),
+  place=digits(postcode)||normalizeBusiness(city);
+ return n.length>=3&&s.length>=3&&place.length>=3?n+'|'+s+'|'+place:null;
+}
 export function potentialMatches(
  candidate:StagedIdentity,businesses:BusinessIdentity[],limit=3
 ):PotentialMatch[]{
