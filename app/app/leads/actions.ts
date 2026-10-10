@@ -62,6 +62,7 @@ export async function updateLead(form: FormData) {
   if(!prior) throw new Error('Lead not found.');
   const { error } = await supabase.from('businesses').update({
     pipeline_status:stage,operational_status,
+    category:shortText(form.get('category'),180),
     ...(operational_status !== 'operating' ? {verification_status:'pending'} : {}),
     priority_score,score_rationale,
     next_follow_up_on:followUp(shortText(form.get('next_follow_up_on'),10)),
