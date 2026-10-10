@@ -1,7 +1,7 @@
 'use server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { requireWorkspace, shortText, validUuid } from '@/lib/workspace';
+import { requireWorkspace, shortText, validUuid, webUrl } from '@/lib/workspace';
 import { derivePreferences, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
 const issueTags=['layout','visuals','generic_copy','missing_content','navigation','mobile','other'];
 
@@ -44,6 +44,7 @@ export async function saveDemoCopy(form:FormData) {
    description:shortText(form.get('description'),800),
    primaryAction:shortText(form.get('primaryAction'),65),
    secondaryAction:shortText(form.get('secondaryAction'),65),
+   heroImageUrl:webUrl(form.get('heroImageUrl'))??undefined,
    services:shortText(form.get('services'),1000).split('\n').map(x=>x.trim()).filter(Boolean).slice(0,6),
  };
  if(!content.brand||!content.headline) throw new Error('Business name and headline are required.');
