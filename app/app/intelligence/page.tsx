@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import {requireWorkspace} from '@/lib/workspace';
+import {requireWorkspace,validUuid} from '@/lib/workspace';
 import {auditBusiness} from './actions';
 import type {AuditFindings,AuditEvidence} from '@/lib/website-intelligence';
 import {Activity,ArrowUpRight,Globe2,ShieldAlert,ScanSearch} from 'lucide-react';
@@ -13,12 +13,15 @@ const percent=(n:number|null)=>n===null?'Not measured':n+'/100';
 const short=(s:string|null|undefined)=>s?.slice(0,140)||'';
 export default async function WebsiteIntelligence({
  searchParams
-}:{searchParams:Promise<{error?:string;audited?:string}>}){
+}:{searchParams:Promise<{error?:string;audited?:string;business?:string}>}){
  const {supabase,organizationId}=await requireWorkspace();
  const p=await searchParams;
+ const selectedId=p.business&&validUuid(p.business)?p.business:null;
+ let businessQuery=supabase.from('businesses').select('id,name,city,category,website_url,verification_status')
+   .eq('organization_id',organizationId).order('created_at',{ascending:false});
+ if(selectedId)businessQuery=businessQuery.eq('id',selectedId);
  const [{data:businesses,error:bError},{data:assessments,error:aError},{count:pending}]=await Promise.all([
-  supabase.from('businesses').select('id,name,city,category,website_url,verification_status')
-    .eq('organization_id',organizationId).order('created_at',{ascending:false}).limit(100),
+  businessQuery.limit(100),
   supabase.from('website_assessments').select('id,business_id,website_url,status,findings,evidence,assessed_at')
     .eq('organization_id',organizationId).order('assessed_at',{ascending:false}).limit(20),
   supabase.from('lead_import_rows').select('id',{head:true,count:'exact'})
@@ -31,6 +34,8 @@ export default async function WebsiteIntelligence({
     <p className="muted mt-3 max-w-3xl leading-7">Check real mobile performance and technical SEO using Google PageSpeed Insights. Every assessment keeps its timestamp and evidence. Unknown data stays unknown.</p></div>
     <Link className="btn" href="/app/leads/import">Review {pending??0} pending leads <ArrowUpRight size={16}/></Link>
    </div>
+   {selectedId&&<div className="mt-5"><Link href="/app/intelligence" className="text-sm text-cyan-300 underline">← Show full Website Intelligence list</Link>
+      <p className="muted mt-2 text-sm">Showing the requested CRM business, even if it is not among the 100 newest records.</p></div>}
    {p.error&&<div className="mt-7 rounded-xl border border-amber-700/40 bg-amber-950/15 p-5 text-amber-200" role="alert">
       <ShieldAlert className="mr-2 inline" size={18}/>{errors[p.error]||'Website audit was not completed.'}</div>}
    {p.audited&&<div className="panel mt-7 border-[#29615f] p-5 text-cyan-100" role="status">
