@@ -109,7 +109,7 @@ export function buildSiteBlueprint(
  const blockers:string[]=[];
  if(!content.about)blockers.push('Add a sourced, business-specific About statement.');
  if(!services.length)blockers.push('Confirm actual services and enter them into the content pack.');
- if(!hasApprovedHero)blockers.push('Obtain permission for a real, usable hero photo (or approve a strong typographic direction).');
+ if(content.heroTreatment==='photo-led'&&!hasApprovedHero)blockers.push('Photo-led layout needs an explicitly approved hero image.');
  if(!content.sourceUrl)blockers.push('Record the source URL for researched business information.');
  if(!contact.phone&&!contact.email&&!content.appointmentUrl)
   blockers.push('Confirm a working contact or appointment destination.');
@@ -118,10 +118,7 @@ export function buildSiteBlueprint(
  if(content.images.some(i=>i.permission==='reference_only'))
   blockers.push('Some collected image references have no confirmed display rights. Never publish them.');
  const previewReady=content.factStatus!=='unreviewed'&&services.length>0&&Boolean(content.about);
- const publishReady=content.factStatus==='owner_approved'&&
-  blockers.every(x=>!x.includes('working contact')&&!x.includes('Confirm actual services')&&!x.includes('About statement')&&!x.includes('permission for a real')&&!x.includes('Record the source'))&&
-  Boolean(content.about)&&services.length>0&&(hasApprovedHero||content.heroTreatment==='typographic')&&
-  Boolean(contact.phone||contact.email||content.appointmentUrl);
+ const publishReady=content.factStatus==='owner_approved'&&blockers.length===0;
  return {
   version:1,template,businessName:asText(copy.brand,140)||asText(business.name,140),
   eyebrow:asText(copy.eyebrow,140),
