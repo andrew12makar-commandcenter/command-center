@@ -9,7 +9,11 @@ const errors:Record<string,string>={
  'no-website':'No website URL is recorded for that business. Research and add the correct public website before auditing. An empty field does not mean it has no website.',
  'invalid-website':'The business website must be a public HTTP/HTTPS domain. Check the CRM entry.',
  cooldown:'That business was checked within the past 20 minutes. Recent results are saved below; wait before rerunning.',
- 'profile-not-site':'The recorded URL is a social account or directory listing, not an independent business website. Open the CRM record and move it to research evidence before attempting an audit.'
+ 'profile-not-site':'The recorded URL is a social account or directory listing, not an independent business website. Open the CRM record and move it to research evidence before attempting an audit.',
+ 'upload-size':'Select a Chrome Lighthouse JSON report smaller than 8 MB.',
+ 'upload-json':'This is not a complete native Lighthouse JSON report. Export as JSON from Chrome DevTools Lighthouse, not HTML.',
+ 'upload-stale':'The Lighthouse report is outdated or future-dated. Run a fresh report and export JSON from Chrome.',
+ 'upload-mismatch':'The Lighthouse report URL does not match the selected CRM business website. Verify both homepage addresses before importing.'
 };
 const percent=(n:number|null)=>n===null?'Not measured':n+'/100';
 const short=(s:string|null|undefined)=>s?.slice(0,140)||'';
@@ -74,7 +78,7 @@ export default async function WebsiteIntelligence({
         </tr>})}</tbody></table>
       {!businesses?.length&&!bError&&<p className="muted p-8 text-sm">The CRM has no approved prospects yet. Review your discovered candidates in Lead Intake first.</p>}
    </section>
-   <section className="panel mt-7 p-6">
+   <section id="lighthouse-fallback" className="panel mt-7 scroll-mt-6 p-6">
      <p className="kicker">Lighthouse integration readiness</p>
      <h2 className="mt-2 text-xl font-semibold">Google API and local fallback</h2>
      <p className="mt-3 text-sm font-semibold text-cyan-200">Server API key: {hasApiKey?'Configured':'Not configured'}</p>
