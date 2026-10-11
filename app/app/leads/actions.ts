@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { randomUUID } from 'node:crypto';
 import { requireWorkspace, shortText, validUuid, webUrl } from '@/lib/workspace';
 import { parseCsv, normalizedHeader } from '@/lib/csv';
+import {classifyWebPresence,validateBusinessWebsite,discoveredProfile} from '@/lib/web-presence';
 import {collectAllPages,potentialMatches,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '@/lib/lead-identity';
 
 const STAGES = ['not_contacted','contacted','visited','proposal_sent','won','lost'];
@@ -35,7 +36,7 @@ export async function createLead(form: FormData) {
     organization_id:organizationId,name,category:shortText(form.get('category')),
     city:shortText(form.get('city')),street_address:shortText(form.get('street_address')),
     postal_code:shortText(form.get('postal_code')),service_area:shortText(form.get('service_area')),
-    website_url:webUrl(form.get('website_url')),phone:shortText(form.get('phone')),
+    website_url:validateBusinessWebsite(shortText(form.get('website_url'),1024)),phone:shortText(form.get('phone')),
     contact_name:shortText(form.get('contact_name')),contact_email:shortText(form.get('contact_email')),
     google_business_url:webUrl(form.get('google_business_url')),
     notes:shortText(form.get('notes'),3000),priority_score,score_rationale,
@@ -59,8 +60,12 @@ export async function updateLead(form: FormData) {
   const score_rationale=shortText(form.get('score_rationale'),500);
   if(priority_score!==null && score_rationale.length<8) throw new Error('Opportunity scores need an evidence-based rationale.');
   const { data: prior } = await supabase.from('businesses')
-    .select('pipeline_status').eq('id',id).eq('organization_id',organizationId).single();
+    .select('pipeline_status,website_url').eq('id',id).eq('organization_id',organizationId).single();
   if(!prior) throw new Error('Lead not found.');
+  const website_url=validateBusinessWebsite(shortText(form.get('website_url'),1024));
+  const previousPresence=classifyWebPresence(prior.website_url);
+  if((previousPresence.kind==='social'||previousPresence.kind==='listing')&&
+     website_url!==prior.website_url)throw new Error('Move the existing social/directory profile into research evidence before changing the website field. This prevents losing the recorded URL.');
   const { error } = await supabase.from('businesses').update({
     pipeline_status:stage,operational_status,
     category:shortText(form.get('category'),180),
@@ -69,7 +74,7 @@ export async function updateLead(form: FormData) {
     next_follow_up_on:followUp(shortText(form.get('next_follow_up_on'),10)),
     contact_name:shortText(form.get('contact_name')),
     contact_email:shortText(form.get('contact_email')),
-    website_url:webUrl(form.get('website_url')),
+    website_url,
     google_business_url:webUrl(form.get('google_business_url')),
     notes:shortText(form.get('notes'),3000),
     updated_at:new Date().toISOString(),
@@ -118,10 +123,49 @@ export async function addSource(form: FormData) {
   redirect('/app/leads/'+id);
 }
 
+// Profiles are useful public-presence research, not independent verification
+// of the registered company or its current operating status.
+export async function moveProfileFromWebsite(form:FormData){
+ const {supabase,organizationId}=await requireWorkspace(true);
+ const id=shortText(form.get('business_id'),64);
+ if(!validUuid(id))throw new Error('Invalid business ID.');
+ const {data:business,error}=await supabase.from('businesses')
+  .select('id,name,website_url').eq('id',id).eq('organization_id',organizationId).maybeSingle();
+ if(error||!business)throw new Error('Business not found.');
+ const presence=classifyWebPresence(business.website_url);
+ if((presence.kind!=='social'&&presence.kind!=='listing')||!presence.url)
+  throw new Error('This record does not contain a social or directory profile in its website field.');
+ const {data:existing,error:readError}=await supabase.from('business_sources').select('id')
+  .eq('business_id',id).eq('organization_id',organizationId).eq('source_url',presence.url).limit(1);
+ if(readError)throw new Error('Could not check existing profile evidence: '+readError.message);
+ if(!existing?.length){
+  const {error:saveError}=await supabase.from('business_sources').insert({
+   organization_id:organizationId,business_id:id,source_url:presence.url,
+   source_type:'social_profile',raw_name:business.name,confidence:'pending'
+  });
+  if(saveError)throw new Error('Could not preserve social profile: '+saveError.message);
+ }
+ const {data:updated,error:updateError}=await supabase.from('businesses')
+  .update({website_url:null,updated_at:new Date().toISOString()})
+  .eq('id',id).eq('organization_id',organizationId).eq('website_url',business.website_url)
+  .select('id').maybeSingle();
+ if(updateError||!updated)throw new Error('Profile evidence saved, but website field was not changed. Reload before retrying.');
+ revalidatePath('/app/leads/'+id);revalidatePath('/app/leads');
+ revalidatePath('/app/intelligence');revalidatePath('/app/opportunities');
+ redirect('/app/leads/'+id);
+}
+
 export async function confirmSource(form: FormData) {
   const {supabase,organizationId}=await requireWorkspace(true);
   const id=shortText(form.get('business_id'),64), sourceId=shortText(form.get('source_id'),64);
   if(!validUuid(id)||!validUuid(sourceId)) throw new Error('Invalid source.');
+  const {data:source,error:readError}=await supabase.from('business_sources')
+    .select('source_type,source_url').eq('id',sourceId).eq('business_id',id)
+    .eq('organization_id',organizationId).maybeSingle();
+  if(readError||!source)throw new Error('Original evidence was not found.');
+  const kind=classifyWebPresence(source.source_url).kind;
+  if(source.source_type==='social_profile'||kind==='social'||kind==='listing')
+    throw new Error('Social profiles and third-party listings cannot verify business identity or operating status. Attach an independent source.');
   const {error}=await supabase.from('business_sources').update({
     confidence:'matched',verified_at:new Date().toISOString(),
   }).eq('id',sourceId).eq('business_id',id).eq('organization_id',organizationId);
@@ -139,7 +183,8 @@ export async function markVerified(form: FormData) {
   if(lead?.operational_status!=='operating') throw new Error('Confirm that the business is currently operating before marking verified.');
   const {count,error:sourceError}=await supabase.from('business_sources')
     .select('id',{count:'exact',head:true})
-    .eq('business_id',id).eq('organization_id',organizationId).eq('confidence','matched');
+    .eq('business_id',id).eq('organization_id',organizationId).eq('confidence','matched')
+    .neq('source_type','social_profile');
   if(sourceError || !count) throw new Error('Review and confirm at least one genuine source before marking verified.');
   const {error}=await supabase.from('businesses').update({
     verification_status:'verified',last_checked_at:new Date().toISOString(),updated_at:new Date().toISOString()
@@ -164,7 +209,10 @@ export async function stageCsv(form: FormData) {
     headers.forEach((h,j)=>{if(h)raw_data[h]=String(row[j]??'').slice(0,2000)});
     const name=pick(raw_data,['businessname','companyname','name','business']).slice(0,180);
     const city=pick(raw_data,['city','town','municipality']).slice(0,180);
-    const website_url=pick(raw_data,['website','websiteurl','url']).slice(0,1024);
+    const recordedWebsite=pick(raw_data,['website','websiteurl','url']).slice(0,1024);
+  const presence=classifyWebPresence(recordedWebsite);
+  const website_url=presence.kind==='website'?presence.url||'':'';
+  if(presence.kind==='social'||presence.kind==='listing')raw_data.discovered_social_profile_url=presence.url||'';
     const source_url=pick(raw_data,['sourceurl','recordurl','registryurl','evidenceurl']).slice(0,1024);
     return {
       organization_id:organizationId,submitted_by:user.id,batch_id:batchId,row_number:i+2,
@@ -208,21 +256,30 @@ export async function approveImportedRow(form: FormData) {
   const raw=(row.raw_data??{}) as Record<string,unknown>;
   const street_address=streetFromRaw(raw),postal_code=postcodeFromRaw(raw);
   const service_area=researchServiceArea(raw);
+  const socialUrl=discoveredProfile((row.raw_data??{}) as Record<string,unknown>,row.website_url);
+  const officialWebsite=validateBusinessWebsite(website_url&&classifyWebPresence(website_url).kind==='website'?website_url:null);
   const {data:business,error}=await supabase.from('businesses').insert({
     organization_id:organizationId,name:row.name,city:row.city||null,category:row.category,
-    phone:row.phone,website_url,verification_status:source_url?'pending':'unverified',
+    phone:row.phone,website_url:officialWebsite,verification_status:source_url?'pending':'unverified',
     ...(street_address?{street_address}:{}),...(postal_code?{postal_code}:{}),
     ...(service_area?{service_area}:{})
   }).select('id').single();
   if(error||!business)throw new Error(error?.message??'Failed to insert business');
-  if(source_url){
-    const {error:srcError}=await supabase.from('business_sources').insert({
-      organization_id:organizationId,business_id:business.id,
-      source_url,source_type:row.source_type||'csv_import',raw_name:row.name,
-      raw_address:street_address||null,
-      registration_number:typeof raw.external_id==='string'?raw.external_id:null,
-      confidence:'pending'
-    });
+  const evidence=[];
+  if(source_url)evidence.push({
+    organization_id:organizationId,business_id:business.id,
+    source_url,source_type:row.source_type||'csv_import',raw_name:row.name,
+    raw_address:street_address||null,
+    registration_number:typeof raw.external_id==='string'?raw.external_id:null,
+    confidence:'pending'
+  });
+  if(socialUrl&&socialUrl!==source_url)evidence.push({
+    organization_id:organizationId,business_id:business.id,
+    source_url:socialUrl,source_type:'social_profile',raw_name:row.name,
+    raw_address:null,registration_number:null,confidence:'pending'
+  });
+  if(evidence.length){
+    const {error:srcError}=await supabase.from('business_sources').insert(evidence);
     if(srcError)throw new Error('Business created, but evidence insert failed: '+srcError.message);
   }
   const {error:updateError}=await supabase.from('lead_import_rows')
