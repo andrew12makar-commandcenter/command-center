@@ -123,7 +123,7 @@ export default function SiteRenderer({site,standalone=false}:RendererProps){
    </div>
   </section>}
   <footer className="flex flex-wrap justify-between gap-4 border-t border-black/10 px-7 py-7 text-xs opacity-60 sm:px-12 lg:px-16">
-   <span>{site.businessName}</span><span>Design system · Site Blueprint v{site.version}</span>
+   <span>{site.businessName}</span><span>{standalone?`© ${new Date().getFullYear()} ${site.businessName}`:`Private design concept · Blueprint v${site.version}`}</span>
   </footer>
  </div>;
 }
