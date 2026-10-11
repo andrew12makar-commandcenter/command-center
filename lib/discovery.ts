@@ -32,9 +32,10 @@ export function parseOsm(elements:OsmElement[],area:Area):Candidate[]{
   if(!category)return [];
   const external_id=e.type+'/'+e.id,position=e.center||((e.lat&&e.lon)?{lat:e.lat,lon:e.lon}:undefined);
   const rawWebsite=safe(t.website||t['contact:website'],1024);
-  const profileCandidate=rawWebsite||safe(t['contact:instagram']||t['contact:facebook'],1024);
   const web=classifyWebPresence(http(rawWebsite));
-  const profile=classifyWebPresence(http(profileCandidate));
+  const embeddedProfile=classifyWebPresence(http(rawWebsite));
+  const separateProfile=classifyWebPresence(http(t['contact:instagram']||t['contact:facebook']));
+  const profile=embeddedProfile.kind==='social'||embeddedProfile.kind==='listing'?embeddedProfile:separateProfile;
   return [{
    name,city:safe(t['addr:city'],100),category:safe(category,140),
    website_url:web.kind==='website'?web.url||'':'',phone:safe(t.phone||t['contact:phone'],100),
