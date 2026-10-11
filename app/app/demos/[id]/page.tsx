@@ -4,46 +4,10 @@ import { requireWorkspace } from '@/lib/workspace';
 import { rateDemo,saveDemoCopy,applyLearnedPreferences } from '../feedback-actions';
 import { derivePreferences, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
 import {classifyIndustry} from '@/lib/business-classification';
-import { ArrowUpRight, ArrowDown, Check, Phone, Mail, MapPin, Leaf, Sparkles, ShieldCheck, BadgeInfo } from 'lucide-react';
+import { ArrowUpRight, ArrowDown, Check, BadgeInfo } from 'lucide-react';
+import {buildSiteBlueprint} from '@/lib/site-blueprint';
+import SiteRenderer from '@/components/site-renderer';
 
-const variants = {
- editorial: {
-   surface:'bg-[#f6f5ef] text-[#152b27]', hero:'bg-[#e7ece4]', eyebrow:'text-[#51776c]',
-   action:'bg-[#173d33] text-white', detail:'bg-[#d9e5d9]', border:'border-[#cad5ce]',dark:'bg-[#173d33] text-white'
- },
- bold: {
-   surface:'bg-[#f7f4eb] text-[#231f1d]',hero:'bg-[#e9dac1]',eyebrow:'text-[#9a4f30]',
-   action:'bg-[#aa4f30] text-white',detail:'bg-[#e0ccb0]',border:'border-[#d6bca0]',dark:'bg-[#302920] text-white',
- }
-} as const;
-
-// Clinical demos should never inherit the garden-green landscaping visual identity.
-const medicalVariants={
- editorial:{
-  surface:'bg-[#f8fbff] text-[#142d47]',hero:'bg-[#eaf2f9]',eyebrow:'text-[#296688]',
-  action:'bg-[#15466e] text-white',detail:'bg-[#e0ecf5]',border:'border-[#cadbe9]',dark:'bg-[#123750] text-white'
- },
- bold:{
-  surface:'bg-[#f8fbff] text-[#102945]',hero:'bg-[#dceaf9]',eyebrow:'text-[#155f8d]',
-  action:'bg-[#075a8c] text-white',detail:'bg-[#cfe1f1]',border:'border-[#b4cbde]',dark:'bg-[#102d53] text-white'
- }
-} as const;
-const professionalVariants={
- editorial:{
-  surface:'bg-[#faf9f6] text-[#252c38]',hero:'bg-[#eceef0]',eyebrow:'text-[#596f83]',
-  action:'bg-[#293a50] text-white',detail:'bg-[#e0e5e8]',border:'border-[#ced5dd]',dark:'bg-[#283849] text-white'
- },
- bold:{
-  surface:'bg-[#fafafa] text-[#212a39]',hero:'bg-[#e6ebf3]',eyebrow:'text-[#345b88]',
-  action:'bg-[#2f5080] text-white',detail:'bg-[#d5dfec]',border:'border-[#bac7d9]',dark:'bg-[#1c3558] text-white'
- }
-} as const;
-
-const sectorInfo:Record<string,{label:string;intro:string;icon:typeof Leaf}> = {
- landscaping:{label:'OUTDOOR SERVICES',intro:'Thoughtful spaces begin with a straightforward conversation.',icon:Leaf},
- medical:{label:'PATIENT SERVICES',intro:'A simpler starting point for patients and families.',icon:ShieldCheck},
- universal:{label:'LOCAL PROFESSIONALS',intro:'Straightforward information. A better first impression.',icon:Sparkles},
-};
 const issueOptions=[
  ['layout','Layout and hierarchy'],['visuals','Visual quality'],['generic_copy','Generic messaging'],
  ['missing_content','Missing real details'],['navigation','Navigation or CTA'],['mobile','Mobile layout'],['other','Other']
@@ -72,16 +36,17 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
   const copy=(demo.draft_content??{}) as Partial<DemoCopy>;
   const preferences=derivePreferences((myRatings??[]) as FeedbackSample[],demo.template as Template);
   const variant=(copy.design?.variant??demo.visual_variant)==='bold'?'bold':'editorial';
-  const style=demo.template==='medical'?medicalVariants[variant]:
-    demo.template==='universal'?professionalVariants[variant]:variants[variant];
-  const design=copy.design;
-  const info=sectorInfo[demo.template]??sectorInfo.universal;
-  const MainIcon=info.icon;
-  const name=copy.brand||business?.name||'Business name pending';
-  const services=(copy.services??[]).filter(Boolean);
-  const hasContact=Boolean(business?.contact_email||business?.phone);
-  const phoneHref=business?.phone?'tel:'+String(business.phone).replace(/[^+\d]/g,''):null;
-  const emailHref=business?.contact_email?'mailto:'+business.contact_email:null;
+  const site=buildSiteBlueprint(demo.template as Template,copy,{
+    name:business?.name??'',city:business?.city,
+    phone:business?.phone,email:business?.contact_email
+  });
+  const name=site.businessName;
+  const services=site.services;
+  const hero=site.content.images.find(x=>x.role==='hero');
+  const assetRow=(x:{url:string;alt:string;sourceUrl:string;role:string})=>
+    [x.url,x.alt,x.sourceUrl,x.role].join(' | ');
+  const researchedImages=site.content.images.filter(x=>x.permission==='reference_only'&&x.role!=='hero');
+  const approvedGallery=site.content.images.filter(x=>x.permission==='approved'&&x.role!=='hero');
   return <main className="max-w-[1320px]">
     <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
       <div><Link href="/app/demos" className="muted text-sm">← Demo Studio</Link>
@@ -117,64 +82,34 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
     <div className="mb-5 rounded-xl border border-amber-700/40 bg-amber-950/20 px-5 py-3 text-sm text-amber-200">
       <BadgeInfo className="mr-2 inline" size={16}/>Private concept. This is not an approved business website. Verify facts and obtain permission before sharing.
     </div>
-    <div className={`overflow-hidden rounded-[24px] shadow-2xl shadow-black/30 ${style.surface}`}>
-      <header className={`flex flex-wrap items-center justify-between gap-5 px-7 py-6 sm:px-12 ${style.surface}`}>
-        <a href="#home" className="max-w-xs text-xl font-semibold tracking-tight">{name}</a>
-        <nav aria-label="Demo navigation" className={`flex flex-wrap gap-5 text-xs font-bold uppercase tracking-wider ${design?.prominentNav?'rounded-full border border-current/20 px-5 py-3':''}`}>
-          <a href="#services" className="hover:underline">Services</a><a href="#about" className="hover:underline">About</a><a href="#contact" className="hover:underline">Contact</a>
-        </nav>
-      </header>
-      <section id="home" className={`relative grid items-center gap-10 overflow-hidden px-7 sm:px-12 lg:grid-cols-[1.1fr_.9fr] ${design?.compact?'py-10 lg:py-12':'py-16 lg:py-20'} ${style.hero}`}>
-        <div className="relative z-10">
-          <div className={`mb-7 inline-flex items-center gap-2 rounded-full border border-current/25 px-4 py-2 text-[10px] font-bold uppercase tracking-[.2em] ${style.eyebrow}`}><MainIcon size={15}/>{copy.eyebrow||info.label}</div>
-          <h2 className="max-w-[650px] text-[clamp(2.1rem,3.5vw,3.9rem)] font-semibold leading-[1.06] tracking-[-.055em]">{copy.headline||info.intro}</h2>
-          <p className="mt-7 max-w-lg text-base leading-8 opacity-80">{copy.description||'Business-approved messaging will appear here.'}</p>
-          <div className="mt-9 flex flex-wrap items-center gap-6">
-            <a href="#contact" className={`inline-flex items-center gap-3 rounded-full px-7 py-4 text-sm font-semibold ${style.action}`}>{copy.primaryAction||'Get in touch'}<ArrowUpRight size={18}/></a>
-            <a href="#services" className="inline-flex items-center gap-2 text-sm font-semibold underline underline-offset-4">{copy.secondaryAction||'View services'}<ArrowDown size={16}/></a>
-          </div>
-        </div>
-        <div className={`relative mx-auto flex ${design?.compact?'min-h-[260px]':'min-h-[360px]'} w-full max-w-[530px] items-center justify-center overflow-hidden rounded-[24px] ${style.dark}`}>
-          {copy.heroImageUrl?
-            <img src={copy.heroImageUrl} alt={`Approved imagery for ${name} design concept`} className="absolute inset-0 h-full w-full object-cover" loading="eager"/>:
-            <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-              <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border border-white/25"></div>
-              <div className="absolute -left-28 -bottom-28 h-80 w-80 rounded-full border border-white/20"></div>
-              <div className="absolute inset-8 rounded-[28px] border border-white/15"></div>
-            </div>}
-          {!copy.heroImageUrl&&<div className="relative z-10 p-10 text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl border border-white/25 bg-white/10"><MainIcon size={38} strokeWidth={1.2}/></div>
-            <p className="mt-7 text-[11px] font-bold tracking-[.24em] opacity-65">{demo.template==='medical'?'PATIENT INFORMATION':demo.template==='landscaping'?'OUTDOOR SERVICES':'PROFESSIONAL SERVICES'}</p>
-            <p className="mt-3 text-2xl font-semibold tracking-tight">{business?.city||'Local community'}</p>
-            <p className="mt-3 text-sm opacity-70">Add an approved business photo for a personalized concept</p>
-          </div>}
-        </div>
-      </section>
-      <section id="services" className="px-7 py-16 sm:px-12 lg:py-24">
-        <div className="max-w-2xl"><p className={`text-xs font-bold uppercase tracking-[.22em] ${style.eyebrow}`}>What we can showcase</p>
-          <h3 className="mt-4 text-3xl font-semibold tracking-tight sm:text-5xl">{demo.template==='medical'?'Clear information for patients.':demo.template==='landscaping'?'Explore the work and services.':'Understand the services at a glance.'}</h3></div>
-        {services.length ? <div className="mt-10 grid gap-4 md:grid-cols-3">{services.map((item,i)=><article key={item+i} className={`min-h-44 rounded-2xl border p-7 ${style.border}`}>
-          <p className="mb-9 text-xs opacity-50">0{i+1}</p><h4 className="text-xl font-semibold">{item}</h4>
-        </article>)}</div> : <div className={`mt-10 rounded-2xl border border-dashed px-8 py-10 ${style.border}`}>
-          <p className="text-lg font-medium">Real services haven't been confirmed yet.</p>
-          <p className="mt-2 text-sm opacity-70">Add the business's actual offerings in the editor below. We will not invent them.</p></div>}
-      </section>
-      <section id="about" className={`grid gap-8 px-7 py-16 sm:px-12 lg:grid-cols-2 lg:items-center lg:py-20 ${style.detail}`}>
-        <div><p className={`text-xs font-bold uppercase tracking-widest ${style.eyebrow}`}>A clearer customer journey</p>
-          <h3 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{demo.template==='medical'?'Information patients can find easily.':demo.template==='landscaping'?'A better way to plan the next project.':'A better first impression starts with clarity.'}</h3></div>
-        <p className="max-w-lg text-base leading-8 opacity-75">Services, location, availability, and how to get in touch. This layout is designed to organize those details, once they are verified with the business.</p>
-      </section>
-      <section id="contact" className={`flex flex-wrap items-center justify-between gap-9 px-7 py-16 sm:px-12 lg:py-20 ${style.dark}`}>
-        <div><p className="text-xs font-bold uppercase tracking-[.22em] opacity-60">Connect</p>
-          <h3 className="mt-4 max-w-xl text-3xl font-semibold tracking-tight sm:text-5xl">{demo.template==='medical'?'Find the next step.':demo.template==='landscaping'?'Start your next project.':'Ready to connect?'}</h3>
-          <p className="mt-5 text-sm opacity-70">{hasContact?'Contact information was supplied in the CRM and should be verified before publishing.':'Confirm the business contact details before this concept is shared.'}</p></div>
-        <div className="flex flex-col gap-3 text-sm">{phoneHref&&<a className="flex items-center gap-3 underline" href={phoneHref}><Phone size={18}/> Call business</a>}
-          {emailHref&&<a className="flex items-center gap-3 underline" href={emailHref}><Mail size={18}/> Email business</a>}
-          {business?.city&&<span className="flex items-center gap-3"><MapPin size={18}/>{business.city}</span>}
-          {!hasContact&&<span className="text-sm opacity-65">Contact method to be confirmed.</span>}</div>
-      </section>
-      <footer className="px-7 py-7 text-xs opacity-65 sm:px-12">{copy.disclaimer||'Independent demo concept. Details require verification.'}</footer>
-    </div>
+    <section className="panel mb-6 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+       <div><p className="kicker">Production-quality review</p>
+        <h2 className="mt-2 text-lg font-semibold">Site Blueprint · v{site.version}</h2></div>
+       <a className="btn" href={'/app/api/demos/'+id+'/blueprint'}>Export site blueprint ↗</a>
+      </div>
+      <p className="muted mt-3 text-sm">This same rendering engine can be reused for your own future client websites. Source research and approval happen separately from layout generation. Export is private and does not publish a site.</p>
+      <div className="mt-4 flex flex-wrap gap-3 text-sm">
+       <span className="rounded-full border border-[#2a5053] px-4 py-2">Private preview: {site.quality.previewReady?'Content reviewed':'Research incomplete'}</span>
+       <span className="rounded-full border border-[#2a5053] px-4 py-2">Publishing: {site.quality.publishReady?'Meets basic content gate':'Blocked until approval'}</span>
+       <span className="rounded-full border border-[#2a5053] px-4 py-2">Approved images: {site.content.images.filter(x=>x.permission==='approved').length}</span>
+      </div>
+      {site.quality.blockers.length>0&&<div className="mt-5 rounded-xl border border-amber-800/60 p-5">
+       <p className="text-sm font-semibold text-amber-200">Before showing this to a prospect</p>
+       <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-amber-100/90">
+        {site.quality.blockers.map(x=><li key={x}>{x}</li>)}
+       </ul>
+      </div>}
+      {site.content.images.length>0&&<details className="mt-5 text-sm">
+       <summary className="cursor-pointer font-semibold">Asset provenance and permission inventory ({site.content.images.length})</summary>
+       <div className="mt-3 space-y-3">{site.content.images.map((img,i)=><div className="rounded-xl border border-[#273b48] p-3" key={i}>
+        <p><strong>{img.role}</strong> · {img.permission==='approved'?'Operator-confirmed permission':'Reference only, not displayed'}</p>
+        <p className="muted mt-1 break-all">{img.alt}</p>
+        <a href={img.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 block break-all text-cyan-300 underline">View recorded source ↗</a>
+       </div>)}</div>
+      </details>}
+    </section>
+    <SiteRenderer site={site}/>
     <div id="demo-feedback" className="mt-9 grid scroll-mt-8 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <section className="panel min-w-0 p-5 sm:p-7"><p className="kicker">Iterative improvement</p><h2 className="mt-2 text-xl font-semibold">Rate this version</h2>
         <p className="muted mt-3 text-sm">Your rating immediately shapes the next demo. Criticisms like cramped navigation or generic copy also become design settings.</p>
@@ -218,16 +153,54 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
           {!feedback?.length&&<p className="muted mt-3 text-sm">No reviews yet. Your first review starts the improvement history.</p>}
         </div>
       </section>
-      <section className="panel p-7"><p className="kicker">Human-approved content</p><h2 className="mt-2 text-xl font-semibold">Edit demo copy</h2>
-        <p className="muted mt-3 text-sm">Update the copy using business-confirmed facts. Each save creates a new version rather than deleting the previous text.</p>
+      <section className="panel p-7"><p className="kicker">Human-approved content</p><h2 className="mt-2 text-xl font-semibold">Website content & photography</h2>
+        <p className="muted mt-3 text-sm">Build a source-backed content pack that can be reused in actual client websites. Each save creates a new revision and keeps existing functionality.</p>
         <form action={saveDemoCopy} className="mt-6 grid gap-4"><input type="hidden" name="demo_id" value={id}/>
           <input type="hidden" name="revision_no" value={demo.revision_no??1}/>
           <label className="text-sm">Business name<input className="mt-2" name="brand" maxLength={140} defaultValue={name} required/></label>
           <label className="text-sm">Location eyebrow<input className="mt-2" name="eyebrow" maxLength={130} defaultValue={copy.eyebrow??''}/></label>
           <label className="text-sm">Headline<input className="mt-2" name="headline" maxLength={200} defaultValue={copy.headline??''} required/></label>
           <label className="text-sm">Description<textarea className="mt-2" name="description" rows={4} maxLength={800} defaultValue={copy.description??''}/></label>
-          <label className="text-sm">Approved hero image URL<input className="mt-2" type="url" name="heroImageUrl" defaultValue={copy.heroImageUrl??''} placeholder="https://business.example/images/photo.jpg"/><small className="muted mt-2 block">Use only an image you have permission to display. The app does not invent company photography.</small></label>
+          <div className="rounded-xl border border-[#2e5861] p-4">
+            <p className="text-sm font-semibold">Real business photography</p>
+            <p className="muted mt-2 text-xs leading-5">You may record existing photos for research without displaying them. Only photos you confirm you have the right to use may appear on the website. Do not assume that public availability grants reuse rights.</p>
+            <label className="mt-4 block text-sm">Hero image URL<input className="mt-2" type="url" name="heroImageUrl" defaultValue={hero?.url??copy.heroImageUrl??''} placeholder="https://example.org/practice-photo.jpg"/></label>
+            <label className="mt-3 block text-sm">Where the image came from<input className="mt-2" type="url" name="heroImageSourceUrl" defaultValue={hero?.sourceUrl??''} placeholder="https://business.example/gallery/"/></label>
+            <label className="mt-3 flex items-start gap-3 text-sm"><input className="mt-1" type="checkbox" name="heroImageApproved" defaultChecked={hero?.permission==='approved'}/>
+             I confirmed permission to use the hero photo in this concept.</label>
+            <label className="mt-4 block text-sm">Photo references for later permission review
+             <textarea className="mt-2" name="imageReferences" rows={3} maxLength={6000}
+              defaultValue={researchedImages.map(assetRow).join('\n')} placeholder="Image URL | Description | Source page URL | gallery"/>
+            </label>
+            <label className="mt-3 block text-sm">Approved gallery photos (one per line)
+             <textarea className="mt-2" name="approvedGallery" rows={4} maxLength={6000}
+              defaultValue={approvedGallery.map(assetRow).join('\n')} placeholder="Image URL | Description | Source page URL | gallery"/>
+            </label>
+            <label className="mt-3 flex items-start gap-3 text-sm"><input className="mt-1" type="checkbox" name="galleryRightsApproved" defaultChecked={approvedGallery.length>0}/>
+             I confirmed the rights to display every image listed in the approved gallery.</label>
+          </div>
           <label className="text-sm">Confirmed services (one per line)<textarea className="mt-2" name="services" rows={5} maxLength={1000} defaultValue={services.join('\n')} placeholder="Only services verified by the business"/></label>
+          <div className="rounded-xl border border-[#2e5861] p-4">
+           <h3 className="text-sm font-semibold">Business-specific content pack</h3>
+           <p className="muted mt-2 text-xs">The same content package will power this private concept and later client sites. No claims or testimonials are invented automatically.</p>
+           <label className="mt-4 block text-sm">Practice / company introduction<textarea name="siteAbout" className="mt-2" rows={5} maxLength={1100} defaultValue={site.content.about} placeholder="Specific, sourced introduction; not generic marketing copy"/></label>
+           <label className="mt-4 block text-sm">Audience or positioning (optional)<input name="siteAudience" className="mt-2" maxLength={200} defaultValue={site.content.audience}/></label>
+           <label className="mt-4 block text-sm">Source for factual details<input type="url" name="siteSourceUrl" className="mt-2" defaultValue={site.content.sourceUrl??''} placeholder="https://practice.example/about"/></label>
+           <label className="mt-4 block text-sm">Appointment or booking link (only if independently confirmed)<input type="url" name="appointmentUrl" className="mt-2" defaultValue={site.content.appointmentUrl??''} placeholder="https://business.example/appointments"/></label>
+           <label className="mt-4 block text-sm">Research and approval stage
+             <select name="factStatus" className="mt-2" defaultValue={site.content.factStatus}>
+              <option value="unreviewed">Unreviewed · internal research</option>
+              <option value="researched">Researched · independently checked facts, private preview only</option>
+              <option value="owner_approved">Owner approved · I have explicit approval of business content</option>
+             </select>
+           </label>
+           <label className="mt-4 block text-sm">Hero treatment
+             <select name="heroTreatment" className="mt-2" defaultValue={site.content.heroTreatment}>
+              <option value="typographic">Premium typographic, no photo</option>
+              <option value="photo-led">Use an approved photo when available</option>
+             </select>
+           </label>
+          </div>
           <label className="text-sm">Primary button text<input className="mt-2" name="primaryAction" maxLength={65} defaultValue={copy.primaryAction??''}/></label>
           <label className="text-sm">Secondary button text<input className="mt-2" name="secondaryAction" maxLength={65} defaultValue={copy.secondaryAction??''}/></label>
           <button className="btn" type="submit">Save new revision</button>
