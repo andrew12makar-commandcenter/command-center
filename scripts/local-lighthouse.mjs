@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Command Center local pilot: explicitly approved CRM URLs, Chrome + Lighthouse,
 // serial execution, no Google PageSpeed API or Supabase credentials.
-import {readFile,writeFile,mkdir,stat,unlink} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,stat,unlink,access} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
 import {resolve,dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -10,6 +10,7 @@ import {stdin,stdout} from 'node:process';
 import {parseApprovedManifest,preflightPublicWebsite} from './local-audit-guard.mjs';
 
 const projectRoot=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const lighthouseBin=join(projectRoot,'node_modules','.bin',process.platform==='win32'?'lighthouse.cmd':'lighthouse');
 const manifestPath=process.argv[2];
 if(!manifestPath){
  console.error('Usage: npm run audit:local -- ~/Downloads/command-center-audit-queue.json');
@@ -22,10 +23,13 @@ if(!manifestPath){
 }
 async function run(manifest){
  const jobs=parseApprovedManifest(await readFile(resolve(manifest),'utf8'));
+ try{await access(lighthouseBin);}catch{
+  throw Error('Local Lighthouse is not installed. From the project root run: npm install --save-dev lighthouse@13.0.0');
+ }
  console.log('\nLOCAL COMMAND CENTER AUDIT QUEUE · '+jobs.length+' CRM site(s)');
  for(let i=0;i<jobs.length;i++)
   console.log('  '+(i+1)+'. '+jobs[i].name+' · '+jobs[i].url);
- console.log('\nThe runner uses open-source Lighthouse downloaded through npm on first run.');
+ console.log('\nThe runner uses the Lighthouse executable already installed in node_modules.');
  console.log('It audits each approved site once, one at a time, using local Chrome.');
  console.log('No PageSpeed API credit or Google Cloud account is used.');
  console.log('Websites are untrusted: use this only on your own Mac, not a public server.');
@@ -70,10 +74,11 @@ async function run(manifest){
   console.log('  Running mobile Lighthouse; this can take up to 2 minutes.');
   try{
    const code=await new Promise((done,reject)=>{
-    child=spawn('npx',[
-     '--yes','--package=lighthouse@13.0.0','lighthouse',row.url,
+    child=spawn(lighthouseBin,[
+     row.url,
      '--only-categories=performance,seo','--form-factor=mobile',
      '--output=json','--output-path='+output,'--quiet',
+     '--no-enable-error-reporting',
      '--chrome-flags=--headless --disable-extensions --no-first-run'
     ],{cwd:projectRoot,stdio:['ignore','pipe','pipe'],env:process.env});
     const logs=[];
