@@ -125,7 +125,7 @@ export default async function WebsiteIntelligence({
         <p className="muted mt-5 text-sm">{f?.note||'No analysis details available.'}{f?.error?' '+f.error:''}</p>
         {reportWarnings.length>0&&<div role="status" className="mt-4 rounded-xl border border-amber-700/60 bg-amber-950/20 p-4">
           <p className="font-semibold text-sm text-amber-100">Lighthouse confidence warnings · do not use for automated prospect ranking</p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-200">{reportWarnings.map((w,i)=><li key={i}>{short(w,240)}</li>)}</ul>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-200">{reportWarnings.map((w,i)=><li key={i}>{short(w)}</li>)}</ul>
         </div>}
         {evidence.length>0&&<div className="mt-5 grid gap-2 md:grid-cols-2">{evidence.map(e=><div key={e.id} className="rounded-xl border border-[#273d47] p-4">
            <p className="text-sm font-semibold">{e.title}<span className={'ml-2 text-xs '+(e.result==='failed'?'text-amber-300':'text-[#99b5bf]')}>· {e.result}</span></p>
