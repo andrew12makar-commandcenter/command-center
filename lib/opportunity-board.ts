@@ -76,6 +76,9 @@ export function scoreOpportunity(
  }else if(latest.status==='no_gaps'){
   stage='no_measured_gaps';
   reason='No gaps in the limited latest Lighthouse checks. Other improvements may exist.';
+ }else if(latest.findings?.source_method==='local_lighthouse_upload'){
+  stage='verify_business';
+  reason='An operator-uploaded Lighthouse report indicates a possible website issue. Confirm this evidence and business status independently before treating it as a verified outreach opportunity.';
  }else if(!verified){
   stage='verify_business';
   reason='Measured technical improvement signal, but current operating status and source verification are not both confirmed.';
