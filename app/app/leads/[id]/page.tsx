@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireWorkspace } from '@/lib/workspace';
-import { addActivity,addSource,confirmSource,markVerified,updateLead } from '../actions';
+import { addActivity,addSource,confirmSource,markVerified,moveProfileFromWebsite,updateLead } from '../actions';
+import {classifyWebPresence} from '@/lib/web-presence';
 import { createDemo } from '@/app/app/demos/actions';
 import {classifyIndustry,industryLabel} from '@/lib/business-classification';
 
@@ -14,6 +15,8 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
   const {data:b,error}=await supabase.from('businesses').select('*').eq('organization_id',organizationId).eq('id',id).maybeSingle();
   if(error||!b) notFound();
   const industry=classifyIndustry(b.name,b.category);
+  const presence=classifyWebPresence(b.website_url);
+  const profileOnly=presence.kind==='social'||presence.kind==='listing';
   const [{data:sources},{data:activities},{data:demos}]=await Promise.all([
     supabase.from('business_sources').select('*').eq('organization_id',organizationId).eq('business_id',id).order('recorded_at',{ascending:false}),
     supabase.from('business_activities').select('*').eq('organization_id',organizationId).eq('business_id',id).order('occurred_at',{ascending:false}).limit(30),
@@ -25,13 +28,13 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
       <div><p className="kicker">{b.city||'Location pending'} · {b.category||'Category pending'}</p>
       <h1 className="mt-2 text-4xl font-semibold">{b.name}</h1>
       <p className="muted mt-3">Verification: {b.verification_status} · Operational status: {b.operational_status}</p></div>
-      <div className="flex gap-3">{b.website_url && <a className="btn" target="_blank" rel="noreferrer" href={b.website_url}>Visit website ↗</a>}
+      <div className="flex gap-3">{presence.url && <a className="btn" target="_blank" rel="noopener noreferrer" href={presence.url}>{profileOnly?'Visit '+presence.provider+' profile ↗':'Visit website ↗'}</a>}
         {b.google_business_url && <a className="btn" target="_blank" rel="noreferrer" href={b.google_business_url}>Google profile ↗</a>}</div>
     </div>
     <section className="panel mt-7 flex flex-wrap items-center justify-between gap-4 p-5">
       <div><p className="kicker">Website Intelligence</p><h2 className="mt-2 text-lg font-semibold">Inspect performance and technical SEO</h2>
-      <p className="muted mt-2 text-sm">Evidence-backed mobile PageSpeed results, separate from your manual sales priority.</p></div>
-      <Link href="/app/intelligence" className="btn">Open website audits →</Link>
+      <p className="muted mt-2 text-sm">{profileOnly?'A social or directory profile is recorded, not an independent business website. Do not run PageSpeed on this link.':'Evidence-backed mobile PageSpeed results, separate from your manual sales priority.'}</p></div>
+      {profileOnly?<span className="text-sm text-amber-200">Website research needed</span>:<Link href={'/app/intelligence?business='+id} className="btn">Open website audits →</Link>}
     </section>
     <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
       <div className="space-y-6">
@@ -45,14 +48,23 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
             <label className="text-sm">Next follow-up<input name="next_follow_up_on" className="mt-2" type="date" defaultValue={b.next_follow_up_on??''}/></label>
             <label className="text-sm">Contact name<input name="contact_name" className="mt-2" defaultValue={b.contact_name??''}/></label>
             <label className="text-sm">Contact email<input name="contact_email" type="email" className="mt-2" defaultValue={b.contact_email??''}/></label>
-            <label className="text-sm">Confirmed business website<input name="website_url" type="url" className="mt-2" defaultValue={b.website_url??''} placeholder="https://official-business-site.com"/></label>
+            <label className="text-sm">Independent business website<input name="website_url" type="url" className="mt-2" defaultValue={profileOnly?'':b.website_url??''} placeholder="https://official-business-site.com"/></label>
             <label className="text-sm">Google Business Profile link, if found<input name="google_business_url" type="url" className="mt-2" defaultValue={b.google_business_url??''} placeholder="https://maps.google.com/…"/></label>
-            <p className="muted text-xs md:col-span-2">Only enter a website or listing URL you independently matched to this business. A missing link in map data does not mean the business has none.</p>
+            <p className="muted text-xs md:col-span-2">Website field is for independent business sites only. Instagram, Facebook, and Google listings are separate research evidence. An unrecorded website does not prove the business has none.</p>
             <label className="text-sm">Priority score (0–100)<input name="priority_score" type="number" min="0" max="100" className="mt-2" defaultValue={b.priority_score??''}/></label>
             <label className="text-sm">Evidence behind score<input name="score_rationale" className="mt-2" defaultValue={b.score_rationale??''} placeholder="Observed, checkable reasons"/></label>
             <label className="text-sm md:col-span-2">Working notes<textarea name="notes" rows={4} className="mt-2" defaultValue={b.notes??''}/></label>
             <div className="md:col-span-2"><button type="submit" className="btn">Save lead changes</button></div>
           </form>
+          {profileOnly&&presence.url&&<div className="mt-5 rounded-xl border border-amber-700/50 bg-amber-950/20 p-5">
+            <p className="font-semibold text-amber-100">Profile found in website field</p>
+            <p className="muted mt-2 break-all text-sm">{presence.provider}: {presence.url}</p>
+            <p className="mt-2 text-xs text-amber-100">Move this recorded link to research evidence before saving other changes. It will remain attached to this prospect, but it will not count as a verified operating-business source or an auditable website.</p>
+            <form action={moveProfileFromWebsite} className="mt-4">
+              <input type="hidden" name="business_id" value={id}/>
+              <button className="btn text-sm" type="submit">Move profile to research evidence →</button>
+            </form>
+          </div>}
         </section>
         <section className="panel p-7"><p className="kicker">Outreach record</p><h2 className="mt-2 text-xl font-semibold">Activity timeline</h2>
           <form action={addActivity} className="mt-5 space-y-3"><input type="hidden" name="business_id" value={id}/>
@@ -69,10 +81,11 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
         <section className="panel p-7"><p className="kicker">Trust & provenance</p><h2 className="mt-2 text-xl font-semibold">Registry/source evidence</h2>
           <p className="muted mt-3 text-sm">A source starts pending. Confirm its match manually before marking this business verified.</p>
           <div className="mt-5 space-y-3">{(sources??[]).map(s=><div className="rounded-xl border border-[#243745] p-4" key={s.id}>
-            <p className="text-sm font-semibold">{s.agency||s.source_type} <span className="muted">· {s.confidence}</span></p>
+            <p className="text-sm font-semibold">{s.source_type==='social_profile'?'Social / directory profile':s.agency||s.source_type} <span className="muted">· {s.confidence}</span></p>
             {s.registration_number&&<p className="muted mt-1 text-xs">Registry ID: {s.registration_number}</p>}
             {s.source_url&&<a className="mt-2 block break-all text-sm text-cyan-300 underline" target="_blank" rel="noreferrer" href={s.source_url}>Open original record ↗</a>}
-            {s.confidence==='pending'&&<form action={confirmSource} className="mt-3">
+            {s.source_type==='social_profile'&&<p className="muted mt-2 text-xs">Research presence only, not independent business verification.</p>}
+            {s.confidence==='pending'&&s.source_type!=='social_profile'&&classifyWebPresence(s.source_url).kind!=='social'&&classifyWebPresence(s.source_url).kind!=='listing'&&<form action={confirmSource} className="mt-3">
               <input type="hidden" name="business_id" value={id}/><input type="hidden" name="source_id" value={s.id}/>
               <button type="submit" className="btn text-xs">I inspected this record; it matches</button>
             </form>}</div>)}
