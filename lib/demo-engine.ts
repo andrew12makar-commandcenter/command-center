@@ -1,4 +1,4 @@
-import type {SiteContent} from './site-blueprint.ts';
+import {cleanSiteContent, type SiteContent} from './site-blueprint.ts';
 // Deterministic per-user, per-industry preference adaptation. No LLM training or external API calls.
 export const templates = ['landscaping','medical','universal'] as const;
 export type Template = typeof templates[number];
@@ -78,7 +78,8 @@ export function derivePreferences(all:FeedbackSample[], template:Template):Desig
     if(tags.includes('layout')||tags.includes('mobile')) compact+=weight;
     if(tags.includes('generic_copy')) concise+=weight;
     if(tags.includes('navigation')) nav+=weight;
-    if(tags.includes('missing_content')||preferenceRegex.assets.test(notes)) assets+=weight;
+    if(tags.includes('missing_content')||tags.includes('visuals')||preferenceRegex.assets.test(notes)) assets+=weight;
+    if(preferenceRegex.assets.test(notes))assets+=weight;
     if(preferenceRegex.compact.test(notes)) compact+=weight*2;
     if(preferenceRegex.spacious.test(notes)) compact-=weight*2;
     if(preferenceRegex.concise.test(notes)) concise+=weight*2;
@@ -95,7 +96,7 @@ export function derivePreferences(all:FeedbackSample[], template:Template):Desig
     profile.compact?'Tighter spacing and smaller hero sections':'Standard spacing',
     profile.conciseCopy?'Shorter, less generic default copy':'Standard copy length',
     profile.prominentNav?'More prominent navigation and contact actions':'Standard navigation',
-    ...(profile.needsRealAssets?['Flagged: real approved business photography is needed']:[]),
+    ...(profile.needsRealAssets?['Preferred: photo-led content when permission-approved imagery is available']:[]),
   ];
   return profile;
 }
@@ -130,5 +131,8 @@ export function createDraft(name:string,city:string|null,category:string|null,te
     secondaryAction:'Explore services',
     disclaimer:'Independent design concept. Not affiliated with or endorsed by this business. Details require owner confirmation.',
     design:preferences,
+    // Feedback affects the next draft's preferred media direction; actual
+    // research and legal image permission are still required before display.
+    siteContent:cleanSiteContent({heroTreatment:preferences.needsRealAssets?'photo-led':'typographic'}),
   };
 }
