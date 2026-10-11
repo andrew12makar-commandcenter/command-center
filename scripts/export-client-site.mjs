@@ -13,6 +13,15 @@ const files={
  'lib/web-presence.ts':'lib/web-presence.ts'
 };
 const html=(s)=>String(s||'').replace(/<[^>]*>/g,'').slice(0,160);
+const isPublicLink=(value)=>{
+ if(typeof value!=='string')return false;
+ try{
+  const u=new URL(value);
+  return (u.protocol==='https:'||u.protocol==='http:')&&!u.username&&!u.password&&
+   !u.port&&u.hostname.includes('.')&&!/(^|\\.)(localhost|local|internal|test|invalid)$/.test(u.hostname)&&
+   !/^(?:\\d{1,3}\\.){3}\\d{1,3}$/.test(u.hostname)&&!u.hostname.includes(':');
+ }catch{return false;}
+};
 export function validateExport(raw){
  if(!raw||typeof raw!=='object'||raw.exportType!=='command-center-private-site-blueprint/v1')
   throw Error('Choose a private site-blueprint JSON export from Demo Studio.');
@@ -29,9 +38,15 @@ export function validateExport(raw){
   throw Error('Approved business details, services and source are required.');
  if(!bp.contact?.phone&&!bp.contact?.email&&!c.appointmentUrl)
   throw Error('A verified contact or appointment destination is required.');
+ if(!isPublicLink(c.sourceUrl)||(c.appointmentUrl&&!isPublicLink(c.appointmentUrl)))
+  throw Error('Client project needs public web URLs for sources and booking.');
+
  const images=Array.isArray(c.images)?c.images:[];
  if(images.some(x=>x.permission!=='approved'))
   throw Error('Remove research-only image references before exporting a client project.');
+ if(images.some(x=>!isPublicLink(x.url)||!isPublicLink(x.sourceUrl)))
+  throw Error('Approved images must have public image and source URLs.');
+
  if(c.heroTreatment==='photo-led'&&!images.some(x=>x.permission==='approved'&&x.role==='hero'))
   throw Error('Photo-led sites require an explicitly approved hero image.');
  const safe={
