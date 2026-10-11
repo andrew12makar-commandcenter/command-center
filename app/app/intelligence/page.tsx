@@ -107,7 +107,7 @@ export default async function WebsiteIntelligence({
          <button type="submit" className="btn mt-4">Download approved audit queue →</button>
        </form>:
        <p className="muted mt-4 text-sm">No CRM records with independently identified company websites are available for this view.</p>}
-     <p className="muted mt-4 text-xs">Chrome Lighthouse is open-source. First run downloads Lighthouse from npm into the local npm cache; it may take a minute. Scans can fail on protective websites, including sites that load normally in Chrome. No outcome is considered a business defect without valid measured evidence.</p>
+     <p className="muted mt-4 text-xs">Chrome Lighthouse is open-source. Install it once with npm install --save-dev lighthouse@13.0.0. The batch runner now uses the local executable instead of npx. Scans can fail on protective websites, including sites that load normally in Chrome. No outcome is considered a business defect without valid measured evidence.</p>
    </section>}
    <section id="lighthouse-fallback" className="panel mt-7 scroll-mt-6 p-6">
      <p className="kicker">Lighthouse integration readiness</p>
