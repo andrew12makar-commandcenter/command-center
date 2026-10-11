@@ -5,6 +5,7 @@ import { requireWorkspace, shortText, validUuid } from '@/lib/workspace';
 import {resolveDemoTemplate} from '@/lib/business-classification';
 import {currentAudit,type OpportunityBusiness,type AuditRecord} from '@/lib/opportunity-board';
 import {buildSalesBrief} from '@/lib/sales-brief';
+import type {AuditFindings} from '@/lib/website-intelligence';
 import {
   createDraft, derivePreferences, templates, variants,
   type Template, type Variant, type FeedbackSample, type DemoCopy,
@@ -29,7 +30,7 @@ function withEvidence(
  const recent=currentAudit(b,audits);
  const brief=buildSalesBrief(b.name,recent?{
   status:recent.status,website_url:recent.website_url,assessed_at:recent.assessed_at,
-  findings:recent.findings
+  findings:recent.findings as Partial<AuditFindings>|null
  }:null);
  return {...draft,internalBuildPlan:{
   sourceAssessmentDate:brief.assessedAt,
