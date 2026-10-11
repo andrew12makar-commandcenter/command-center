@@ -108,6 +108,7 @@ export default async function WebsiteIntelligence({
       const f=a.findings as AuditFindings;
       const evidence=(Array.isArray(a.evidence)?a.evidence:[]) as AuditEvidence[];
       const hasScore=typeof f?.technical_opportunity_score==='number';
+      const reportWarnings=Array.isArray(f?.report_warnings)?f.report_warnings:[];
       return <article className="panel p-6" key={a.id}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div><p className="kicker">{a.status==='verified_gaps'?'Issues observed':a.status==='no_gaps'?'No issues in checked tests':'Inconclusive measurement'}</p>
@@ -117,11 +118,15 @@ export default async function WebsiteIntelligence({
           <Link className="text-sm text-cyan-300 underline" href={'/app/leads/'+a.business_id}>CRM record ↗</Link>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-[#29404a] p-4"><p className="muted text-xs">Mobile performance</p><strong className="mt-2 block text-2xl">{percent(f?.performance_score??null)}</strong></div>
+          <div className="rounded-xl border border-[#29404a] p-4"><p className="muted text-xs">{a.status==='inconclusive'&&typeof f?.performance_score==='number'?'Provisional mobile performance':'Mobile performance'}</p><strong className="mt-2 block text-2xl">{percent(f?.performance_score??null)}</strong></div>
           <div className="rounded-xl border border-[#29404a] p-4"><p className="muted text-xs">Technical SEO</p><strong className="mt-2 block text-2xl">{percent(f?.seo_score??null)}</strong></div>
           <div className="rounded-xl border border-[#29404a] p-4"><p className="muted text-xs">Technical improvement signal</p><strong className="mt-2 block text-2xl">{hasScore?String(f.technical_opportunity_score)+'/100':'Not scored'}</strong></div>
         </div>
         <p className="muted mt-5 text-sm">{f?.note||'No analysis details available.'}{f?.error?' '+f.error:''}</p>
+        {reportWarnings.length>0&&<div role="status" className="mt-4 rounded-xl border border-amber-700/60 bg-amber-950/20 p-4">
+          <p className="font-semibold text-sm text-amber-100">Lighthouse confidence warnings · do not use for automated prospect ranking</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-200">{reportWarnings.map((w,i)=><li key={i}>{short(w,240)}</li>)}</ul>
+        </div>}
         {evidence.length>0&&<div className="mt-5 grid gap-2 md:grid-cols-2">{evidence.map(e=><div key={e.id} className="rounded-xl border border-[#273d47] p-4">
            <p className="text-sm font-semibold">{e.title}<span className={'ml-2 text-xs '+(e.result==='failed'?'text-amber-300':'text-[#99b5bf]')}>· {e.result}</span></p>
            <p className="muted mt-2 text-xs">{short(e.detail)||'No additional measured details provided.'}</p></div>)}</div>}
