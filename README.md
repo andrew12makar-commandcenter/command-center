@@ -119,3 +119,28 @@ The private Website Intelligence page includes a **Local Lighthouse audit queue*
 Each run writes `results.json` with an honest status (`measured`, `inconclusive`, `skipped` or `oversized`) and the report path. Raw reports larger than 8 MB remain on the Mac and cannot be imported using the current 8 MB uploader. The existing import code marks Chrome-extension interference and Lighthouse warnings inconclusive, and labels all local reports as *operator-supplied*. Uploaded evidence is not a PageSpeed-hosted result, a promise of production speed, or proof of customer demand. No paid plan or Supabase schema migration is needed.
 
 To run the local guard tests alone: `node --test tests/local-audit-guard.test.mjs`. The full `npm test` includes these tests in CI.
+
+
+## Site Production v0.4 · Reusable generator foundation
+
+Command Center now separates **research**, **approved site content**, and **rendering** instead of filling a generic template and calling it a finished customer website.
+
+- `lib/site-blueprint.ts` is the reusable, versioned representation of real copy, confirmed services, image sources, approval state, appointment link and design preferences.
+- `components/site-renderer.tsx` is a portable React presentation component. It renders a photographic hero/gallery only from **explicitly approved** assets; otherwise it uses a designed typographic hero without fake photos or company facts.
+- Each private demo has a **Content & photography** editor. It keeps atomic revisions via the existing Supabase RPC. No new database migration is required.
+- **Source research** can be imported as candidate headings, descriptions and unapproved image references. It never publishes copied images or silently rewrites existing owner-approved text.
+- `/app/api/demos/[id]/blueprint` exports a private JSON site blueprint. Exporting is not deploying; real client sites still require their own deployment, integrations, domain, asset storage, QA and client approval.
+
+### One-business local content research (no API credits)
+
+Use Website Intelligence to download a **fresh** approved queue containing exactly one company. In a terminal within this repository, run:
+
+```bash
+node scripts/local-site-research.mjs ~/Downloads/command-center-audit-queue.json
+```
+
+Confirm the listed business URL and type `RESEARCH`. The collector checks public website safety, reads up to five same-host public HTML pages, respects robots disallows, and saves candidate page headings plus image **URLs** at `.local-lighthouse/site-research/*.json`. It does not download image files, verify factual claims, or grant permission to display them. The collector may miss JavaScript-only galleries or websites that block automated requests.
+
+Open that business's private Demo Studio page and use **Import research references** to select the output JSON. Content and image references then appear in the source review area. Verify claims and select appropriately licensed/owner-approved images in the editor before displaying them. A site without confirmed services, approved facts, and valid contact/appointment details cannot pass the basic publication gate.
+
+**Next build milestone:** generate a standalone, deployable client Next.js project from the blueprint and renderer, with dedicated asset hosting, real forms/booking, approvals, visual and performance testing, and a publication/rollback process. This is not yet implemented; do not market the current internal preview as a deployed client site.
