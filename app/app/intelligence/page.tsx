@@ -78,9 +78,40 @@ export default async function WebsiteIntelligence({
         </tr>})}</tbody></table>
       {!businesses?.length&&!bError&&<p className="muted p-8 text-sm">The CRM has no approved prospects yet. Review your discovered candidates in Lead Intake first.</p>}
    </section>
+   {process.env.NODE_ENV==='development'&&
+   <section id="local-lighthouse-queue" className="panel mt-7 p-6">
+     <p className="kicker">Zero paid API credits · pilot</p>
+     <h2 className="mt-2 text-xl font-semibold">Local Lighthouse audit queue</h2>
+     <p className="muted mt-3 max-w-4xl text-sm leading-6">
+       Choose up to 10 CRM businesses below. Download the approved queue and run it in your Mac terminal with
+       <code> npm run audit:local -- ~/Downloads/command-center-audit-queue.json</code>.
+       Chrome audits sites one at a time and saves JSON reports on your computer. No Google Cloud account, PageSpeed credits,
+       unattended scraping, or public auditing endpoint. You must approve the queue again in Terminal.
+     </p>
+     <p className="mt-3 text-sm text-amber-200">This pilot does not automatically upload the files. Import each completed JSON through the existing authenticated form below. Failed or incomplete runs remain inconclusive.</p>
+     {auditable.length>0?
+       <form method="get" action="/api/local-audits/manifest" className="mt-5">
+         <div className="grid gap-3 sm:grid-cols-2">
+           {auditable.slice(0,10).map(b=><label key={b.id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-[#2e424c] px-4 py-3 text-sm">
+             <input type="checkbox" className="mt-1 h-4 w-4 shrink-0" name="business_id" value={b.id}
+               defaultChecked={selectedId===b.id}/>
+             <span><strong className="block">{b.name}</strong>
+               <small className="muted mt-1 block break-all">{b.website_url}</small></span>
+           </label>)}
+         </div>
+         {auditable.length>10&&<p className="muted mt-3 text-xs">Showing the first 10 eligible sites from this CRM view. Select a specific business in Website Intelligence to export it individually.</p>}
+         <label className="mt-5 flex items-start gap-3 text-sm">
+           <input type="checkbox" className="mt-1 h-4 w-4" name="confirm" value="yes" required/>
+           I reviewed these exact URLs and approve the selected public websites for a one-time local test.
+         </label>
+         <button type="submit" className="btn mt-4">Download approved audit queue →</button>
+       </form>:
+       <p className="muted mt-4 text-sm">No CRM records with independently identified company websites are available for this view.</p>}
+     <p className="muted mt-4 text-xs">Chrome Lighthouse is open-source. First run downloads Lighthouse from npm into the local npm cache; it may take a minute. Scans can fail on protective websites, including sites that load normally in Chrome. No outcome is considered a business defect without valid measured evidence.</p>
+   </section>}
    <section id="lighthouse-fallback" className="panel mt-7 scroll-mt-6 p-6">
      <p className="kicker">Lighthouse integration readiness</p>
-     <h2 className="mt-2 text-xl font-semibold">Google API and local fallback</h2>
+     <h2 className="mt-2 text-xl font-semibold">Optional PageSpeed API and manual report import</h2>
      <p className="mt-3 text-sm font-semibold text-cyan-200">Server API key: {hasApiKey?'Configured':'Not configured'}</p>
      <p className="muted mt-2 max-w-4xl text-sm leading-6">
        {hasApiKey?'API requests will use the configured Google project key. Rate limits, quotas and access restrictions can still cause HTTP 429 or 403.':
