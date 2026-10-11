@@ -48,13 +48,26 @@ export function extractCandidates(html,url){
  const seen=new Set();
  for(const m of html.matchAll(/<img\b[^>]*>/gi)){
   const tag=m[0];
-  const src=attr(tag,'src')||attr(tag,'data-src')||attr(tag,'data-lazy-src');
-  const imageUrl=safeUrl(src,url);
+  const srcset=attr(tag,'srcset').split(',')[0]?.trim().split(/\\s+/)[0]||'';
+  // WordPress and lazy-gallery templates may put a data URI in src; prefer
+  // the first independently valid public image reference instead.
+  const imageUrl=[
+   attr(tag,'src'),attr(tag,'data-src'),attr(tag,'data-lazy-src'),
+   attr(tag,'data-orig-file'),srcset
+  ].map(src=>safeUrl(src,url)).find(Boolean);
   if(!imageUrl||seen.has(imageUrl))continue;
   const alt=tidyText(attr(tag,'alt'),160)||'Image from business website';
   seen.add(imageUrl);
   images.push({url:imageUrl,alt,sourceUrl:url,role:'gallery',permission:'reference_only'});
   if(images.length>=35)break;
+ }
+ const openGraphImage=metas.find(m=>attr(m[0],'property').toLowerCase()==='og:image');
+ if(openGraphImage&&images.length<35){
+  const urlCandidate=safeUrl(attr(openGraphImage[0],'content'),url);
+  if(urlCandidate&&!seen.has(urlCandidate)){
+   images.push({url:urlCandidate,alt:'Open Graph image reference',sourceUrl:url,role:'gallery',permission:'reference_only'});
+   seen.add(urlCandidate);
+  }
  }
  const links=[];const added=new Set();
  for(const m of html.matchAll(/<a\b[^>]*>/gi)){
