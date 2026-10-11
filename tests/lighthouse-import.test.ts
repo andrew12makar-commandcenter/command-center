@@ -44,3 +44,42 @@ test('fails inconclusively for incomplete local Lighthouse measurements',()=>{
  assert.equal(result.findings.technical_opportunity_score,null);
  assert.equal(result.findings.source_method,'local_lighthouse_upload');
 });
+
+test('timed-out Lighthouse run retains diagnostic numbers but is not verified or ranked',()=>{
+ const result=interpretLocalLighthouseJson(make({
+  runWarnings:['The page loaded too slowly to finish within the time limit. Results may be incomplete.']
+ }),'https://example.com/',now);
+ assert.equal(result.status,'inconclusive');
+ assert.equal(result.findings.performance_score,35);
+ assert.equal(result.findings.technical_opportunity_score,null);
+ assert.ok(result.findings.report_warnings?.some(w=>w.includes('too slowly')));
+});
+test('Chrome extension traffic makes local results inconclusive even without runWarnings',()=>{
+ const result=interpretLocalLighthouseJson(make({
+  audits:{
+   'document-title':{id:'document-title',score:1},
+   'meta-description':{id:'meta-description',score:1},
+   'viewport-insight':{id:'viewport-insight',score:1},
+   'is-crawlable':{id:'is-crawlable',score:1},
+   'network-requests':{id:'network-requests',details:{
+    items:[{url:'https://example.com/'},{url:'chrome-extension://abc123/script.js'}]
+   }}
+  }
+ }),'https://example.com/',now);
+ assert.equal(result.status,'inconclusive');
+ assert.equal(result.findings.technical_opportunity_score,null);
+ assert.ok(result.findings.report_warnings?.some(w=>w.includes('extension')));
+});
+test('Lighthouse 13 viewport-insight is read as current viewport evidence',()=>{
+ const result=interpretLocalLighthouseJson(make({
+  audits:{
+   'document-title':{id:'document-title',score:1},
+   'meta-description':{id:'meta-description',score:1},
+   'viewport-insight':{id:'viewport-insight',score:1},
+   'is-crawlable':{id:'is-crawlable',score:1}
+  }
+ }),'https://example.com/',now);
+ assert.equal(result.findings.measured_checks,4);
+ assert.equal(result.status,'verified_gaps');
+ assert.ok(result.findings.technical_opportunity_score!==null);
+});
