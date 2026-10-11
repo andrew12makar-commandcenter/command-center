@@ -111,9 +111,11 @@ export async function addSource(form: FormData) {
   const id=shortText(form.get('business_id'),64);
   const source_url=webUrl(form.get('source_url'));
   if(!validUuid(id) || !source_url) throw new Error('A link to the original evidence is required.');
+  const sourceKind=classifyWebPresence(source_url).kind;
+  const evidenceType=sourceKind==='social'||sourceKind==='listing'?'social_profile':shortText(form.get('source_type'))||'public_record';
   const {error}=await supabase.from('business_sources').insert({
     organization_id:organizationId,business_id:id,
-    source_url,source_type:shortText(form.get('source_type'))||'public_record',
+    source_url,source_type:evidenceType,
     agency:shortText(form.get('agency')),registration_number:shortText(form.get('registration_number')),
     raw_name:shortText(form.get('raw_name')),raw_address:shortText(form.get('raw_address')),
     confidence:'pending',
@@ -181,11 +183,14 @@ export async function markVerified(form: FormData) {
   const {data:lead}=await supabase.from('businesses').select('operational_status')
     .eq('id',id).eq('organization_id',organizationId).maybeSingle();
   if(lead?.operational_status!=='operating') throw new Error('Confirm that the business is currently operating before marking verified.');
-  const {count,error:sourceError}=await supabase.from('business_sources')
-    .select('id',{count:'exact',head:true})
-    .eq('business_id',id).eq('organization_id',organizationId).eq('confidence','matched')
-    .neq('source_type','social_profile');
-  if(sourceError || !count) throw new Error('Review and confirm at least one genuine source before marking verified.');
+  const {data:matchedSources,error:sourceError}=await supabase.from('business_sources')
+    .select('source_type,source_url')
+    .eq('business_id',id).eq('organization_id',organizationId).eq('confidence','matched').limit(1000);
+  if(sourceError)throw new Error('Could not check business source verification.');
+  const independentMatch=(matchedSources??[]).some(source=>
+    source.source_type!=='social_profile'&&
+    !['social','listing'].includes(classifyWebPresence(source.source_url).kind));
+  if(!independentMatch)throw new Error('A social account or directory listing alone cannot verify the operating business. Review and match an independent source first.');
   const {error}=await supabase.from('businesses').update({
     verification_status:'verified',last_checked_at:new Date().toISOString(),updated_at:new Date().toISOString()
   }).eq('id',id).eq('organization_id',organizationId);
