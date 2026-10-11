@@ -48,7 +48,7 @@ export function extractCandidates(html,url){
  const seen=new Set();
  for(const m of html.matchAll(/<img\b[^>]*>/gi)){
   const tag=m[0];
-  const srcset=attr(tag,'srcset').split(',')[0]?.trim().split(/\\s+/)[0]||'';
+  const srcset=attr(tag,'srcset').split(',')[0]?.trim().split(/\s+/)[0]||'';
   // WordPress and lazy-gallery templates may put a data URI in src; prefer
   // the first independently valid public image reference instead.
   const imageUrl=[
