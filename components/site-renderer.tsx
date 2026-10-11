@@ -21,8 +21,8 @@ const schemes={
   main:'bg-[#365876] text-white',soft:'bg-[#e9eef2]',accent:'bg-[#d4e0e7]',
  }
 } as const;
-type RendererProps={site:SiteBlueprint};
-export default function SiteRenderer({site}:RendererProps){
+type RendererProps={site:SiteBlueprint;standalone?:boolean};
+export default function SiteRenderer({site,standalone=false}:RendererProps){
  const theme=schemes[site.template];
  const isBold=site.design.variant==='bold';
  const hero=site.content.images.find(x=>x.role==='hero'&&x.permission==='approved');
@@ -36,7 +36,7 @@ export default function SiteRenderer({site}:RendererProps){
  const hasServices=site.services.length>0;
  const hasAbout=site.content.about.trim().length>0;
  const bigHeadline=site.headline||site.businessName;
- return <div className={`overflow-hidden rounded-[18px] border border-black/5 shadow-2xl shadow-black/20 ${theme.base}`}>
+ return <div className={`overflow-hidden ${standalone?'min-h-screen':'rounded-[18px] border border-black/5 shadow-2xl shadow-black/20'} ${theme.base}`}>
   <header className="relative z-10 flex flex-wrap items-center justify-between gap-5 border-b border-black/10 px-7 py-6 sm:px-12 lg:px-16">
    <a className="max-w-[330px] text-xl font-semibold leading-tight tracking-[-.035em] sm:text-2xl" href="#home">{site.businessName}</a>
    <div className="flex flex-wrap items-center gap-5 sm:gap-7">
