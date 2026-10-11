@@ -1,4 +1,5 @@
 import {parseCsv,normalizeBusiness,normalizedHeader} from './csv.ts';
+import {classifyWebPresence} from './web-presence.ts';
 
 // Public-source discovery only. No scan confirms a company is currently operating.
 export const areas = {
@@ -30,15 +31,20 @@ export function parseOsm(elements:OsmElement[],area:Area):Candidate[]{
   const category=t.craft?'craft: '+t.craft:t.office?'office: '+t.office:t.shop?'shop: '+t.shop:t.amenity?'amenity: '+t.amenity:'';
   if(!category)return [];
   const external_id=e.type+'/'+e.id,position=e.center||((e.lat&&e.lon)?{lat:e.lat,lon:e.lon}:undefined);
+  const rawWebsite=safe(t.website||t['contact:website'],1024);
+  const profileCandidate=rawWebsite||safe(t['contact:instagram']||t['contact:facebook'],1024);
+  const web=classifyWebPresence(http(rawWebsite));
+  const profile=classifyWebPresence(http(profileCandidate));
   return [{
    name,city:safe(t['addr:city'],100),category:safe(category,140),
-   website_url:http(t.website||t['contact:website']),phone:safe(t.phone||t['contact:phone'],100),
+   website_url:web.kind==='website'?web.url||'':'',phone:safe(t.phone||t['contact:phone'],100),
    source_url:'https://www.openstreetmap.org/'+external_id,source_type:'openstreetmap',
    external_id,raw_data:{
     external_id,provider:'OpenStreetMap contributors',search_area:areas[area].label,
     street:safe(t['addr:street']),housenumber:safe(t['addr:housenumber']),
     postcode:safe(t['addr:postcode']),lat:String(position?.lat??''),lon:String(position?.lon??''),
-    original_category:category,website:safe(t.website||t['contact:website'])
+    original_category:category,website:rawWebsite,
+    ...(profile.kind==='social'||profile.kind==='listing'?{discovered_social_profile_url:profile.url||''}:{})
    }
   }];
  }));
@@ -66,11 +72,14 @@ export function mapBostonCsv(csv:string,download:string,source:'boston-certified
   if(!name || (area==='allston'&&!zip.startsWith('02134')&&!/allston/i.test(neighbor))
             || (area==='brighton'&&!zip.startsWith('02135')&&!/brighton/i.test(neighbor)))return [];
   const external_id=source+'/'+(pick(raw,mapping.identifier)||normalizeBusiness(name)+':'+normalizeBusiness(zip||city));
+  const recordedWebsite=http(pick(raw,mapping.website));
+  const web=classifyWebPresence(recordedWebsite);
   return [{name:safe(name,180),city:safe(city,100),category:safe(pick(raw,mapping.category)|| (source==='boston-food'?'Food establishment':'Certified business'),150),
-   website_url:http(pick(raw,mapping.website)),phone:safe(pick(raw,mapping.phone),100),
+   website_url:web.kind==='website'?web.url||'':'',phone:safe(pick(raw,mapping.phone),100),
    source_type:source,source_url:'https://data.boston.gov/dataset/'+slugs[source],external_id,
    raw_data:{...Object.fromEntries(Object.entries(raw).slice(0,22)),provider:'City of Boston Open Data',download_url:download,
-    external_id,source_row:String(i+2),postcode:zip,neighborhood:neighbor}
+    external_id,source_row:String(i+2),postcode:zip,neighborhood:neighbor,
+    ...(web.kind==='social'||web.kind==='listing'?{discovered_social_profile_url:web.url||''}:{})}
   }];
  });
  return uniqueCandidates(records);
