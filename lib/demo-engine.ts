@@ -1,3 +1,4 @@
+import type {SiteContent} from './site-blueprint.ts';
 // Deterministic per-user, per-industry preference adaptation. No LLM training or external API calls.
 export const templates = ['landscaping','medical','universal'] as const;
 export type Template = typeof templates[number];
@@ -19,6 +20,8 @@ export type DemoCopy = {
   disclaimer: string; category: string; design?: DesignPreferences;
   // Optional, user-supplied approved business photography. No stock images invented.
   heroImageUrl?: string;
+  // Portable, provenance-aware content pack shared by private demos and deployable sites.
+  siteContent?: SiteContent;
   // Internal-only brief, never displayed as a business claim on the mock site.
   internalBuildPlan?:{
     sourceAssessmentDate:string|null;
