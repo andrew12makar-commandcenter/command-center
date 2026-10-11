@@ -144,3 +144,24 @@ Confirm the listed business URL and type `RESEARCH`. The collector checks public
 Open that business's private Demo Studio page and use **Import research references** to select the output JSON. Content and image references then appear in the source review area. Verify claims and select appropriately licensed/owner-approved images in the editor before displaying them. A site without confirmed services, approved facts, and valid contact/appointment details cannot pass the basic publication gate.
 
 **Next build milestone:** generate a standalone, deployable client Next.js project from the blueprint and renderer, with dedicated asset hosting, real forms/booking, approvals, visual and performance testing, and a publication/rollback process. This is not yet implemented; do not market the current internal preview as a deployed client site.
+
+
+### Separate client website scaffold (explicit approval required)
+
+After the content pack passes the *basic* publication gate and all image/content permissions have been confirmed, click **Export site blueprint** in the private Demo Studio. In your Mac's `command-center` project terminal:
+
+```bash
+node scripts/export-client-site.mjs ~/Downloads/site-blueprint-DEMO-ID.json ../new-client-site
+```
+
+Replace `DEMO-ID` with the downloaded filename and pick a folder that does not exist yet. This creates a **separate** Next.js project using the same SiteRenderer and the approved blueprint. It does not pull any CRM records at runtime and contains no Supabase keys. It removes unapproved source research and refuses to overwrite an existing folder.
+
+To check the generated project:
+
+```bash
+cd ../new-client-site
+npm install
+npm run dev
+```
+
+The project must still undergo client sign-off, image hosting/optimization, real booking or forms integration, accessibility and performance testing, domain configuration, and deployment. The export is a code scaffold, **not an approved or published client site**. A site cannot be exported when it still contains research-only image references.
