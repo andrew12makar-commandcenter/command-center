@@ -3,6 +3,7 @@ import {redirect} from 'next/navigation';
 import {revalidatePath} from 'next/cache';
 import {requireWorkspace,shortText,validUuid} from '@/lib/workspace';
 import {analyzeWebsite,publicWebsite} from '@/lib/website-intelligence';
+import {classifyWebPresence} from '@/lib/web-presence';
 
 // Only named, already-approved CRM businesses can be inspected.
 // One site per click and a 20-minute per-company cooldown prevents quota abuse.
@@ -14,6 +15,8 @@ export async function auditBusiness(form:FormData){
    .select('id,name,website_url').eq('organization_id',organizationId).eq('id',id).maybeSingle();
  if(loadError||!business)throw Error('CRM business not found in this workspace.');
  if(!business.website_url)redirect('/app/intelligence?error=no-website');
+ const presence=classifyWebPresence(business.website_url);
+ if(presence.kind==='social'||presence.kind==='listing')redirect('/app/intelligence?error=profile-not-site&business='+id);
  let target:string;
  try{target=publicWebsite(business.website_url);}
  catch{redirect('/app/intelligence?error=invalid-website');}
