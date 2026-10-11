@@ -14,6 +14,7 @@ export type AuditFindings={
   technical_opportunity_score:number|null;
   measured_checks:number;flagged_checks:number;
   note:string;error?:string;
+  report_warnings?:string[];
   source_method?:'pagespeed_api'|'local_lighthouse_upload';
 };
 export type Assessment={
@@ -24,6 +25,7 @@ export type PageSpeedResponse={
  lighthouseResult?:{
   requestedUrl?:string;finalUrl?:string;fetchTime?:string;
   runtimeError?:{code?:string;message?:string};
+  runWarnings?:string[];
   audits?:Record<string,Audit>;
   categories?:{performance?:{score?:number|null};seo?:{score?:number|null}};
  }
@@ -67,10 +69,12 @@ export function interpretPageSpeed(data:PageSpeedResponse,requested:string,at=ne
  if(!report || report.runtimeError)return fallback(
   report?.runtimeError?'Lighthouse reported a runtime error. No technical findings were confirmed.':'PageSpeed returned no Lighthouse audit results.');
  const measuredAt=report.fetchTime||at;
+ const warnings=(report.runWarnings??[]).filter(w=>typeof w==='string'&&w.trim()).slice(0,8).map(w=>short(w,240));
  const perf=score100(report.categories?.performance?.score),
        seo=score100(report.categories?.seo?.score);
  const evidence:AuditEvidence[]=auditIds.map(id=>{
-  const a=report.audits?.[id],s=score100(a?.score);
+  // Lighthouse 13 renamed the original viewport audit to viewport-insight.
+  const a=id==='viewport'?(report.audits?.viewport??report.audits?.['viewport-insight']):report.audits?.[id],s=score100(a?.score);
   return {id,title:short(a?.title||id,130),
    score:s,result:s===null?'unknown':s<100?'failed':'passed',
    detail:short(a?.displayValue||'',200),source:'Google Lighthouse' as const,measured_at:measuredAt};
@@ -78,7 +82,7 @@ export function interpretPageSpeed(data:PageSpeedResponse,requested:string,at=ne
  let score:number|null=null;
  // Both categories must be present to make scores comparable across websites.
  // A single mobile lab test is a technical signal, not business spend or market value.
- if(perf!==null&&seo!==null&&evidence.every(x=>x.result!=='unknown')){
+ if(warnings.length===0&&perf!==null&&seo!==null&&evidence.every(x=>x.result!=='unknown')){
    const base=(100-perf)*0.4+(100-seo)*0.35;
    const flags:{[id:string]:number}={'document-title':9,'meta-description':9,'viewport':7,'is-crawlable':0};
    score=Math.round(Math.max(0,Math.min(100,base+evidence.reduce((n,x)=>n+(x.result==='failed'?(flags[x.id]||0):0),0))));
@@ -87,15 +91,17 @@ export function interpretPageSpeed(data:PageSpeedResponse,requested:string,at=ne
  const failed=evidence.filter(e=>e.result==='failed');
  const performanceGap=perf!==null && perf<50;
  const seoGap=seo!==null && seo<80;
- const status:AuditStatus=failed.length||performanceGap||seoGap?'verified_gaps':
+ const status:AuditStatus=warnings.length?'inconclusive':failed.length||performanceGap||seoGap?'verified_gaps':
    perf===null||seo===null||measured<auditIds.length?'inconclusive':'no_gaps';
  return {status,evidence,findings:{
   version:1,provider:'Google PageSpeed Insights',strategy:'mobile',
   analyzed_url:requested,final_url:report.finalUrl||null,measured_at:measuredAt,
   source_method:'pagespeed_api',
   performance_score:perf,seo_score:seo,technical_opportunity_score:score,
+  ...(warnings.length?{report_warnings:warnings}:{}),
   measured_checks:measured,flagged_checks:failed.length+(performanceGap?1:0)+(seoGap?1:0),
-  note:status==='verified_gaps'?'One mobile Lighthouse test found possible improvement opportunities. Confirm before pitching.':
+  note:warnings.length?'Lighthouse reported incomplete or unreliable collection. Scores are diagnostic only; do not rank the business from this run.':
+    status==='verified_gaps'?'One mobile Lighthouse test found possible improvement opportunities. Confirm before pitching.':
     status==='no_gaps'?'No issues detected in these limited Lighthouse checks; not proof a website is problem-free.':
     'Some audit categories or checks were unavailable. Do not rank this site from incomplete metrics.'
  }};
