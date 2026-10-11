@@ -81,3 +81,12 @@ test('closed, won, and lost businesses are not active prospect opportunities',()
   assert.equal(item.stage,'inactive');
  }
 });
+
+test('locally uploaded Lighthouse evidence needs review even when business verified',()=>{
+ const item=scoreOpportunity(lead({verification_status:'verified',operational_status:'operating'}),[
+  report({findings:{technical_opportunity_score:75,source_method:'local_lighthouse_upload'}})
+ ],now);
+ assert.equal(item.stage,'verify_business');
+ assert.match(item.reason,/operator-uploaded/i);
+ assert.equal(item.technicalScore,75);
+});
