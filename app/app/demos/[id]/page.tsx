@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireWorkspace } from '@/lib/workspace';
-import { rateDemo,saveDemoCopy,applyLearnedPreferences } from '../feedback-actions';
+import { rateDemo,saveDemoCopy,applyLearnedPreferences,importSiteResearch } from '../feedback-actions';
 import { derivePreferences, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
 import {classifyIndustry} from '@/lib/business-classification';
 import { ArrowUpRight, ArrowDown, Check, BadgeInfo } from 'lucide-react';
@@ -56,7 +56,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
       <Link className="btn" href={'/app/leads/'+demo.business_id}>CRM record <ArrowUpRight size={15}/></Link></div>
     </div>
     {saved&&<p role="status" className="mb-4 rounded-xl border border-[#2f726b] bg-[#14372f] p-3 text-sm text-[#bbebd8]">
-      <Check className="mr-2 inline" size={16}/>{saved==='rating'?'Feedback saved. Your next generated demo now uses your updated preferences.':saved==='adapted'?'A new revision was created with your learned layout preferences.':saved==='unchanged'?'This demo already reflects your saved preferences.':'Copy saved as a new revision.'}
+      <Check className="mr-2 inline" size={16}/>{saved==='rating'?'Feedback saved. Your next generated demo now uses your updated preferences.':saved==='adapted'?'A new revision was created with your learned layout preferences.':saved==='unchanged'?'This demo already reflects your saved preferences.':saved==='research'?'Website research imported as unapproved references for review.':'Copy saved as a new revision.'}
     </p>}
     <section className="panel mb-6 p-5">
       <div className="flex flex-wrap justify-between gap-3">
@@ -106,6 +106,29 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
         <p><strong>{img.role}</strong> · {img.permission==='approved'?'Operator-confirmed permission':'Reference only, not displayed'}</p>
         <p className="muted mt-1 break-all">{img.alt}</p>
         <a href={img.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 block break-all text-cyan-300 underline">View recorded source ↗</a>
+       </div>)}</div>
+      </details>}
+    </section>
+    <section className="panel mb-6 p-6">
+      <p className="kicker">Content intelligence · local / no paid API</p>
+      <h2 className="mt-2 text-xl font-semibold">Research the existing website before designing</h2>
+      <p className="muted mt-3 text-sm leading-6">Use the same approved one-business queue from Website Intelligence. In a separate VS Code terminal, run <code>node scripts/local-site-research.mjs ~/Downloads/command-center-audit-queue.json</code>. This inspects up to five public same-domain pages for candidate headings, service information, and photo URLs. It never downloads photos or grants display permission.</p>
+      <form action={importSiteResearch} className="mt-5 flex flex-wrap items-end gap-4">
+       <input type="hidden" name="demo_id" value={id}/>
+       <input type="hidden" name="revision_no" value={demo.revision_no??1}/>
+       <label className="min-w-[240px] flex-1 text-sm">Local site-research JSON file
+        <input className="mt-2" type="file" name="researchFile" accept=".json,application/json" required/>
+       </label>
+       <button type="submit" className="btn">Import research references →</button>
+      </form>
+      {site.content.researchPages.length>0&&<details className="mt-6 rounded-xl border border-[#2e5861] p-4" open>
+       <summary className="cursor-pointer text-sm font-semibold">Sourced candidates · {site.content.researchPages.length} inspected pages · {site.content.images.filter(x=>x.permission==='reference_only').length} unapproved image references</summary>
+       <p className="muted mt-3 text-xs">Candidate text is NOT verified practice information. Independently check it, rewrite appropriately, and obtain image permission before use in a real site.</p>
+       <div className="mt-4 grid gap-4 lg:grid-cols-2">{site.content.researchPages.map(page=><div className="rounded-xl border border-[#273b48] p-4" key={page.url}>
+        <a className="break-all text-sm font-semibold text-cyan-300 underline" href={page.url} target="_blank" rel="noopener noreferrer">{page.title||page.url} ↗</a>
+        {page.description&&<p className="muted mt-2 text-xs leading-5">{page.description}</p>}
+        <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-cyan-200">Discovered headings</p>
+        <p className="mt-2 text-sm leading-6">{page.headings.slice(0,12).join(' · ')||'None available'}</p>
        </div>)}</div>
       </details>}
     </section>
