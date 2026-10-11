@@ -9,7 +9,10 @@ export type SiteImage={
   url:string;alt:string;sourceUrl:string;role:ImageRole;
   permission:ImagePermission;credit?:string;
 };
+export type ResearchPage={url:string;title:string;description:string;headings:string[];excerpts:string[]};
 export type SiteContent={
+  researchPages:ResearchPage[];
+  researchedAt:string|null;
   about:string;
   audience:string;
   appointmentUrl:string|null;
@@ -56,8 +59,20 @@ export function cleanSiteContent(value:unknown):SiteContent{
  const raw=Array.isArray(o.images)?o.images.slice(0,24):[];
  const images=raw.map(x=>x&&typeof x==='object'?safeImage(x as Partial<SiteImage>):null)
   .filter((x):x is SiteImage=>Boolean(x));
+ const research=Array.isArray(o.researchPages)?o.researchPages.slice(0,5):[];
+ const researchPages:ResearchPage[]=research.map(item=>{
+  const p=item&&typeof item==='object'?item as Record<string,unknown>:{};
+  return {
+   url:safePublicUrl(p.url)||'',
+   title:asText(p.title,170),description:asText(p.description,280),
+   headings:Array.isArray(p.headings)?p.headings.slice(0,24).map(x=>asText(x,140)).filter(Boolean):[],
+   excerpts:Array.isArray(p.excerpts)?p.excerpts.slice(0,7).map(x=>asText(x,230)).filter(Boolean):[]
+  };
+ }).filter(p=>Boolean(p.url));
+ const stamp=typeof o.researchedAt==='string'&&Number.isFinite(Date.parse(o.researchedAt))?o.researchedAt:null;
  const seen=new Set<string>();
  return {
+  researchPages,researchedAt:stamp,
   about:asText(o.about,1100),audience:asText(o.audience,200),
   appointmentUrl:safePublicUrl(o.appointmentUrl),
   sourceUrl:safePublicUrl(o.sourceUrl),
