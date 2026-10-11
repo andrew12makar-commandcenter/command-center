@@ -14,6 +14,7 @@ export type AuditFindings={
   technical_opportunity_score:number|null;
   measured_checks:number;flagged_checks:number;
   note:string;error?:string;
+  source_method?:'pagespeed_api'|'local_lighthouse_upload';
 };
 export type Assessment={
  status:AuditStatus;findings:AuditFindings;evidence:AuditEvidence[]
@@ -59,7 +60,7 @@ export function interpretPageSpeed(data:PageSpeedResponse,requested:string,at=ne
  const fallback=(note:string):Assessment=>({
   status:'inconclusive',evidence:[],
   findings:{version:1,provider:'Google PageSpeed Insights',strategy:'mobile',
-   analyzed_url:requested,final_url:null,measured_at:at,performance_score:null,
+   analyzed_url:requested,final_url:null,measured_at:at,source_method:'pagespeed_api',performance_score:null,
    seo_score:null,technical_opportunity_score:null,measured_checks:0,
    flagged_checks:0,note,error:note}
  });
@@ -91,6 +92,7 @@ export function interpretPageSpeed(data:PageSpeedResponse,requested:string,at=ne
  return {status,evidence,findings:{
   version:1,provider:'Google PageSpeed Insights',strategy:'mobile',
   analyzed_url:requested,final_url:report.finalUrl||null,measured_at:measuredAt,
+  source_method:'pagespeed_api',
   performance_score:perf,seo_score:seo,technical_opportunity_score:score,
   measured_checks:measured,flagged_checks:failed.length+(performanceGap?1:0)+(seoGap?1:0),
   note:status==='verified_gaps'?'One mobile Lighthouse test found possible improvement opportunities. Confirm before pitching.':
@@ -101,7 +103,7 @@ export function interpretPageSpeed(data:PageSpeedResponse,requested:string,at=ne
 export function inconclusiveAudit(url:string,message:string,at=new Date().toISOString()):Assessment{
  return {status:'inconclusive',evidence:[],findings:{
    version:1,provider:'Google PageSpeed Insights',strategy:'mobile',
-   analyzed_url:url,final_url:null,measured_at:at,
+   analyzed_url:url,final_url:null,measured_at:at,source_method:'pagespeed_api',
    performance_score:null,seo_score:null,technical_opportunity_score:null,
    measured_checks:0,flagged_checks:0,note:'The remote service did not complete an audit.',error:short(message,230)
  }};
@@ -125,7 +127,9 @@ export async function analyzeWebsite(
  try{
    const response=await requester(endpoint,{cache:'no-store',signal:AbortSignal.timeout(45_000),
      redirect:'error',headers:{Accept:'application/json'}});
-   if(response.status===429)return inconclusiveAudit(url,'Google PageSpeed is rate limiting requests (HTTP 429). Try later.',now);
+   if(response.status===429)return inconclusiveAudit(url,key?
+     'Google PageSpeed returned HTTP 429 despite the configured API key. Check project quota and wait before retrying, or import a locally run Lighthouse JSON report.':
+     'Google PageSpeed returned HTTP 429 without a configured project API key. Set PAGESPEED_API_KEY privately, or import a locally run Lighthouse JSON report.',now);
    if(response.status===401||response.status===403)return inconclusiveAudit(url,'Google PageSpeed denied the request (HTTP '+response.status+'). Check API access and server-side PAGESPEED_API_KEY configuration.',now);
    if(!response.ok)return inconclusiveAudit(url,'Google PageSpeed could not complete the test (HTTP '+response.status+'). Check API availability or key configuration.',now);
    const data=await response.json() as PageSpeedResponse;
