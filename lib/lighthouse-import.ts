@@ -38,6 +38,22 @@ export function interpretLocalLighthouseJson(
     measured<now.getTime()-7*24*60*60_000)
   throw Error('Import a recent Lighthouse report (within 7 days). Old or future-dated results cannot be used.');
  const result=interpretPageSpeed({lighthouseResult:report},expectedWebsite,report.fetchTime);
+ // Browser extensions can inject JavaScript and affect timing/unused-code estimates.
+ // Keep the diagnostic measurements, but never promote contaminated runs as
+ // verified technical gaps or rank prospects by their scores.
+ const networkAudit=report.audits?.['network-requests'] as
+  | {details?:{items?:Array<{url?:unknown}>}} | undefined;
+ const requestItems=networkAudit?.details?.items;
+ if(Array.isArray(requestItems)&&requestItems.some(item=>
+  typeof item?.url==='string'&&item.url.startsWith('chrome-extension://'))){
+  result.status='inconclusive';
+  result.findings.technical_opportunity_score=null;
+  result.findings.report_warnings=[
+   ...(result.findings.report_warnings??[]),
+   'Chrome extension requests were included in the Lighthouse network data.'
+  ];
+  result.findings.note='Browser extension activity may have affected these measurements. Do not rank this business from this run.';
+ }
  result.findings.source_method='local_lighthouse_upload';
  result.findings.note+=(result.findings.note?' ':'')+
   'Operator-imported Chrome Lighthouse JSON, not independently authenticated by the PageSpeed API.';
