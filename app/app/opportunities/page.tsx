@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CardNavigationStatus from './card-navigation-status';
 import {requireWorkspace} from '@/lib/workspace';
 import {collectAllPages} from '@/lib/lead-identity';
 import {scoreOpportunity,sortOpportunities,stageLabels,
@@ -43,6 +44,14 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
  const page=Number.isInteger(req)?Math.max(1,Math.min(pages,req)):1;
  const results=searched.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
  const counts=Object.fromEntries(stages.map(x=>[x,all.filter(y=>y.stage===x).length])) as Record<BoardStage,number>;
+ const selectedLabel=stage?stageLabels[stage]:null;
+ const tileHref=(selected:BoardStage)=>{
+  const params=new URLSearchParams();
+  if(q)params.set('q',q);
+  // Clicking an already-selected tile clears its category filter.
+  if(stage!==selected)params.set('stage',selected);
+  return '/app/opportunities'+(params.size?'?'+params.toString():'')+'#opportunity-results';
+ };
  const href=(n:number)=>{
   const params=new URLSearchParams();
   if(q)params.set('q',q);
@@ -59,13 +68,24 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
    </div>
    <Link className="btn" href="/app/leads/import">Review pending discovery →</Link>
   </div>
-  <section className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-   {stages.map(s=><Link href={'/app/opportunities?stage='+s} className="panel p-5 hover:border-cyan-700/50" key={s}>
-    <p className="muted text-sm">{stageLabels[s]}</p><p className="mt-3 text-3xl font-semibold">{counts[s]}</p>
+  <section aria-label="Filter businesses by next action" className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+   {stages.map(s=><Link
+    key={s} href={tileHref(s)} scroll={true}
+    aria-current={stage===s?'true':undefined}
+    aria-label={stage===s?`${stageLabels[s]}, ${counts[s]} businesses, selected. Activate to show all categories.`:
+      `${stageLabels[s]}, ${counts[s]} businesses. Activate to view matching prospects.`}
+    className="panel opportunity-filter-card relative block cursor-pointer p-5"
+   >
+    <div className="flex flex-wrap items-start justify-between gap-2">
+     <p className="text-sm text-[#a9c4cf]">{stageLabels[s]}</p>
+     {stage===s&&<span className="text-xs font-semibold text-cyan-100">Selected ✓</span>}
+    </div>
+    <p className="mt-3 text-3xl font-semibold">{counts[s]}</p>
+    <CardNavigationStatus/>
    </Link>)}
   </section>
   <section className="panel mt-7 p-6">
-   <form action="/app/opportunities" method="get" className="grid gap-4 sm:grid-cols-[1fr_260px_auto]">
+   <form action="/app/opportunities#opportunity-results" method="get" className="grid gap-4 sm:grid-cols-[1fr_260px_auto]">
     <label className="text-sm">Search prospects<input name="q" maxLength={100} className="mt-2" defaultValue={q} placeholder="Business, industry, or area"/></label>
     <label className="text-sm">Next action<select name="stage" className="mt-2" defaultValue={stage||''}>
       <option value="">All opportunities</option>{stages.map(x=><option key={x} value={x}>{stageLabels[x]}</option>)}
@@ -74,9 +94,18 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
    </form>
    <p className="muted mt-4 text-xs">Sorted by actionability, recent measured technical improvement, then research priority. No invented revenue estimates or commercial scores. PageSpeed results older than 90 days or for a different website are not treated as current.</p>
   </section>
-  <section className="panel mt-7 overflow-x-auto">
-   <div className="flex flex-wrap items-center justify-between gap-3 p-6"><h2 className="text-xl font-semibold">Research and outreach candidates</h2>
-    <span className="muted text-xs">{searched.length} matching CRM businesses · page {page}/{pages}</span></div>
+  <section id="opportunity-results" tabIndex={-1} aria-label="Filtered opportunity results" className="panel mt-7 scroll-mt-6 overflow-x-auto">
+   <div className="flex flex-wrap items-center justify-between gap-3 p-6">
+    <div>
+     <p className="kicker">{selectedLabel?`Filtered: ${selectedLabel}`:'All categories'}</p>
+     <h2 className="mt-2 text-xl font-semibold">{selectedLabel||'Research and outreach candidates'}</h2>
+     <p role="status" className="mt-2 text-sm text-cyan-200">
+      {searched.length} matching {searched.length===1?'business':'businesses'}
+      {q?` for “${q}”`:''} · page {page} of {pages}
+     </p>
+    </div>
+    {(stage||q)&&<Link className="text-sm text-cyan-300 underline" href="/app/opportunities#opportunity-results">Show all categories ↗</Link>}
+   </div>
    <table><thead><tr><th>Business</th><th>Research status</th><th>Measured technical signal</th><th>What the evidence supports</th><th>Next step</th></tr></thead>
     <tbody>{results.map(x=><tr key={x.business.id}>
      <td>
@@ -92,11 +121,11 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
       {x.business.website_url&&<Link className="text-cyan-300 underline" href={'/app/intelligence?business='+x.business.id}>Audit this website →</Link>}
      </div></td>
     </tr>)}</tbody></table>
-   {!results.length&&<p className="muted p-8 text-sm">No CRM businesses match these filters. Discovered businesses enter this board after manual intake approval.</p>}
+   {!results.length&&<p role="status" className="muted p-8 text-sm">No CRM businesses match this selection. Clear the filter or import a discovered business through Lead Intake.</p>}
    {pages>1&&<nav className="flex items-center justify-end gap-5 border-t border-[#273b48] p-5 text-sm" aria-label="Opportunity pages">
-    {page>1&&<Link className="text-cyan-300 underline" href={href(page-1)}>← Previous</Link>}
+    {page>1&&<Link className="text-cyan-300 underline" href={href(page-1)+"#opportunity-results"}>← Previous</Link>}
     <span className="muted">{page} / {pages}</span>
-    {page<pages&&<Link className="text-cyan-300 underline" href={href(page+1)}>Next →</Link>}
+    {page<pages&&<Link className="text-cyan-300 underline" href={href(page+1)+"#opportunity-results"}>Next →</Link>}
    </nav>}
   </section>
   <p className="muted mt-5 text-xs">Internal triage only. A full commercial opportunity assessment still requires human research into the business, decision maker, actual marketing needs, and ability to invest.</p>
