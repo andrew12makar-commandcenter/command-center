@@ -1,3 +1,4 @@
+import {classifyWebPresence} from './web-presence.ts';
 // Evidence-based mobile page audits through Google's PageSpeed Insights (Lighthouse).
 // No direct requests to prospect URLs: remote websites are inspected by Google,
 // avoiding direct localhost/private-network fetches from this application.
@@ -32,6 +33,9 @@ const ipv4=(s:string)=>/^(?:\d{1,3}\.){3}\d{1,3}$/.test(s);
 // Return a plain public homepage URL. Query strings may contain tokens; remove them.
 // Reject private network hostnames or credentials. Google itself fetches the target.
 export function publicWebsite(value:string):string{
+ const presence=classifyWebPresence(value);
+ if(presence.kind==='social'||presence.kind==='listing')
+  throw Error('Social profiles and directories are not first-party business websites and cannot receive business PageSpeed audits.');
  if(!value||value.length>2000)throw Error('A valid public website URL is required.');
  let url:URL;try{url=new URL(value);}catch{throw Error('Website URL is not valid.');}
  const host=url.hostname.toLowerCase().replace(/\.$/,'');
