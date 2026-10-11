@@ -2,12 +2,14 @@ import Link from 'next/link';
 import {requireWorkspace,validUuid} from '@/lib/workspace';
 import {auditBusiness} from './actions';
 import type {AuditFindings,AuditEvidence} from '@/lib/website-intelligence';
+import {classifyWebPresence} from '@/lib/web-presence';
 import {Activity,ArrowUpRight,Globe2,ShieldAlert,ScanSearch} from 'lucide-react';
 
 const errors:Record<string,string>={
  'no-website':'No website URL is recorded for that business. Research and add the correct public website before auditing. An empty field does not mean it has no website.',
  'invalid-website':'The business website must be a public HTTP/HTTPS domain. Check the CRM entry.',
- cooldown:'That business was checked within the past 20 minutes. Recent results are saved below; wait before rerunning.'
+ cooldown:'That business was checked within the past 20 minutes. Recent results are saved below; wait before rerunning.',
+ 'profile-not-site':'The recorded URL is a social account or directory listing, not an independent business website. Open the CRM record and move it to research evidence before attempting an audit.'
 };
 const percent=(n:number|null)=>n===null?'Not measured':n+'/100';
 const short=(s:string|null|undefined)=>s?.slice(0,140)||'';
@@ -57,15 +59,16 @@ export default async function WebsiteIntelligence({
       </div>
       {bError&&<p className="p-5 text-red-300">Unable to read the CRM businesses.</p>}
       <table><thead><tr><th>Company</th><th>Area</th><th>Recorded website</th><th>Action</th></tr></thead>
-        <tbody>{(businesses??[]).map(b=><tr key={b.id}>
+        <tbody>{(businesses??[]).map(b=>{const presence=classifyWebPresence(b.website_url);return <tr key={b.id}>
           <td><Link className="font-semibold text-cyan-200 underline" href={'/app/leads/'+b.id}>{b.name}</Link><small className="muted mt-1 block">{b.category||'Category unknown'}</small></td>
           <td>{b.city||'Unspecified'}</td>
-          <td>{b.website_url?<a href={b.website_url} className="break-all text-sm text-cyan-300 underline" target="_blank" rel="noreferrer">{b.website_url}</a>:
-            <span className="muted text-xs">Not recorded (not proof of absence)</span>}</td>
-          <td>{b.website_url?<form action={auditBusiness}><input type="hidden" name="business_id" value={b.id}/>
+          <td>{presence.url?<><a href={presence.url} className="break-all text-sm text-cyan-300 underline" target="_blank" rel="noopener noreferrer">{presence.url}</a>
+            {presence.kind!=='website'&&<span className="mt-2 block text-xs text-amber-200">{presence.provider} profile / listing, not independent website</span>}</>:
+            <span className="muted text-xs">{presence.kind==='invalid'?'Invalid URL: review CRM':'Not recorded (not proof of absence)'}</span>}</td>
+          <td>{presence.kind==='website'?<form action={auditBusiness}><input type="hidden" name="business_id" value={b.id}/>
             <button className="btn text-xs" type="submit">Run mobile audit →</button></form>:
-            <Link href={'/app/leads/'+b.id} className="text-xs text-cyan-300 underline">Check business details</Link>}</td>
-        </tr>)}</tbody></table>
+            <Link href={'/app/leads/'+b.id} className="text-xs text-cyan-300 underline">{presence.kind==='social'||presence.kind==='listing'?'Move profile to research evidence':'Check business details'} →</Link>}</td>
+        </tr>})}</tbody></table>
       {!businesses?.length&&!bError&&<p className="muted p-8 text-sm">The CRM has no approved prospects yet. Review your discovered candidates in Lead Intake first.</p>}
    </section>
    <section className="mt-7 grid gap-5">
