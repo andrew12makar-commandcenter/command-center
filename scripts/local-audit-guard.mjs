@@ -12,10 +12,10 @@ for(const [address,prefix] of [
  ['240.0.0.0',4],
 ])privateNetworks.addSubnet(address,prefix,'ipv4');
 for(const [address,prefix] of [
- ['::',128],['::1',128],['::ffff:0:0',96],['fc00::',7],
+ ['::',128],['::1',128],['fc00::',7],
  ['fe80::',10],['ff00::',8],['2001:db8::',32],
 ])privateNetworks.addSubnet(address,prefix,'ipv6');
-const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const localhostRe=/(^|\.)(?:localhost|local|internal|test|invalid)$/i;
 
 export function publicAuditUrl(value){
@@ -55,6 +55,8 @@ export function parseApprovedManifest(text,now=Date.now()){
 }
 export function publicIp(address){
  const family=isIP(address);
+ // Reject IPv4-mapped IPv6 explicitly; they bypass a simple IPv6-only range check.
+ if(address.toLowerCase().startsWith('::ffff:'))return false;
  return family!==0&&!privateNetworks.check(address,family===4?'ipv4':'ipv6');
 }
 export async function checkPublicDns(url,resolver=lookup){
