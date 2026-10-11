@@ -40,3 +40,15 @@ test('safe entity decoding and attribute reading never execute HTML',()=>{
  assert.equal(decodeEntities('R&amp;D'),'R&D');
  assert.equal(attr('<img src="https://example.org/x.jpg" alt="A &amp; B"/>','alt'),'A & B');
 });
+
+test('WordPress lazy galleries and og:image yield unapproved references, never embedded assets',()=>{
+ const html=`<meta property="og:image" content="/static/social-preview.jpg">
+ <img src="data:image/gif;base64,AAAA" data-src="/gallery/room.webp" alt="Reception"/>
+ <img srcset="/gallery/staff-large.webp 2x, /gallery/staff.webp 1x" alt="Team"/>`;
+ const result=extractCandidates(html,site);
+ assert.equal(result.images.length,3);
+ assert.ok(result.images.some(i=>i.url.endsWith('/gallery/room.webp')));
+ assert.ok(result.images.some(i=>i.url.endsWith('/gallery/staff-large.webp')));
+ assert.ok(result.images.some(i=>i.url.endsWith('/static/social-preview.jpg')));
+ assert.ok(result.images.every(i=>i.permission==='reference_only'));
+});
