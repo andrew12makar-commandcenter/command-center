@@ -49,9 +49,9 @@ export async function importLighthouseReport(form:FormData){
  if(!validUuid(id))throw Error('Select a valid CRM business.');
  const file=form.get('lighthouse_json');
  if(!(file instanceof File)||!file.size||file.size>8_000_000)
-  throw Error('Select a non-empty Lighthouse JSON export smaller than 8 MB.');
+  redirect('/app/intelligence?business='+id+'&error=upload-size#lighthouse-fallback');
  if(!file.name.toLowerCase().endsWith('.json'))
-  throw Error('Export the Lighthouse report as a .json file, not an HTML report.');
+  redirect('/app/intelligence?business='+id+'&error=upload-json#lighthouse-fallback');
  const {data:business,error:loadError}=await supabase.from('businesses')
   .select('id,website_url').eq('organization_id',organizationId).eq('id',id).maybeSingle();
  if(loadError||!business||!business.website_url)
@@ -59,7 +59,14 @@ export async function importLighthouseReport(form:FormData){
  let expected:string;
  try{expected=publicWebsite(business.website_url);}
  catch{throw Error('Social profiles and invalid URLs cannot receive website audits.');}
- const result=interpretLocalLighthouseJson(await file.text(),expected);
+ let result:ReturnType<typeof interpretLocalLighthouseJson>;
+ try{result=interpretLocalLighthouseJson(await file.text(),expected);}
+ catch(err){
+  const message=err instanceof Error?err.message:'';
+  const code=message.includes('does not match')?'upload-mismatch':
+    message.includes('within 7 days')?'upload-stale':'upload-json';
+  redirect('/app/intelligence?business='+id+'&error='+code+'#lighthouse-fallback');
+ }
  const {error:saveError}=await supabase.from('website_assessments').insert({
   organization_id:organizationId,business_id:id,website_url:expected,
   status:result.status,findings:result.findings,evidence:result.evidence
