@@ -62,7 +62,7 @@ export function extractCandidates(html,url){
   if(!target||added.has(target))continue;
   const parsed=new URL(target),root=new URL(url);
   if(parsed.hostname!==root.hostname||!['http:','https:'].includes(parsed.protocol))continue;
-  if(!/\b(about|service|team|staff|office|gallery|photo|contact|doctor|practice)\b/i.test(parsed.pathname))continue;
+  if(!/\b(about|services?|team|staff|office|gallery|photos?|contact|doctors?|practice)\b/i.test(parsed.pathname))continue;
   if(/\.(?:jpg|jpeg|png|webp|pdf|zip)$/i.test(parsed.pathname))continue;
   added.add(target);links.push(target);
   if(links.length>=15)break;
