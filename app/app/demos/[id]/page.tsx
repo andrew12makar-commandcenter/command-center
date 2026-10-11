@@ -93,6 +93,24 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
     {saved&&<p role="status" className="mb-4 rounded-xl border border-[#2f726b] bg-[#14372f] p-3 text-sm text-[#bbebd8]">
       <Check className="mr-2 inline" size={16}/>{saved==='rating'?'Feedback saved. Your next generated demo now uses your updated preferences.':saved==='adapted'?'A new revision was created with your learned layout preferences.':saved==='unchanged'?'This demo already reflects your saved preferences.':'Copy saved as a new revision.'}
     </p>}
+    <section className="panel mb-6 p-5">
+      <div className="flex flex-wrap justify-between gap-3">
+        <div><p className="kicker">Internal performance-led build plan</p>
+          <h2 className="mt-2 text-lg font-semibold">Build to measurable requirements, not guesses</h2></div>
+        <Link href={'/app/leads/'+demo.business_id+'/brief'} className="text-sm text-cyan-300 underline">Open evidence & sales brief ↗</Link>
+      </div>
+      <p className="muted mt-3 text-sm">Confidence: {copy.internalBuildPlan?.confidence?.replaceAll('_',' ')||'Not measured'}.
+        {' '}Existing website results are not automatically attributed to this draft. Demo mobile performance: <strong>not benchmarked.</strong>
+      </p>
+      <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6">
+        {(copy.internalBuildPlan?.goals?.length?copy.internalBuildPlan.goals:[
+          'Keep initial mobile content lightweight.',
+          'Preserve owner-approved navigation and contact actions.',
+          'Benchmark a deployed demo before claiming speed improvements.'
+        ]).map((goal,i)=><li key={i}>{goal}</li>)}
+      </ul>
+      <p className="muted mt-3 text-xs">Internal implementation guidance only. Customer-facing copy is not automatically altered by the audit.</p>
+    </section>
     {industryMismatch&&<div role="alert" className="mb-5 rounded-xl border border-amber-600 bg-amber-950/30 px-5 py-4 text-sm text-amber-100">
       <strong>Wrong industry template in saved draft.</strong> The current CRM category suggests {industry.template}, but this older draft uses {demo.template}. Do not use it for outreach. <Link href={'/app/leads/'+demo.business_id} className="underline">Open the CRM and regenerate using Auto-match ↗</Link>
     </div>}
