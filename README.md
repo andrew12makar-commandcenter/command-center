@@ -98,3 +98,23 @@ The Website Intelligence page now shows **only whether** a server-side `PAGESPEE
 When the remote API is rate-limited, manually open a business's independent homepage in Chrome → DevTools → Lighthouse, run a **mobile** Lighthouse report and export **JSON**. Website Intelligence accepts native JSON (up to 8 MB) from the last seven days, and only when its requested/final URL matches the CRM site's domain and path. The original Lighthouse `fetchTime`, curated scores, and evidence are saved to the existing `website_assessments` table. The record is clearly labelled **operator-imported local Lighthouse** and does **not** claim independent Google API authentication. This fallback makes the full CRM → website analysis → Opportunity Board sequence testable without Google's live API quota. No new migration or database reset is required.
 
 The manually imported JSON may be edited before upload, so treat all findings as **operator-supplied research evidence**, not independently verified commercial claims. Never infer revenue, owner intent, verified operating status, or the existence/absence of an independent website from Lighthouse alone.
+
+
+## Phase 7 pilot: Free local Lighthouse queue (no API key or credits)
+
+The private Website Intelligence page includes a **Local Lighthouse audit queue** section while Next.js runs in development mode on your Mac. This is NOT exposed in production. It uses open-source Lighthouse via the Node CLI, not Google's hosted PageSpeed Insights API. The initial pilot keeps full user control and reuses the existing Supabase assessment uploader.
+
+**First run:**
+
+1. Pull the existing `feature/nextjs-foundation` branch. Your current `.env.local` is preserved.
+2. Run the existing Next.js site with `npm run dev`. Do not start a second server when one is already running.
+3. Navigate to `http://localhost:3000/app/intelligence#local-lighthouse-queue`, select 1–10 CRM sites (only known independent websites), check the explicit approval box, then click **Download approved audit queue**. It saves a one-hour, authenticated JSON manifest to Downloads.
+4. In a **separate VS Code terminal** within this repo, run `npm run audit:local -- ~/Downloads/command-center-audit-queue.json`.
+5. Read the exact business names/URLs, type `RUN` to approve. The runner checks URL safety and public DNS, performs one Lighthouse mobile performance/SEO test at a time in headless Chrome, waits four seconds between sites and writes raw JSON under `.local-lighthouse/<batch>/`. Press Control+C to stop. The first invocation downloads Lighthouse 13.0.0 from npm (open-source, **no credit billing**); Node.js 22+ and a locally installed Chrome are required. It does not modify the project lockfile or your browser profile.
+6. For each finished report, open the existing **Import a Chrome Lighthouse report** form on Website Intelligence, select the matching CRM business, choose `<business-id>.json`, and upload. This saves evidence through the existing authenticated, organization-scoped Supabase write action. The Opportunity Board and Opportunity Brief will update from saved eligible reports.
+
+**Limitations and safety:** This pilot uses manual file import; it does not automatically save scans or show live jobs in the web UI. The runner never runs in Vercel, is never a publicly callable web worker, and does not autonomously discover prospects. Preflight blocks non-public, local, private-IP, high-risk hostnames, unsupported ports, and unsafe redirect destinations, but DNS can change between checks and browser navigation; this is a conservative guard, **not an isolation sandbox**. Run only on a trusted workstation and explicitly selected public business sites. Respect site restrictions and keep batches small. Some sites block automated Chromium, including the previously tested dental office. A blocked or timed-out run is **inconclusive**, not evidence of a bad website.
+
+Each run writes `results.json` with an honest status (`measured`, `inconclusive`, `skipped` or `oversized`) and the report path. Raw reports larger than 8 MB remain on the Mac and cannot be imported using the current 8 MB uploader. The existing import code marks Chrome-extension interference and Lighthouse warnings inconclusive, and labels all local reports as *operator-supplied*. Uploaded evidence is not a PageSpeed-hosted result, a promise of production speed, or proof of customer demand. No paid plan or Supabase schema migration is needed.
+
+To run the local guard tests alone: `node --test tests/local-audit-guard.test.mjs`. The full `npm test` includes these tests in CI.
