@@ -55,7 +55,7 @@ export function buildSalesBrief(
  if((signals?.insights||[]).some(x=>/Image delivery|Image optimization/.test(x.title)))
   goals.push('Size and deliver images efficiently, especially the LCP element.');
  goals.push('Preserve working navigation and contact actions; confirm all business details with the owner.');
- goals.push('Measure the generated demo with comparable mobile Lighthouse settings before presenting any speed comparison.');
+ goals.push('Benchmark the generated demo with comparable mobile Lighthouse settings before presenting any speed comparison.');
  const cautions=['One simulated mobile Lighthouse run does not establish the experience of real visitors.',
    'Estimated savings are diagnostic suggestions, not guaranteed speed improvements.',
    'No demo performance claim can be made until the actual demo URL is independently measured.'];
