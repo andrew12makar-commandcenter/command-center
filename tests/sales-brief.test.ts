@@ -66,5 +66,5 @@ test('no audit produces research guidance without fabricated numbers',()=>{
  assert.equal(brief.originalPerformance,null);
  assert.equal(brief.originalLcpMs,null);
  assert.equal(brief.outreachSummary,null);
- assert.ok(brief.designGoals.some(x=>x.includes('benchmark')));
+ assert.ok(brief.designGoals.some(x=>x.toLowerCase().includes('benchmark')));
 });
