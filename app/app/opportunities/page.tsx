@@ -2,6 +2,7 @@ import Link from 'next/link';
 import CardNavigationStatus from './card-navigation-status';
 import {requireWorkspace} from '@/lib/workspace';
 import {collectAllPages} from '@/lib/lead-identity';
+import {independentWebsite} from '@/lib/web-presence';
 import {scoreOpportunity,sortOpportunities,stageLabels,
  type OpportunityBusiness,type AuditRecord,type BoardStage} from '@/lib/opportunity-board';
 
@@ -118,7 +119,7 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
      <td className="max-w-sm text-sm leading-6">{x.reason}</td>
      <td><div className="flex flex-col gap-2 text-sm">
       <Link className="text-cyan-300 underline" href={'/app/leads/'+x.business.id}>Review company →</Link>
-      {x.business.website_url&&<Link className="text-cyan-300 underline" href={'/app/intelligence?business='+x.business.id}>Audit this website →</Link>}
+      {independentWebsite(x.business.website_url)&&<Link className="text-cyan-300 underline" href={'/app/intelligence?business='+x.business.id}>Audit this website →</Link>}
      </div></td>
     </tr>)}</tbody></table>
    {!results.length&&<p role="status" className="muted p-8 text-sm">No CRM businesses match this selection. Clear the filter or import a discovered business through Lead Intake.</p>}
