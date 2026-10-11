@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import {requireWorkspace,validUuid} from '@/lib/workspace';
-import {auditBusiness} from './actions';
+import {auditBusiness,importLighthouseReport} from './actions';
 import type {AuditFindings,AuditEvidence} from '@/lib/website-intelligence';
 import {classifyWebPresence} from '@/lib/web-presence';
 import {Activity,ArrowUpRight,Globe2,ShieldAlert,ScanSearch} from 'lucide-react';
@@ -15,7 +15,7 @@ const percent=(n:number|null)=>n===null?'Not measured':n+'/100';
 const short=(s:string|null|undefined)=>s?.slice(0,140)||'';
 export default async function WebsiteIntelligence({
  searchParams
-}:{searchParams:Promise<{error?:string;audited?:string;business?:string}>}){
+}:{searchParams:Promise<{error?:string;audited?:string;imported?:string;business?:string}>}){
  const {supabase,organizationId}=await requireWorkspace();
  const p=await searchParams;
  const selectedId=p.business&&validUuid(p.business)?p.business:null;
@@ -30,6 +30,8 @@ export default async function WebsiteIntelligence({
     .eq('organization_id',organizationId).eq('review_status','pending')
  ]);
  const nameById=new Map((businesses??[]).map(b=>[b.id,b.name]));
+ const auditable=(businesses??[]).filter(b=>classifyWebPresence(b.website_url).kind==='website');
+ const hasApiKey=Boolean(process.env.PAGESPEED_API_KEY?.trim());
  return <main className="max-w-7xl">
    <div className="flex flex-wrap items-end justify-between gap-4">
     <div><p className="kicker">Phase 5 / Evidence-first technical audits</p><h1 className="mt-3 text-4xl font-semibold">Website Intelligence</h1>
@@ -42,6 +44,7 @@ export default async function WebsiteIntelligence({
       <ShieldAlert className="mr-2 inline" size={18}/>{errors[p.error]||'Website audit was not completed.'}</div>}
    {p.audited&&<div className="panel mt-7 border-[#29615f] p-5 text-cyan-100" role="status">
       The test result was saved. Review its measured findings below. A partial or failed Google request is recorded as inconclusive, not a bad website.</div>}
+   {p.imported&&<p className="mt-7 rounded-xl border border-cyan-700/50 bg-cyan-950/20 p-5 text-sm text-cyan-100" role="status">Local Lighthouse report saved as operator-imported evidence. Review its findings and provenance below.</p>}
    <div className="mt-8 grid gap-5 sm:grid-cols-3">
     {([
      ['CRM businesses',businesses?.length??0,Globe2],
@@ -71,7 +74,29 @@ export default async function WebsiteIntelligence({
         </tr>})}</tbody></table>
       {!businesses?.length&&!bError&&<p className="muted p-8 text-sm">The CRM has no approved prospects yet. Review your discovered candidates in Lead Intake first.</p>}
    </section>
-   <section className="mt-7 grid gap-5">
+   <section className="panel mt-7 p-6">
+     <p className="kicker">Lighthouse integration readiness</p>
+     <h2 className="mt-2 text-xl font-semibold">Google API and local fallback</h2>
+     <p className="mt-3 text-sm font-semibold text-cyan-200">Server API key: {hasApiKey?'Configured':'Not configured'}</p>
+     <p className="muted mt-2 max-w-4xl text-sm leading-6">
+       {hasApiKey?'API requests will use the configured Google project key. Rate limits, quotas and access restrictions can still cause HTTP 429 or 403.':
+        'Requests currently use unauthenticated PageSpeed access. Google recommends a project API key for frequent calls; an API key may improve quota reliability but does not guarantee an audit will run.'}
+       {' '}To configure it, enable the PageSpeed Insights API in your own Google Cloud project, create an API-restricted key, add <code>PAGESPEED_API_KEY</code> to the private <code>.env.local</code> file, then restart Next.js. Never paste the key into this page, ChatGPT, GitHub, or a screenshot.
+     </p>
+     <a href="https://developers.google.com/speed/docs/insights/v5/get-started" className="mt-2 inline-block text-sm text-cyan-300 underline" target="_blank" rel="noopener noreferrer">Official Google PageSpeed API setup ↗</a>
+     <div className="mt-5 border-t border-[#2b4350] pt-5">
+       <h3 className="font-semibold">Import a Chrome Lighthouse report instead</h3>
+       <p className="muted mt-2 max-w-4xl text-sm leading-6">In Chrome, open the company's actual homepage, then DevTools → Lighthouse → Mobile → Analyze page load. Export the resulting report as <strong>JSON</strong> (not HTML). Import it below. Only a matching report from the last 7 days is accepted. This is locally produced, operator-supplied evidence, not an independently authenticated PageSpeed API response.</p>
+       {auditable.length>0?<form action={importLighthouseReport} className="mt-4 grid gap-3 sm:grid-cols-[minmax(220px,1fr)_minmax(220px,1fr)_auto] sm:items-end">
+         <label className="text-sm">Business<select name="business_id" defaultValue={selectedId&&auditable.some(b=>b.id===selectedId)?selectedId:auditable[0].id} className="mt-2" required>
+           {auditable.map(b=><option key={b.id} value={b.id}>{b.name}</option>)}
+         </select></label>
+         <label className="text-sm">Chrome Lighthouse JSON (up to 8 MB)<input type="file" name="lighthouse_json" accept=".json,application/json" required className="mt-2"/></label>
+         <button className="btn" type="submit">Import verified-format report →</button>
+       </form>:<p className="muted mt-3 text-sm">No business with an independent website is selected or available. Link and review an official website in the CRM first.</p>}
+     </div>
+   </section>
+   <section id="latest-audits" className="mt-7 scroll-mt-7 grid gap-5">
     <div className="flex items-end justify-between gap-4"><div><p className="kicker">Measured evidence</p><h2 className="mt-2 text-2xl font-semibold">Latest audits</h2></div>
     <span className="muted text-xs">Latest 20 · newest first</span></div>
     {aError&&<p className="text-red-300">Unable to retrieve saved audits.</p>}
@@ -83,7 +108,8 @@ export default async function WebsiteIntelligence({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div><p className="kicker">{a.status==='verified_gaps'?'Issues observed':a.status==='no_gaps'?'No issues in checked tests':'Inconclusive measurement'}</p>
           <h3 className="mt-3 text-xl font-semibold">{nameById.get(a.business_id)||'CRM business'}</h3>
-          <p className="muted mt-1 text-sm">{a.website_url} · {new Date(a.assessed_at).toLocaleString('en-US')}</p></div>
+          <p className="muted mt-1 text-sm">{a.website_url} · {new Date(a.assessed_at).toLocaleString('en-US')}</p>
+          <p className="mt-2 text-xs text-cyan-300">{f?.source_method==='local_lighthouse_upload'?'Operator-uploaded local Lighthouse report (not independently authenticated)':'Google PageSpeed API response'}</p></div>
           <Link className="text-sm text-cyan-300 underline" href={'/app/leads/'+a.business_id}>CRM record ↗</Link>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
