@@ -19,6 +19,12 @@ export type DemoCopy = {
   disclaimer: string; category: string; design?: DesignPreferences;
   // Optional, user-supplied approved business photography. No stock images invented.
   heroImageUrl?: string;
+  // Internal-only brief, never displayed as a business claim on the mock site.
+  internalBuildPlan?:{
+    sourceAssessmentDate:string|null;
+    confidence:'measured'|'operator_supplied'|'inconclusive'|'unmeasured';
+    goals:string[];
+  };
 };
 export type FeedbackSample = {
   demo_id: string;
