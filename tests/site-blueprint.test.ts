@@ -25,7 +25,7 @@ test('research-only images never become approved or hero assets',()=>{
  },source);
  assert.equal(site.content.images.every(i=>i.permission==='reference_only'),true);
  assert.equal(site.quality.publishReady,false);
- assert.ok(site.quality.blockers.some(x=>x.includes('permission')));
+ assert.ok(site.quality.blockers.some(x=>x.includes('rights')));
 });
 test('owner-reviewed specific content and approved images produce a portable site blueprint',()=>{
  const site=buildSiteBlueprint('medical',{
@@ -58,4 +58,18 @@ test('legacy hero URL is treated as an unapproved reference, never licensed by i
  const site=buildSiteBlueprint('medical',{...data,heroImageUrl:img},source);
  assert.equal(site.content.images[0].permission,'reference_only');
  assert.equal(site.content.images[0].role,'hero');
+});
+
+test('owner-approved typography-led site can pass without photos, but never with unresolved research image rights',()=>{
+ const base={...data,services:['General dental consultation']};
+ const approved=cleanSiteContent({
+  about:'Practice introduction reviewed with the owner.',sourceUrl:src,
+  factStatus:'owner_approved',heroTreatment:'typographic'
+ });
+ const draft=buildSiteBlueprint('medical',{...base,siteContent:approved},source);
+ assert.equal(draft.quality.publishReady,true);
+ const refs=buildSiteBlueprint('medical',{...base,siteContent:cleanSiteContent({
+  ...approved,images:[{url:img,sourceUrl:src,role:'gallery',permission:'reference_only'}]
+ })},source);
+ assert.equal(refs.quality.publishReady,false);
 });
