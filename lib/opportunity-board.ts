@@ -1,4 +1,5 @@
 import {classifyIndustry,researchPriority} from './business-classification.ts';
+import {classifyWebPresence,independentWebsite} from './web-presence.ts';
 
 // A triage board is NOT a sales conversion probability or verified client budget.
 export type OpportunityBusiness={
@@ -30,7 +31,7 @@ function sameWebsite(a:string,b:string):boolean{
 export function currentAudit(
  business:OpportunityBusiness,audits:AuditRecord[],now=new Date()
 ):AuditRecord|null{
- const website=business.website_url;
+ const website=independentWebsite(business.website_url);
  if(!website)return null;
  return audits.filter(a=>a.business_id===business.id
   && !!a.website_url&&sameWebsite(website,a.website_url)
@@ -51,7 +52,8 @@ export function scoreOpportunity(
  const latest=currentAudit(business,audits,now);
  const technicalScore=latest?.status==='verified_gaps'?scoreFromAudit(latest):null;
  const industry=classifyIndustry(business.name,business.category);
- const researchScore=researchPriority(business.name,business.category,business.website_url,null,business.city);
+ const webPresence=classifyWebPresence(business.website_url);
+ const researchScore=researchPriority(business.name,business.category,independentWebsite(business.website_url),null,business.city);
  const sector=industry.confidence==='unknown'?'Industry not classified':industry.template==='medical'?
   'Medical/clinical sector hint':industry.template==='landscaping'?'Home/field-services sector hint':'Other recorded industry';
  let stage:BoardStage,reason:string;
@@ -60,9 +62,11 @@ export function scoreOpportunity(
   reason=business.operational_status==='closed'?'Marked closed in CRM; do not prospect without reconfirmation.':
    business.pipeline_status==='won'?'Already won in the sales pipeline; manage as a client rather than a new prospect.':
    'Previously marked lost; do not automatically restart outreach.';
- }else if(!business.website_url){
+ }else if(webPresence.kind!=='website'){
   stage='research_website';
-  reason=sector+'; no website recorded, which does not prove absence.';
+  reason=webPresence.kind==='social'||webPresence.kind==='listing'?
+    webPresence.provider+' profile recorded, not an independent business website. Research whether a separate website exists.':
+    sector+'; independent website not recorded or URL invalid. This does not prove the business has no website.';
  }else if(!latest){
   stage='audit_website';
   reason='Recorded website has no recent matching PageSpeed audit. Check ownership and assess.';
