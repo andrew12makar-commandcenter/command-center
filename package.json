@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/*.test.ts"
+    "test": "node --experimental-strip-types --test tests/*.test.ts && node --test tests/*.test.mjs",
+    "audit:local": "node scripts/local-lighthouse.mjs"
   },
   "dependencies": {
     "next": "^16.1.0",
