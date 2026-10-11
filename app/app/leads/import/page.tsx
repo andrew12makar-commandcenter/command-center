@@ -3,6 +3,7 @@ import {requireWorkspace} from '@/lib/workspace';
 import {approveImportedRow,linkImportedDuplicate,skipImportedRow,stageCsv} from '../actions';
 import {collectAllPages,potentialMatches,type BusinessIdentity} from '@/lib/lead-identity';
 import {classifyIndustry,industryLabel,researchPriority} from '@/lib/business-classification';
+import {independentWebsite,discoveredProfile} from '@/lib/web-presence';
 
 function safeExternalUrl(value:string|null|undefined):string|null{
  if(!value)return null;
@@ -39,19 +40,22 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
  ]);
  const count=all.length;
  const industry=['medical','landscaping','universal','unknown'].includes(p.industry||'')?p.industry||'':'';
- const website=['yes','no'].includes(p.website||'')?p.website||'':'';
+ const website=['yes','no','social'].includes(p.website||'')?p.website||'':'';
  const sort=['newest','oldest'].includes(p.sort||'')?p.sort!:'priority';
  const query=(p.query||'').trim().slice(0,100);
  const normalized=query.toLocaleLowerCase();
  const scored=all.map(row=>{
    const decision=classifyIndustry(row.name||'',row.category);
-   return {row,decision,priority:researchPriority(row.name||'',row.category,row.website_url,row.source_url,row.city),matches:potentialMatches(row,businesses)};
+   return {row,decision,priority:researchPriority(row.name||'',row.category,independentWebsite(row.website_url),row.source_url,row.city),matches:potentialMatches(row,businesses)};
  });
  const filtered=scored.filter(x=>{
    const row=x.row;
    if(industry&&(x.decision.template||'unknown')!==industry)return false;
-   if(website==='yes'&&!row.website_url)return false;
-   if(website==='no'&&row.website_url)return false;
+   const site=independentWebsite(row.website_url);
+   const profile=discoveredProfile(row.raw_data,row.website_url);
+   if(website==='yes'&&!site)return false;
+   if(website==='no'&&site)return false;
+   if(website==='social'&&!profile)return false;
    if(normalized&&![row.name,row.city,row.category,typeof row.raw_data?.search_area==='string'?row.raw_data.search_area:''].some(v=>(v||'').toLocaleLowerCase().includes(normalized)))return false;
    return true;
  }).sort((a,b)=>sort==='newest'?
@@ -97,7 +101,7 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
          <option value="landscaping">Home & field services</option><option value="universal">Other business</option>
          <option value="unknown">Needs classification</option></select></label>
        <label className="text-sm">Recorded website<select className="mt-2" name="website" defaultValue={website}>
-         <option value="">All websites</option><option value="yes">Website link recorded</option><option value="no">No website link recorded</option></select></label>
+         <option value="">All presence</option><option value="yes">Independent website recorded</option><option value="no">No independent site recorded</option><option value="social">Social / directory profile present</option></select></label>
        <label className="text-sm">Sort<select className="mt-2" name="sort" defaultValue={sort}>
          <option value="priority">Research first: high-value sector + evidence</option><option value="oldest">Oldest first</option><option value="newest">Newest first</option></select></label>
        <div className="flex items-end gap-3"><button type="submit" className="btn">Apply filters</button><Link href="/app/leads/import" className="text-xs text-cyan-300 underline">Clear</Link></div>
@@ -109,13 +113,14 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
        <h2 className="text-xl font-semibold">Review queue</h2>
        <p className="muted text-xs">{filtered.length} matching · page {page}/{pages} · {PAGE_SIZE} per page</p>
      </div>
-     <table><thead><tr><th>Business</th><th>Location</th><th>Industry hint</th><th>Source</th><th>Website</th><th>Possible match</th><th>Action</th></tr></thead>
+     <table><thead><tr><th>Business</th><th>Location</th><th>Industry hint</th><th>Source</th><th>Business website</th><th>Social / directory presence</th><th>Possible match</th><th>Action</th></tr></thead>
      <tbody>{shown.map(({row,decision,matches})=><tr key={row.id}>
        <td className="font-medium">{row.name||'Missing name'}<small className="muted mt-1 block">{row.category||'No source category'}</small></td>
        <td>{row.city||<span className="muted text-xs">{typeof row.raw_data?.search_area==='string'?row.raw_data.search_area+' scan area (not confirmed city)':'Unknown'}</span>}</td>
        <td><span className="text-xs">{industryLabel(decision)}</span><small className="muted block">{decision.confidence==='unknown'?'Review required':decision.confidence==='name_hint'?'Name hint · verify':'From category · verify'}</small></td>
        <td>{safeExternalUrl(row.source_url)?<a className="break-all text-xs text-cyan-300 underline" href={safeExternalUrl(row.source_url)!} target="_blank" rel="noopener noreferrer">Original evidence ↗</a>:<span className="muted text-xs">{row.source_url?'Invalid URL':'No source recorded'}</span>}</td>
-       <td>{safeExternalUrl(row.website_url)?<a className="break-all text-xs text-cyan-300 underline" href={safeExternalUrl(row.website_url)!} target="_blank" rel="noopener noreferrer">Inspect site ↗</a>:<span className="muted text-xs">{row.website_url?'Invalid URL':'Not recorded'}</span>}</td>
+       <td>{independentWebsite(row.website_url)?<a className="break-all text-xs text-cyan-300 underline" href={independentWebsite(row.website_url)!} target="_blank" rel="noopener noreferrer">Inspect site ↗</a>:<span className="muted text-xs">Not identified</span>}</td>
+       <td>{discoveredProfile(row.raw_data,row.website_url)?<a className="break-all text-xs text-amber-200 underline" href={discoveredProfile(row.raw_data,row.website_url)!} target="_blank" rel="noopener noreferrer">Profile / listing ↗</a>:<span className="muted text-xs">Not recorded</span>}</td>
        <td>{matches.length?<div className="space-y-3 text-xs">
          <span className="text-amber-200">Review {matches.length} possible CRM match{matches.length===1?'':'es'}</span>
          {matches.map(m=><div key={m.id} className="rounded-lg border border-amber-900/40 p-2">
