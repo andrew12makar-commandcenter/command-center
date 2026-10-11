@@ -1,8 +1,9 @@
 'use server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { requireWorkspace, shortText, validUuid, webUrl } from '@/lib/workspace';
+import { requireWorkspace, shortText, validUuid } from '@/lib/workspace';
 import { derivePreferences, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
+import {cleanSiteContent,safeImage,safePublicUrl,type SiteImage,type ImagePermission} from '@/lib/site-blueprint';
 const issueTags=['layout','visuals','generic_copy','missing_content','navigation','mobile','other'];
 
 export async function rateDemo(form:FormData) {
@@ -26,6 +27,29 @@ export async function rateDemo(form:FormData) {
  redirect('/app/demos/'+id+'?saved=rating');
 }
 
+function readImageRows(value:FormDataEntryValue|null,permission:ImagePermission):SiteImage[]{
+ const raw=shortText(value,6000);
+ const lines=raw.split('\\n').map(x=>x.trim()).filter(Boolean);
+ if(lines.length>12)throw new Error('Use up to 12 images per group.');
+ return lines.map((line,index)=>{
+  const pieces=line.split('|').map(x=>x.trim());
+  if(pieces.length<3||pieces.length>4)throw new Error('Image line '+(index+1)+': use image URL | description | source URL | gallery/team/logo.');
+  const role=pieces[3]||'gallery';
+  if(!['gallery','team','logo'].includes(role))throw new Error('Image line '+(index+1)+': unsupported image role.');
+  const image=safeImage({url:pieces[0],alt:pieces[1],sourceUrl:pieces[2],
+   permission,role:role as 'gallery'|'team'|'logo'});
+  if(!image)throw new Error('Image line '+(index+1)+': a public image URL and a source page URL are required.');
+  return image;
+ });
+}
+function checkedUrl(value:FormDataEntryValue|null,label:string):string|null{
+ const raw=shortText(value,1600);
+ if(!raw)return null;
+ const url=safePublicUrl(raw);
+ if(!url)throw new Error(label+' must be a public http/https URL.');
+ return url;
+}
+
 export async function saveDemoCopy(form:FormData) {
  const {supabase,organizationId}=await requireWorkspace(true);
  const id=shortText(form.get('demo_id'),64);
@@ -35,6 +59,34 @@ export async function saveDemoCopy(form:FormData) {
    .eq('id',id).eq('organization_id',organizationId).single();
  if(!demo) throw new Error('Demo not found.');
  const old=demo.draft_content as DemoCopy;
+ const heroUrl=checkedUrl(form.get('heroImageUrl'),'Hero image');
+ const heroSource=checkedUrl(form.get('heroImageSourceUrl'),'Hero image source');
+ if(heroUrl&&!heroSource)throw new Error('Add the original source page for the hero image.');
+ const appointmentUrl=checkedUrl(form.get('appointmentUrl'),'Appointment link');
+ const sourceUrl=checkedUrl(form.get('siteSourceUrl'),'Business information source');
+ const galleryApproved=form.get('galleryRightsApproved')==='on';
+ const images:SiteImage[]=[
+  ...readImageRows(form.get('imageReferences'),'reference_only'),
+  ...readImageRows(form.get('approvedGallery'),galleryApproved?'approved':'reference_only')
+ ];
+ if(heroUrl&&heroSource){
+  const hero=safeImage({url:heroUrl,sourceUrl:heroSource,role:'hero',
+   alt:'Business hero photography',permission:form.get('heroImageApproved')==='on'?'approved':'reference_only'});
+  if(!hero)throw new Error('Invalid hero image.');
+  images.unshift(hero);
+ }
+ const rawFactStatus=shortText(form.get('factStatus'),32);
+ const factStatus=['researched','owner_approved'].includes(rawFactStatus)?
+  rawFactStatus:'unreviewed';
+ const siteContent=cleanSiteContent({
+  about:shortText(form.get('siteAbout'),1100),
+  audience:shortText(form.get('siteAudience'),200),
+  sourceUrl,appointmentUrl,
+  factStatus,
+  heroTreatment:shortText(form.get('heroTreatment'),20),
+  images
+ });
+
  // Editing copy is human-controlled. No automated claims, testimonials, phone numbers or credentials.
  const content:DemoCopy={
    ...old,
@@ -44,7 +96,8 @@ export async function saveDemoCopy(form:FormData) {
    description:shortText(form.get('description'),800),
    primaryAction:shortText(form.get('primaryAction'),65),
    secondaryAction:shortText(form.get('secondaryAction'),65),
-   heroImageUrl:webUrl(form.get('heroImageUrl'))??undefined,
+   heroImageUrl:heroUrl??undefined,
+   siteContent,
    services:shortText(form.get('services'),1000).split('\n').map(x=>x.trim()).filter(Boolean).slice(0,6),
  };
  if(!content.brand||!content.headline) throw new Error('Business name and headline are required.');
