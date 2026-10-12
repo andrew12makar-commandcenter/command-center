@@ -4,6 +4,7 @@ on:
     branches:
       - feature/nextjs-foundation
       - integration/claude-roadmap-oct12
+      - codex/generator-intelligence-checkpoints-oct12
   pull_request:
     branches:
       - main
