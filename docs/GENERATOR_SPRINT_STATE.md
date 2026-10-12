@@ -94,13 +94,21 @@ This is the compact recovery checkpoint for continued development of the **local
 - Tests: `tests/site-facts.test.mjs` (5).
 - **Not yet done:** running it on three real, permitted business sites. This sandbox's egress policy blocks arbitrary websites, so that must run on the Mac (`npm run research:local -- <approved manifest>`). Playwright render fallback for flagged pages is not wired yet. Brief is not yet displayed in Command Center or used by the generator.
 
+## Checkpoint 11 (in progress): Greater Boston open-data discovery
+- `lib/discovery-regions.ts`: configurable areas in expansion rings (ring 1 Allston/Brighton/Brookline; ring 2 Newton/Watertown/Cambridge/Somerville; ring 3 Boston neighborhoods). Approximate, bounded boxes; each candidate keeps its own locality/postcode and is flagged when the postcode is outside the named area.
+- `lib/overture-places.ts` + `scripts/overture-discovery.mjs` (`npm run discover:overture -- --ring 1`): finds the latest release from the official STAC catalog (or `--release`), builds the SELECT from the columns that actually exist (handles `categories` vs `basic_category`/`taxonomy`, optional `operating_status`), filters by `bbox` with DuckDB `httpfs` only, excludes permanently closed and low-confidence records, and records release, source datasets, update time, confidence and attribution per row.
+- Within-run duplicate handling: identical Overture ids across overlapping boxes are combined; other pairs are FLAGGED (never merged) only with two independent signals (phone, website host, name, ≤60 m). Same name alone never flags.
+- Output goes to `.local-discovery/<run>/`: `candidates.json` and ≤500-row CSV parts whose headers match the existing `/app/leads/import` staging (which already checks CRM matches via `lead-identity.ts`). Nothing is written to Supabase. CSV cells are protected against formula injection.
+- Tests: `tests/overture-discovery.test.mjs` runs the real DuckDB query on an Overture-shaped parquet fixture.
+- **Not yet done:** a run against the live Overture release. This sandbox cannot reach Overture's catalog or S3 (egress policy), so the first real run must happen on the Mac. Massachusetts/municipal registry connectors and OSM corroboration in the same pipeline are not built yet (the older OSM/Boston collectors in `lib/discovery.ts` still work separately).
+
 ## Evaluation baseline (not a production claim)
 - Prior documented fictional benchmark: rules+search holdout agreement 0.625; baseline 0.292; cross-validation 0.652; unfamiliar-style interpreter recall 0.167. Source: `docs/feedback-loop.md`.
 - Six generator cases scored 100/100 on permissive *structural preflight*; that is not a measured visual-quality score.
 - External client content, rights, real browsers, and production database state are still unverified in this checkpoint.
 
 ## Current objective
-Finish Checkpoint 13 (real-site runs on the Mac, selective Playwright fallback, show the brief in Demo Studio), then Checkpoint 11 (Overture Places + DuckDB discovery staged outside the CRM). Every generator change from now on must be checked with `npm run qa:browser` and looked at, not only unit-tested.
+On the Mac: run `npm run discover:overture -- --ring 1` and `npm run research:local` on three permitted sites and record results. Then finish Checkpoint 13 (selective Playwright fallback, show the brief in Demo Studio) and Checkpoint 11 follow-ups (Overture Places + DuckDB discovery staged outside the CRM). Every generator change from now on must be checked with `npm run qa:browser` and looked at, not only unit-tested.
 
 ## Recovery instructions
 1. Inspect this file, check `git status` and branch; do not reset original Mac work.

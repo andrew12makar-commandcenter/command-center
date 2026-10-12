@@ -13,7 +13,8 @@
     "benchmark:generator": "node --experimental-strip-types scripts/run-generator-benchmarks.ts",
     "qa:browser": "node --experimental-strip-types scripts/browser-qa/run.mjs",
     "qa:browser:lighthouse": "node --experimental-strip-types scripts/browser-qa/run.mjs --lighthouse",
-    "research:local": "node --experimental-strip-types scripts/local-site-research.mjs"
+    "research:local": "node --experimental-strip-types scripts/local-site-research.mjs",
+    "discover:overture": "node --experimental-strip-types scripts/overture-discovery.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.0",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
+    "@duckdb/node-api": "^1.5.6-r.1",
     "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^24.0.0",

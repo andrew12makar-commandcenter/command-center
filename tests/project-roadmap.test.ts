@@ -12,7 +12,7 @@ test('baseline evidence is explicit and two ventures are not conflated',()=>{
  assert.equal(seo.id,'seo');assert.equal(mcat.id,'mcat');
  assert.ok(seo.completed>0);assert.equal(mcat.completed,0);
  assert.equal(seo.current?.id,'seo-intelligence-brief');assert.equal(seo.current?.status,'in_progress');
- assert.equal(seo.next?.id,'seo-open-data-discovery');
+ assert.equal(seo.next?.id,'seo-identity-resolution');
  assert.equal(seo.stages.flatMap(s=>s.steps).find(s=>s.id==='seo-browser-qa')?.status,'completed');assert.equal(mcat.current?.id,'mcat-method');
  assert.ok(seo.stages.flatMap(s=>s.steps).filter(s=>s.baseline==='completed').every(s=>Boolean(s.baselineEvidence)));
  const website=seo.stages.find(stage=>stage.id==='websites');
@@ -48,7 +48,7 @@ test('blockers are visible, excluded from next action, and do not count as compl
  const [original]=summarizeRoadmap();
  const [changed]=summarizeRoadmap([{step_id:'seo-intelligence-brief',status:'blocked',evidence_note:'Waiting for site access'}]);
  // The next ACTIVE milestone takes over; a blocked item is never current.
- assert.equal(changed.current?.id,'seo-site-source-media');
+ assert.equal(changed.current?.id,'seo-open-data-discovery');
  assert.equal(changed.current?.status,'in_progress');
  assert.ok(changed.blocked.some(item=>item.id==='seo-intelligence-brief'));
  assert.equal(changed.completed,original.completed);
@@ -56,5 +56,5 @@ test('blockers are visible, excluded from next action, and do not count as compl
 test('explicit in-progress milestone takes priority over code baseline',()=>{
  const [p]=summarizeRoadmap([{step_id:'seo-audit-live',status:'in_progress',evidence_note:'Testing audits',updated_at:'2026-10-12T00:00:00Z'}]);
  assert.equal(p.current?.id,'seo-audit-live');
- assert.equal(p.next?.id,'seo-open-data-discovery');
+ assert.equal(p.next?.id,'seo-identity-resolution');
 });
