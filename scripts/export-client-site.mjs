@@ -99,7 +99,7 @@ export default function RootLayout({children}:{children:React.ReactNode}){
   await writeFile(join(target,'postcss.config.mjs'),`export default {plugins:{'@tailwindcss/postcss':{}}};\n`);
   await writeFile(join(target,'tsconfig.json'),asJson({
    compilerOptions:{target:'ES2017',lib:['dom','dom.iterable','esnext'],allowJs:true,
-    skipLibCheck:true,strict:true,noEmit:true,esModuleInterop:true,module:'esnext',
+    skipLibCheck:true,strict:true,noEmit:true,allowImportingTsExtensions:true,esModuleInterop:true,module:'esnext',
     moduleResolution:'bundler',resolveJsonModule:true,isolatedModules:true,
     jsx:'react-jsx',incremental:true,paths:{'@/*':['./*']}},
    include:['next-env.d.ts','**/*.ts','**/*.tsx','.next/types/**/*.ts'],
