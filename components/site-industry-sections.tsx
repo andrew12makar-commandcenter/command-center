@@ -1,5 +1,6 @@
 import type {SiteBlueprint} from '@/lib/site-blueprint';
 import {contactJourney,selectSectionPresentation} from '@/lib/site-presentation';
+import {reviewedSiteFeatures} from '@/lib/reviewed-business-features';
 
 type Tone={base:string;paper:string;ink:string;soft:string;muted:string;eyebrow:string;border:string};
 type Props={site:SiteBlueprint;theme:Tone;compact:boolean};
@@ -74,6 +75,32 @@ export function IndustryServices({site,theme,compact}:Props){
 }
 
 export function IndustryNextSteps({site,theme,compact}:Props){
+ const verifiedFeatures=reviewedSiteFeatures(site);
+ if(verifiedFeatures.length>=2)return <section data-journey-layout="source-backed" aria-labelledby="reviewed-highlights-title"
+  className={'motion-section motion-reveal '+pad+' py-20 lg:py-28 '+theme.paper}>
+  <div className="mx-auto max-w-[1450px]">
+   <div className="grid gap-12 border-b border-current/15 pb-10 lg:grid-cols-[minmax(0,.95fr)_minmax(0,1.05fr)] lg:gap-20">
+    <div><p className={'text-xs font-semibold uppercase tracking-[.22em] '+theme.eyebrow}>From the business</p>
+     <h2 id="reviewed-highlights-title" className="mt-5 max-w-2xl text-[clamp(2.15rem,4vw,4rem)] font-semibold leading-[1.07] tracking-[-.045em]">
+      A closer look at {site.businessName}.
+     </h2></div>
+    <p className={'self-end max-w-lg text-base leading-8 '+theme.muted}>
+     Details selected from the business's own published information and reviewed for this design concept.
+     Availability and current terms should be confirmed directly.
+    </p>
+   </div>
+   <div className="mt-6 grid gap-x-14 lg:grid-cols-2">{verifiedFeatures.map((entry,i)=>
+    <article key={entry.id+entry.kind} className="motion-card grid min-w-0 grid-cols-[40px_minmax(0,1fr)] gap-5 border-b border-current/15 py-9">
+     <span className={'pt-1 text-xs font-semibold '+theme.eyebrow}>{index(i)}</span>
+     <div className="min-w-0"><p className={'text-[10px] font-bold uppercase tracking-[.2em] '+theme.eyebrow}>{entry.kind}</p>
+      <h3 className="mt-3 break-words text-[clamp(1.25rem,2.4vw,2rem)] font-semibold leading-tight tracking-[-.035em]">{entry.label}</h3>
+      {entry.detail?<p className={'mt-4 max-w-[56ch] text-sm leading-7 '+theme.muted}>{entry.detail}</p>:null}
+      <a href={entry.sourceUrl} target="_blank" rel="noopener noreferrer" className={'mt-5 inline-flex items-center gap-2 text-xs font-semibold underline underline-offset-4 '+theme.eyebrow}>
+       See original source <span aria-hidden="true">↗</span>
+      </a>
+     </div>
+    </article>)}</div>
+  </div></section>;
  if(!site.services.length||!(site.contact.phone||site.contact.email||site.content.appointmentUrl))return null;
  const {journey}=selectSectionPresentation(site);
  const steps=contactJourney(journey,Boolean(site.content.appointmentUrl));
