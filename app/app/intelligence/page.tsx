@@ -14,6 +14,13 @@ const errors:Record<string,string>={
  'local-busy':'Another local Chrome Lighthouse audit is running. Wait for it to finish before starting another.',
  'local-install':'The local Lighthouse installation is missing. In the integration-preview project folder, run npm install and retry.',
  'local-preflight':'The website refused a safety preflight or resolved to an unsafe destination. No browser audit was run and no score was saved.',
+ 'local-unsafe':'The domain or one of its redirects resolved to an unsafe or private address. Chrome was not started. Confirm the correct official public website in the CRM.',
+ 'local-dns':'Your Mac could not resolve the company website to a usable public address. The scan did not run. Check connectivity and the recorded domain.',
+ 'local-network':'The website could not be reached by the safety check, or its HTTP request timed out. This is not a measured website defect.',
+ 'local-redirect':'The website redirected incorrectly, too many times, or to a destination that could not be accepted safely. No scan was run.',
+ 'local-denied':'The business website refused the local HTTP safety check (HTTP 401 or 403). This is not proof of a website flaw. Use Chrome Lighthouse manually if you can open the site in your normal browser.',
+ 'local-rate-limited':'The business website returned HTTP 429 to the local safety check. Avoid repeated requests; no scan or score was saved.',
+ 'local-unavailable':'The website returned an HTTP error during the local safety check. No scan or score was saved. Check the website manually before retrying.',
  'local-failed':'Chrome Lighthouse could not finish this local audit. Confirm Chrome is installed, the site loads normally, and retry; no misleading score was saved.',
  'local-report':'The local browser did not produce a valid recent Lighthouse report for this CRM website. No score was saved.',
  'profile-not-site':'The recorded URL is a social account or directory listing, not an independent business website. Open the CRM record and move it to research evidence before attempting an audit.',
@@ -52,7 +59,15 @@ export default async function WebsiteIntelligence({
    {selectedId&&<div className="mt-5"><Link href="/app/intelligence" className="text-sm text-cyan-300 underline">← Show full Website Intelligence list</Link>
       <p className="muted mt-2 text-sm">Showing the requested CRM business, even if it is not among the 100 newest records.</p></div>}
    {p.error&&<div className="mt-7 rounded-xl border border-amber-700/40 bg-amber-950/15 p-5 text-amber-200" role="alert">
-      <ShieldAlert className="mr-2 inline" size={18}/>{errors[p.error]||'Website audit was not completed.'}</div>}
+      <ShieldAlert className="mr-2 inline" size={18}/>{errors[p.error]||'Website audit was not completed.'}
+      {p.error.startsWith('local-')&&<div className="mt-3 border-t border-amber-800/30 pt-3 text-sm">
+       <strong>Alternative that does not bypass the website's restrictions:</strong>
+       {' '}Open the website in Chrome, run DevTools → Lighthouse → Mobile → Analyze page load, then export JSON.
+       <a href="#lighthouse-fallback" className="ml-2 font-semibold text-cyan-200 underline underline-offset-4">
+        Import that report for this CRM business ↓
+       </a>
+       <p className="mt-2 text-xs">Manual reports are checked for freshness and matching business URL before saving. No score is invented when Chrome cannot measure the site.</p>
+      </div>}</div>}
    {p.audited&&<div className="panel mt-7 border-[#29615f] p-5 text-cyan-100" role="status">
       The test result was saved. Review its measured findings below. A partial or failed Google request is recorded as inconclusive, not a bad website.</div>}
    {p.imported&&<p className="mt-7 rounded-xl border border-cyan-700/50 bg-cyan-950/20 p-5 text-sm text-cyan-100" role="status">Local Lighthouse report saved as operator-imported evidence. Review its findings and provenance below.</p>}
