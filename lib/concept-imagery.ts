@@ -38,3 +38,36 @@ export function getGeneratedConceptSet(template:Template):GeneratedConceptSet{re
 export function getPrivatePreviewConcept(template:Template):ConceptImage{
  return getGeneratedConceptSet(template).hero;
 }
+
+/**
+ * The small legacy concept library is NOT a universal stock photo bank.
+ * A dental chair on a veterinary practice (or landscaping on a plumber)
+ * creates a damaging factual impression even when marked "concept".
+ *
+ * Return undefined when category/services do not support a specific asset.
+ * The site can instead render an attractive typographic hero until a
+ * correctly targeted concept is generated and reviewed, or licensed
+ * business photos are available.
+ */
+export function getMatchedConceptSet(
+ template:Template,category:string|null|undefined,services:readonly string[]=[],
+ businessName=''
+):GeneratedConceptSet|undefined{
+ const subject=[category??'',...services,businessName].join(' ').toLowerCase();
+ const vet=/\b(vet(?:erinary|erinarian|erinarian)?|vets|animal|pet|canine|feline|puppy|kitten)\b/i;
+ const dental=/\b(dent(?:al|ist|istry)|orthodont\w*|implant(?:s)?|invisalign|teeth|tooth|endodont\w*)\b/i;
+ const fieldOther=/\b(plumb\w*|hvac|heat(?:ing)?|air condition\w*|roof\w*|electri\w*|pest control|floor\w*|painting|garage|mason\w*)\b/i;
+ const garden=/\b(landscap\w*|garden\w*|hardscap\w*|lawn\w*|plant(?:ing)?|irrigation|groundskeep\w*|outdoor design)\b/i;
+ const hospitality=/\b(restaurant|cafe|coffee|bakery|bookstore|retail|salon|barber|fitness|gym|hotel|food|catering|pet|veterinar\w*)\b/i;
+ const professional=/\b(consult\w*|strateg\w*|advis\w*|account\w*|law|attorney|architect\w*|design stud\w*|creative stud\w*|professional servic\w*)\b/i;
+ if(template==='medical'){
+  if(vet.test(subject)||!dental.test(subject))return undefined;
+  return concepts.medical;
+ }
+ if(template==='landscaping'){
+  if(fieldOther.test(subject)||!garden.test(subject))return undefined;
+  return concepts.landscaping;
+ }
+ if(hospitality.test(subject)||!professional.test(subject))return undefined;
+ return concepts.universal;
+}
