@@ -44,13 +44,22 @@ This is the compact recovery checkpoint for continued development of the **local
 - Evidence: [GitHub Actions run 38220052264](https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38220052264) PASSED unit tests, typecheck, main build and standalone client export production build. An earlier intermediate commit briefly failed typecheck due to orphan JSX and was corrected before this verified checkpoint.
 - Important: no browser screenshot comparison of the new output has yet been made; quality has not been human-approved. The benchmark still scores structural preflight only.
 
+## Verified checkpoint 6: original-site reference and real multi-vertical sections
+- **Latest verified code**: `5fe51f2f089021350317354537086144368075d6`.
+- **Full CI verification**: [GitHub Actions 38221409888](https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38221409888) PASS: unit tests, typecheck, main production build and independent client-site cold-install production build. Earlier intermediate commits briefly failed due missing old JSX removal and regex escaping; both corrected in tested head.
+- **Layout foundation**: `lib/site-presentation.ts` and `components/site-industry-sections.tsx` supply distinct clinical, landscaping and professional layouts for hero, service sections, journeys and gallery. Renderer wires them in, and standalone exporter includes necessary files. Narrow nested step cards removed.
+- **Original-site research**: `scripts/site-candidates.mjs` identifies theme-color metadata, potential hero/logo/gallery images, still marked `reference_only`. `lib/site-blueprint.ts` sanitizes themeColor in bounded researchPages. `app/app/demos/feedback-actions.ts` preserves these references from bounded same-domain scanning and imported site research.
+- **Source-driven planning**: `lib/source-redesign-reference.ts` compiles source URL hosts, inspected color cues, reviewed site modules and image rights into layout and media recommendations plus business-type-specific AI conceptual image briefs. `app/app/demos/[id]/page.tsx` displays reference and rights state. The apply-reviewed-research action can use these recommendations on a new revision **only if there is no saved explicit design feedback**.
+- Tests added: `tests/site-presentation.test.ts`, `tests/source-redesign-reference.test.ts`, `tests/source-site-hints.test.mjs`.
+- **Limitations**: current fixed concept JPEG pool (nine files) remains. No on-demand AI image generation, automatic design cloning, live real-world rights confirmation, browser screenshot QA, or client approval occurred. Research captures HTML metadata/structure, not pixel-accurate visual style or entire CSS. All business imagery from a website remains unapproved until authorization and review. No Supabase migrations or live production deployment were performed.
+
 ## Evaluation baseline (not a production claim)
 - Prior documented fictional benchmark: rules+search holdout agreement 0.625; baseline 0.292; cross-validation 0.652; unfamiliar-style interpreter recall 0.167. Source: `docs/feedback-loop.md`.
 - Six generator cases scored 100/100 on permissive *structural preflight*; that is not a measured visual-quality score.
 - External client content, rights, real browsers, and production database state are still unverified in this checkpoint.
 
 ## Current objective
-Next task: develop a source-website reference brief from bounded existing business-site research (title, headings, approved image candidates, site look cues with provenance) and integrate it into subsequent design decisions without copying content or assuming asset rights. Then visually review new layouts in browser (user runs localhost:3001), revise based on screenshots, and upgrade style/media diversity. Live Supabase migration status remains unknown.
+Next task: obtain a real desktop and mobile screenshot comparison from the user running localhost:3001 after Fetch/Pull in their isolated preview. Refine hero and content proportions from visual QA; then design and implement an authorized on-demand image-generation or licensed-image provider pipeline (currently only queued prompts and a nine-JPEG static concept pool), with storage, provenance, review and per-site asset diversity. Avoid automatic image claiming. Supabase migrations remain unverified.
 
 ## Recovery instructions
 1. Inspect this file, check `git status` and branch; do not reset original Mac work.
