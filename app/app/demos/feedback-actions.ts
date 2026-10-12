@@ -99,6 +99,7 @@ export async function researchBusinessWebsite(form:FormData){
    if(!response.ok||response.status>=300||!/text\/html/i.test(response.headers.get('content-type')||''))continue;
    const found=extractCandidates(await boundedHtml(response),checked);
    const normalized={url:checked,title:String(found.title||''),description:String(found.description||''),
+    themeColor:typeof found.themeColor==='string'?found.themeColor:null,
     headings:(Array.isArray(found.headings)?found.headings:[]).map((h:unknown)=>typeof h==='object'&&h?String((h as {text?:unknown}).text||''):String(h)).filter(Boolean).slice(0,24),
     excerpts:(Array.isArray(found.excerpts)?found.excerpts:[]).map(String).slice(0,8)};
    pages.push(normalized);
@@ -193,6 +194,7 @@ export async function importSiteResearch(form:FormData){
    url:source,
    title:typeof p.title==='string'?p.title.slice(0,170):'',
    description:typeof p.description==='string'?p.description.slice(0,280):'',
+   themeColor:typeof p.themeColor==='string'?p.themeColor:null,
    headings:Array.isArray(p.headings)?p.headings.slice(0,24).map((h:unknown)=>{
     const label=h&&typeof h==='object'?(h as Record<string,unknown>).text:h;
     return typeof label==='string'?label.slice(0,140):'';
