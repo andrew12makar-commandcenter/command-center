@@ -7,7 +7,7 @@ import {classifyIndustry} from '@/lib/business-classification';
 import { ArrowUpRight, ArrowDown, Check, BadgeInfo } from 'lucide-react';
 import {buildSiteBlueprint} from '@/lib/site-blueprint';
 import SiteRenderer from '@/components/site-renderer';
-import {getGeneratedConceptSet} from '@/lib/concept-imagery';
+import {getMatchedConceptSet} from '@/lib/concept-imagery';
 import {groupResearchInsights} from '@/lib/research-intelligence';
 import {deriveSiteRedesignReference} from '@/lib/source-redesign-reference';
 
@@ -43,7 +43,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
     name:business?.name??'',city:business?.city,
     phone:business?.phone,email:business?.contact_email
   });
-  const conceptMedia=getGeneratedConceptSet(demo.template as Template);
+  const conceptMedia=getMatchedConceptSet(demo.template as Template,business?.category,site.services,site.businessName);
   const name=site.businessName;
   const services=site.services;
   const hero=site.content.images.find(x=>x.role==='hero');
