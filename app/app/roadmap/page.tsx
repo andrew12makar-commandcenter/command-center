@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import {ArrowRight,ArrowUpRight,Check,ChevronRight,Flag,Target} from 'lucide-react';
+import {ArrowRight,ArrowUpRight,Check,ChevronRight,Flag,Target,Clock3,AlertTriangle} from 'lucide-react';
 import {requireWorkspace} from '@/lib/workspace';
 import {getProjectProgress} from '@/lib/project-roadmap-server';
+import {findStep} from '@/lib/project-roadmap';
 import {updateRoadmapStep} from './actions';
 import type {TrackedProject} from '@/lib/project-roadmap';
 
@@ -25,11 +26,21 @@ function ProjectOverview({project,editable}: {project:TrackedProject;editable:bo
     <div className="h-full rounded-full bg-gradient-to-r from-[#54a8bc] to-[#a2f3ed]" style={{width:String(project.percent)+'%'}}/>
    </div>
    <div className="mt-6 rounded-xl border border-[#396373] bg-[#142f3b]/80 p-4 sm:flex sm:items-center sm:justify-between sm:gap-5">
-    <div><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-[#89d5dc]">Current focus</p>
+    <div><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-[#89d5dc]">{current?.status==='in_progress'?'Currently in progress':'Next priority'}</p>
      <p className="mt-1.5 text-sm font-semibold">{current?.title??'Every checkpoint is complete'}</p>
      <p className="mt-1 text-xs leading-5 text-[#a8c0ca]">{current?.definition??'Review the evidence and define the next development cycle.'}</p></div>
     {current&&<Link href={current.href} className="mt-3 inline-flex shrink-0 items-center gap-2 text-xs font-semibold text-[#a5e7ef] hover:text-white sm:mt-0">
      Open workspace <ArrowUpRight size={14}/></Link>}
+   </div>
+   <div className="mt-3 grid gap-3 sm:grid-cols-2">
+    <div className="rounded-xl border border-[#335461] bg-[#102833] p-4">
+     <p className="text-[10px] font-bold uppercase tracking-[.14em] text-[#8db6c4]">After this</p>
+     <p className="mt-2 text-sm font-medium text-[#dbeef4]">{project.next?.title??'No queued checkpoints'}</p>
+    </div>
+    <div className="rounded-xl border border-[#3b4850] bg-[#18232b] p-4">
+     <p className="text-[10px] font-bold uppercase tracking-[.14em] text-[#b7a98b]">Blockers</p>
+     <p className="mt-2 text-sm font-medium text-[#dbe4e7]">{project.blocked.length===0?'No blockers recorded':project.blocked.length+' checkpoint(s) blocked'}</p>
+    </div>
    </div>
   </div>
   <div className="mt-6 space-y-5">
@@ -51,36 +62,45 @@ function ProjectOverview({project,editable}: {project:TrackedProject;editable:bo
      <ol className="divide-y divide-[#253a45]">
       {stage.steps.map((item,i)=>{
        const complete=item.status==='completed';
+       const blocked=item.status==='blocked';
        const isCurrent=current?.id===item.id;
        return <li key={item.id} id={item.id} className={'scroll-mt-6 px-5 py-5 sm:px-6 '+(isCurrent?'bg-[#142f3a]':'')}>
         <div className="flex items-start gap-3">
          <div className={'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border '+(complete?'border-[#5d9885] bg-[#24493f] text-[#beefdb]':isCurrent?'border-[#8bdae1] bg-[#25505a] text-[#d8fcff]':'border-[#475c67] text-[#7895a2]')}>
-          {complete?<Check size={14}/>:isCurrent?<ArrowRight size={13}/>:<span className="text-[10px]">{i+1}</span>}
+          {complete?<Check size={14}/>:blocked?<AlertTriangle size={13}/>:isCurrent?<ArrowRight size={13}/>:<span className="text-[10px]">{i+1}</span>}
          </div>
          <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-3">
            <div><h4 className={'text-sm font-semibold leading-5 '+(complete?'text-[#c6d6dc]':'text-white')}>{item.title}</h4>
             <p className="mt-1.5 max-w-2xl text-xs leading-[1.7] text-[#a3bac5]">{item.definition}</p></div>
            <span className={'text-[10px] font-semibold uppercase tracking-[.09em] '+(complete?'text-[#9bceb8]':isCurrent?'text-[#8fe0e8]':'text-[#8ca4ae]')}>
-            {complete?'Completed':isCurrent?'Now':'Upcoming'}
+            {complete?'Completed':blocked?'Blocked':item.status==='in_progress'?'In progress':isCurrent?'Now':'Upcoming'}
            </span>
           </div>
-          {complete&&item.evidence&&<p className="mt-2 text-xs leading-5 text-[#8caeb3]">Basis: {item.evidence}</p>}
+          {item.evidence&&<p className="mt-2 text-xs leading-5 text-[#8caeb3]">{complete?'Basis':blocked?'Blocker':'Update'}: {item.evidence}</p>}
           <div className="mt-3 flex flex-wrap items-center gap-4">
            <Link href={item.href} className="inline-flex items-center gap-1 text-xs font-medium text-[#9ce2e8] hover:text-white">
             Open related work <ChevronRight size={13}/>
            </Link>
            {editable&&<details className="group min-w-0 text-xs text-[#8faab7]">
-            <summary className="cursor-pointer select-none text-[#b1c8d1] hover:text-white">{complete?'Revise status':'Confirm completion'}</summary>
+            <summary className="cursor-pointer select-none text-[#b1c8d1] hover:text-white">Update status</summary>
             <form action={updateRoadmapStep} className="mt-3 min-w-0 max-w-lg rounded-xl border border-[#34515e] bg-[#0b1b25] p-4">
              <input type="hidden" name="step_id" value={item.id}/>
-             <input type="hidden" name="status" value={complete?'pending':'completed'}/>
-             <label className="block text-xs font-semibold text-[#d3e9ee]">{complete?'Reason for reopening':'What specifically did you verify?'}</label>
-             <textarea name="evidence_note" rows={2} maxLength={1200} minLength={complete?0:12}
-              required={!complete} placeholder={complete?'Optional context':'Describe the completed work or test result'} className="mt-2 text-sm"/>
-             <button type="submit" className="mt-3 rounded-lg border border-[#4c9bad] bg-[#1b4550] px-4 py-2 text-xs font-semibold text-white hover:bg-[#255f6d]">
-              {complete?'Reopen milestone':'Save verified completion'}
-             </button>
+             <label className="block text-xs font-semibold text-[#d3e9ee]">Milestone state
+              <select name="status" defaultValue={item.status} className="mt-2 text-sm">
+               <option value="pending">Queued</option>
+               <option value="in_progress">In progress</option>
+               <option value="blocked">Blocked</option>
+               <option value="completed">Completed</option>
+              </select>
+             </label>
+             <label className="mt-3 block text-xs font-semibold text-[#d3e9ee]">Verification, blocker, or next action
+              <textarea name="evidence_note" rows={3} maxLength={1200}
+               defaultValue={item.evidence??''} className="mt-2 text-sm"
+               placeholder="State what was verified or what needs attention."/>
+             </label>
+             <p className="mt-2 text-[11px] leading-5 text-[#92aebb]">Completed and blocked items require specific evidence. Every saved change appears in the audit history.</p>
+             <button type="submit" className="mt-3 rounded-lg border border-[#4c9bad] bg-[#1b4550] px-4 py-2 text-xs font-semibold text-white hover:bg-[#255f6d]">Save progress</button>
             </form>
            </details>}
           </div>
@@ -96,7 +116,7 @@ function ProjectOverview({project,editable}: {project:TrackedProject;editable:bo
 }
 export default async function RoadmapPage({searchParams}:{searchParams:Promise<SearchParams>}){
  const {supabase,organizationId,role}=await requireWorkspace();
- const {projects,availability}=await getProjectProgress(supabase,organizationId);
+ const {projects,availability,activity}=await getProjectProgress(supabase,organizationId);
  const params=await searchParams;
  const selected=['seo','mcat'].includes(params.project??'')?params.project:'';
  const shown=selected?projects.filter(p=>p.id===selected):projects;
@@ -105,7 +125,7 @@ export default async function RoadmapPage({searchParams}:{searchParams:Promise<S
   <div className="flex flex-wrap items-start justify-between gap-4">
    <div><p className="kicker">Command Center / Living roadmap</p>
     <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">The build, one milestone at a time.</h1>
-    <p className="muted mt-3 max-w-3xl text-sm leading-7">Track the local-business revenue engine and MCAT software separately. The next checkpoint updates when completion is confirmed; percentages count documented checkpoints, not estimated business success.</p>
+    <p className="muted mt-3 max-w-3xl text-sm leading-7">The local-business engine and MCAT software each have a current focus, a next priority, blockers, and a verified record of what changed. Checkpoint percentages are not predictions of commercial success.</p>
    </div>
    <Link href="/app" className="btn text-xs"><Target size={15} className="mr-2"/>Mission Control</Link>
   </div>
@@ -118,13 +138,30 @@ export default async function RoadmapPage({searchParams}:{searchParams:Promise<S
   </nav>
   {availability!=='ready'&&<div role="status" className="mb-7 rounded-xl border border-[#987846] bg-[#2a251c] p-5 text-sm leading-6 text-[#eed8b0]">
    {availability==='setup_required'?
-    'Roadmap is currently read-only. Apply supabase/migrations/0004_project_roadmap.sql once in your EXISTING Command Center Supabase SQL Editor to enable saved completion and automatic next-step advancement.':
+    'Roadmap is currently read-only. Run roadmap migrations 0004 and then 0005 once in your EXISTING business Command Center Supabase project. Never rerun previous migrations or use the Campus2Care database.':
     'Saved progress could not be loaded. The source-controlled roadmap is shown without editing; no progress was changed.'}
   </div>}
   <div className="space-y-12">{shown.map(project=><ProjectOverview key={project.id} project={project} editable={editable}/>)}</div>
+  <section aria-label="Recent roadmap updates" className="mt-12 rounded-[20px] border border-[#293f4a] bg-[#111e28] p-6 sm:p-7">
+   <div className="flex items-center gap-3"><Clock3 size={18} className="text-[#9bdfe7]"/>
+    <div><p className="kicker">Activity history</p><h2 className="mt-1 text-lg font-semibold">What changed</h2></div>
+   </div>
+   <div className="mt-5 divide-y divide-[#263945]">
+    {activity.filter(a=>!selected||findStep(a.step_id)?.project.id===selected).map((entry,i)=>
+     <div key={entry.step_id+entry.changed_at+i} className="flex flex-wrap justify-between gap-3 py-3 text-sm">
+      <div><p className="font-medium">{findStep(entry.step_id)?.step.title??'Retired checkpoint'}</p>
+       <p className="mt-1 text-xs leading-5 text-[#9db3bf]">{entry.evidence_note||'No note supplied'}</p></div>
+      <div className="text-right"><p className="text-xs font-semibold capitalize text-[#b0dce0]">{entry.status.replaceAll('_',' ')}</p>
+       <time dateTime={entry.changed_at} className="mt-1 block text-[11px] text-[#7f9aa7]">{new Date(entry.changed_at).toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short',timeZone:'America/New_York'})} ET</time>
+      </div>
+     </div>)}
+    {activity.filter(a=>!selected||findStep(a.step_id)?.project.id===selected).length===0&&
+     <p className="py-4 text-sm text-[#8eacb9]">No manually confirmed progress changes yet. Source-controlled milestones are visible above, but are not presented as activity history.</p>}
+   </div>
+  </section>
   <div className="mt-10 flex items-start gap-3 rounded-2xl border border-[#293e49] bg-[#101b25] p-5 text-xs leading-6 text-[#92aeb8]">
    <Flag size={16} className="mt-1 shrink-0 text-[#8fd5df]"/>
-   <p>Progress is based on code-verified starting milestones and explicit operator confirmations. GitHub commits, local database activity or background scans do not silently close commercial milestones. Milestones advance immediately after a successful saved confirmation. There is no unattended background execution.</p>
+   <p>Progress is based on code-verified starting milestones and explicit operator confirmations. GitHub commits, local database activity or background scans do not silently close commercial milestones. An active checkpoint stays active until explicitly updated; confirmed blockers and completions update the next available priority. Code development does not run autonomously in the background.</p>
   </div>
  </main>;
 }

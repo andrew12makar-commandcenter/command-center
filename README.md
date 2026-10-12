@@ -173,3 +173,7 @@ The private sidebar contains two compact venture trackers. Open `/app/roadmap` f
 To enable cross-device saving, execute **`supabase/migrations/0004_project_roadmap.sql` once** in the existing for-profit Supabase SQL Editor, after 0003. Do **not** recreate the project or rerun previous migrations. Before migration, the source-controlled roadmap is safely visible in read-only mode. Authorized owners/admins/editors may confirm a milestone with an evidence note, or reopen it. RLS restricts updates to the same organization.
 
 The roadmap data lives in `lib/project-roadmap.ts`; modify milestones as the product evolves, and include verified proof before changing code-baseline statuses. See `tests/project-roadmap.test.ts` for tracking and auto-advance tests.
+
+### Active milestone tracking
+
+After applying 0004, apply `supabase/migrations/0005_roadmap_execution_log.sql` once in the for-profit project's SQL Editor. The tracker now supports queued / in progress / blocked / complete, saves evidence, and retains an organization-scoped activity log. The site-quality checkpoint is the default active SEO priority, because first revenue depends on an excellent site, not just a bigger prospect list. Baseline progress is a reviewed engineering snapshot, not a live-background coding agent. Until the migrations run, progress is read-only.
