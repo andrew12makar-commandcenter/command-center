@@ -5,7 +5,7 @@ export type MilestoneStatus='completed'|'pending'|'in_progress'|'blocked';
 export type RoadmapRecord={step_id:string;status:MilestoneStatus;evidence_note?:string|null;updated_at?:string|null};
 export type RoadmapStep={
  id:string;title:string;definition:string;href:string;
- baseline:MilestoneStatus;baselineEvidence?:string;
+ baseline:MilestoneStatus;baselineEvidence?:string;evidenceHref?:string;
 };
 export type RoadmapStage={id:string;title:string;summary:string;steps:RoadmapStep[]};
 export type RoadmapProject={id:ProjectKey;name:string;subtitle:string;goal:string;target:string;stages:RoadmapStage[]};
@@ -17,8 +17,8 @@ export type TrackedProject=Omit<RoadmapProject,'stages'> & {
  current:ActiveStep|null;next:ActiveStep|null;blocked:ActiveStep[];
 };
 const step=(id:string,title:string,definition:string,href:string,
- baseline:MilestoneStatus='pending',baselineEvidence?:string):RoadmapStep=>
- ({id,title,definition,href,baseline,baselineEvidence});
+ baseline:MilestoneStatus='pending',baselineEvidence?:string,evidenceHref?:string):RoadmapStep=>
+ ({id,title,definition,href,baseline,baselineEvidence,evidenceHref});
 
 export const ROADMAP:RoadmapProject[]=[
  {id:'seo',name:'Local Business',subtitle:'Websites · SEO · Sales',goal:'A repeatable path from verified prospect to paying client',
@@ -40,8 +40,15 @@ export const ROADMAP:RoadmapProject[]=[
   ]},
   {id:'websites',title:'04 · Websites worth selling',summary:'A reusable renderer is only useful when actual prospects want the result.',steps:[
    step('seo-site-foundation','Reusable site blueprint and standalone export','Separate sourced facts, approved assets and presentation; export an isolated Next.js site.','/app/demos','completed','Exporter cold production build and app CI passed.'),
-   step('seo-site-quality','Pass a serious client-demo visual review','Review responsive medical, home-service and professional examples against polished references.','/app/demos','in_progress'),
-   step('seo-site-content','Validate real client content and asset rights','Confirm services, contact links, imagery rights and required disclosures in a real sample.','/app/demos'),
+   step('seo-site-facts','Business-specific facts and service content','Use operator-reviewed, source-linked facts and listed services instead of generic fallback claims.','/app/demos','completed','Reviewed facts can replace generic copy and process cards; this verifies the code path, not any real company claims.','https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38224385471'),
+   step('seo-site-source-media','Collect source-photo references with provenance','Inventory candidate media from the recorded company website and future provider adapters without treating public visibility as a license.','/app/demos','in_progress','Existing-site references retain source URLs and remain reference-only; Google Business and other provider adapters are not implemented.','/app/demos'),
+   step('seo-site-rights','Resolve the asset-rights review queue','Approve, reject, or retain each source image as reference-only with attribution and operator evidence before display.','/app/demos'),
+   step('seo-site-ai-media','Generate per-business concept media behind approval and cost guards','Use industry-correct prompts, explicit AI disclosure, provider opt-in, budget limits, storage provenance, and human approval.','/app/demos','blocked','No provider or paid generation is authorized. Prompt briefs and safe static fallbacks exist; no credits will be spent without approval.'),
+   step('seo-site-variance','Prove professionally distinct layouts across business types','Verify that medical, home-service, and professional sites use materially different composition, hierarchy, media treatment, and responsive behavior.','/app/demos/benchmarks'),
+   step('seo-site-motion','Validate polished motion and reduced-motion behavior','Review navigation, section, and media transitions in real browsers without harming accessibility or performance.','/app/demos/benchmarks'),
+   step('seo-site-visual-qa','Pass desktop and mobile screenshot review','Capture real browser output at representative breakpoints and record human visual-review evidence for each target vertical.','/app/demos/benchmarks'),
+   step('seo-site-quality','Pass a serious client-demo visual review','Require business-specific content, resolved media rights, distinct layouts, motion QA, responsive screenshots, and a human reviewer before calling a proposal client-ready.','/app/demos'),
+   step('seo-site-content','Validate real client content and owner approval','Confirm services, contact links, disclosures, and owner-approved wording in a real sample without inferring approval from public sources.','/app/demos'),
    step('seo-demo-sharing','Offer access-controlled customer previews','Use protected, expiring preview links and allow approval without publishing prematurely.','/app/demos'),
    step('seo-launch','Ship one approved real customer website','Deploy, connect a domain, verify mobile/contact/SEO and establish rollback and monitoring.','/app/demos'),
   ]},
@@ -85,7 +92,7 @@ export function findStep(id:string):{project:RoadmapProject;step:RoadmapStep}|nu
 }
 // Work order is distinct from the reference stage order: first sell a good site.
 const PRIORITY:Record<ProjectKey,string[]>={
- seo:['seo-site-quality','seo-site-content','seo-audit-live','seo-demo-sharing',
+ seo:['seo-site-source-media','seo-site-rights','seo-site-ai-media','seo-site-variance','seo-site-motion','seo-site-visual-qa','seo-site-quality','seo-site-content','seo-audit-live','seo-demo-sharing',
  'seo-proposals','seo-sales-routes','seo-billing','seo-launch','seo-first-client',
  'seo-intake','seo-commercial-score','seo-official-sources','seo-recurring-scans','seo-retention'],
  mcat:['mcat-method','mcat-hub','mcat-resources','mcat-students','mcat-planner',

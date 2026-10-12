@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import {ArrowUpRight,BookOpen,ChevronRight,Target} from 'lucide-react';
+import {AlertTriangle,ArrowUpRight,BookOpen,Check,ChevronRight,Circle,LoaderCircle,Target} from 'lucide-react';
 import type {TrackedProject} from '@/lib/project-roadmap';
 import type {ProgressAvailability} from '@/lib/project-roadmap-server';
 
@@ -36,6 +36,22 @@ export default function RoadmapSidebar({projects,availability}:{
       style={{width:project.percent+'%'}}/>
     </div>
     <p className="mt-1.5 text-[10px] text-[#8fa9b5]">{project.completed} / {project.total} verified checkpoints</p>
+    {project.id==='seo'&&<div className="mt-4 border-t border-white/[.09] pt-3">
+     <p className="text-[9px] font-bold uppercase tracking-[.15em] text-[#88aab5]">Website sprint</p>
+     <ol className="mt-2 space-y-2">
+      {project.stages.find(stage=>stage.id==='websites')?.steps
+       .filter(item=>['seo-site-facts','seo-site-source-media','seo-site-rights','seo-site-ai-media','seo-site-variance','seo-site-motion','seo-site-visual-qa'].includes(item.id))
+       .map(item=>{
+        const icon=item.status==='completed'?<Check size={11}/>:item.status==='in_progress'?<LoaderCircle size={11}/>:item.status==='blocked'?<AlertTriangle size={11}/>:<Circle size={9}/>;
+        const label=item.status==='completed'?'Done':item.status==='in_progress'?'Active':item.status==='blocked'?'Blocked':'Queued';
+        const color=item.status==='completed'?'text-[#a9dfc4]':item.status==='in_progress'?'text-[#8fe1e8]':item.status==='blocked'?'text-[#e4bd8d]':'text-[#809aa6]';
+        return <li key={item.id} className="flex items-start justify-between gap-2 text-[10px] leading-4">
+         <Link href={'/app/roadmap?project=seo#'+item.id} className="min-w-0 text-[#bed0d6] hover:text-white">{item.title}</Link>
+         <span className={'flex shrink-0 items-center gap-1 font-semibold '+color}>{icon}{label}</span>
+        </li>;
+       })}
+     </ol>
+    </div>}
     <div className="mt-4 border-t border-white/[.09] pt-3">
      <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.13em] text-[#98dee3]">
       <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[#8bd7df]"/>

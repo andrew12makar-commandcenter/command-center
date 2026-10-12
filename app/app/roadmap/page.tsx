@@ -77,7 +77,7 @@ function ProjectOverview({project,editable}: {project:TrackedProject;editable:bo
             {complete?'Completed':blocked?'Blocked':item.status==='in_progress'?'In progress':isCurrent?'Now':'Upcoming'}
            </span>
           </div>
-          {item.evidence&&<p className="mt-2 text-xs leading-5 text-[#8caeb3]">{complete?'Basis':blocked?'Blocker':'Update'}: {item.evidence}</p>}
+          {item.evidence&&<p className="mt-2 text-xs leading-5 text-[#8caeb3]">{complete?'Basis':blocked?'Blocker':'Update'}: {item.evidence}{item.evidenceHref&&<>{' '}<a href={item.evidenceHref} className="font-semibold text-[#9ce2e8] underline decoration-white/20 underline-offset-4 hover:text-white" target={item.evidenceHref.startsWith('http')?'_blank':undefined} rel={item.evidenceHref.startsWith('http')?'noopener noreferrer':undefined}>View evidence</a></>}</p>}
           <div className="mt-3 flex flex-wrap items-center gap-4">
            <Link href={item.href} className="inline-flex items-center gap-1 text-xs font-medium text-[#9ce2e8] hover:text-white">
             Open related work <ChevronRight size={13}/>
