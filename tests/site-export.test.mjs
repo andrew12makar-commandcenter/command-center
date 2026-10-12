@@ -42,6 +42,7 @@ test('standalone project has no CRM login, removes research notes, and never ove
   assert.equal(raw.content.factStatus,'owner_approved');
   assert.ok((await readFile(join(target,'app','page.tsx'),'utf8')).includes('standalone'));
   assert.ok((await readFile(join(target,'components','site-renderer.tsx'),'utf8')).includes('SiteRenderer'));
+  assert.ok((await readFile(join(target,'lib','site-evaluation.ts'),'utf8')).includes('evaluateSiteBlueprint'));
   assert.ok((await stat(join(target,'package.json'))).size>10);
   const readme=await readFile(join(target,'README.md'),'utf8');
   assert.match(readme,/No speed improvements are guaranteed/);

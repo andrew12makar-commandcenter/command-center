@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../styles/site-motion.css";
 :root { color-scheme: dark; --bg:#070c11; --panel:#101821; --edge:#253a46; --accent:#58d8ec; --text:#e8f0f4; --muted:#9bafb9; }
 * {box-sizing:border-box;}
 html {background:var(--bg);}

@@ -1,7 +1,8 @@
 // Reusable source-of-truth between a private sales concept and a future
 // customer-approved site. No network scraping, invented facts, or asset licensing.
-import type {DemoCopy,Template} from './demo-engine.ts';
-import {classifyWebPresence} from './web-presence.ts';
+import type {DemoCopy,Template,MotionPlan} from './demo-engine.ts';
+import {evaluateSiteBlueprint,type QualityEvaluation} from './site-evaluation.ts';
+import type {ResearchInsight,ResearchInsightKind} from './research-intelligence.ts';
 
 export type ImageRole='hero'|'gallery'|'team'|'logo';
 export type ImagePermission='reference_only'|'approved';
@@ -10,8 +11,14 @@ export type SiteImage={
   permission:ImagePermission;credit?:string;
 };
 export type ResearchPage={url:string;title:string;description:string;headings:string[];excerpts:string[]};
+export type ImageAuthorization={
+ mode:'generated_only'|'business_site_authorized'|'manual';
+ acceptedAt:string|null;
+ sourceHost:string|null;
+};
 export type SiteContent={
   researchPages:ResearchPage[];
+  researchInsights:ResearchInsight[];
   researchedAt:string|null;
   about:string;
   audience:string;
@@ -20,6 +27,8 @@ export type SiteContent={
   factStatus:'unreviewed'|'researched'|'owner_approved';
   images:SiteImage[];
   heroTreatment:'photo-led'|'typographic';
+  generatedImageryEnabled:boolean;
+  imageAuthorization:ImageAuthorization;
 };
 export type SiteContact={phone:string|null;email:string|null;city:string|null};
 export type SiteBlueprint={
@@ -28,8 +37,14 @@ export type SiteBlueprint={
   primaryAction:string;secondaryAction:string;
   services:string[];contact:SiteContact;content:SiteContent;
   internalDisclaimer:string;
-  quality:{previewReady:boolean;publishReady:boolean;blockers:string[]};
-  design:{variant:'editorial'|'bold';compact:boolean;prominentNav:boolean};
+  quality:{previewReady:boolean;publishReady:boolean;blockers:string[];evaluation:QualityEvaluation};
+  design:{variant:'editorial'|'bold';compact:boolean;prominentNav:boolean;
+   composition:'split-editorial'|'immersive'|'bento'|'service-index'|'centered'|'asymmetric';
+   typography:'editorial'|'humanist'|'geometric';imageTreatment:'full-bleed'|'framed'|'mosaic'|'minimal';
+   motion:'calm'|'cinematic'|'precise';
+   motionPlan:MotionPlan;
+   cardStyle:'bordered'|'numbered'|'flat';alignment:'left'|'center'|'offset';sectionOrder:string[]};
+  narrative:{servicesHeading:string;servicesIntro:string;aboutHeading:string;contactHeading:string;processHeading:string};
 };
 export type SiteSource={name:string;city?:string|null;phone?:string|null;email?:string|null};
 
@@ -44,6 +59,15 @@ export function safePublicUrl(raw:unknown):string|null {
     return null;
   return u.toString();
  }catch{return null;}
+}
+const hostOf=(value:string|null)=>{try{return value?new URL(value).hostname.toLowerCase().replace(/^www\./,''):null;}catch{return null;}};
+export function businessImageAuthorization(sourceUrl:string|null,accepted:boolean):ImageAuthorization{
+ return accepted&&sourceUrl?{mode:'business_site_authorized',acceptedAt:new Date().toISOString(),sourceHost:hostOf(sourceUrl)}:
+  {mode:'generated_only',acceptedAt:null,sourceHost:null};
+}
+export function canAutoUseBusinessImage(authorization:ImageAuthorization,sourceUrl:string):boolean{
+ return authorization.mode==='business_site_authorized'&&Boolean(authorization.acceptedAt)&&
+  Boolean(authorization.sourceHost)&&hostOf(safePublicUrl(sourceUrl))===authorization.sourceHost;
 }
 export function safeImage(raw:Partial<SiteImage>):SiteImage|null{
  const url=safePublicUrl(raw.url),sourceUrl=safePublicUrl(raw.sourceUrl);
@@ -69,17 +93,33 @@ export function cleanSiteContent(value:unknown):SiteContent{
    excerpts:Array.isArray(p.excerpts)?p.excerpts.slice(0,7).map(x=>asText(x,230)).filter(Boolean):[]
   };
  }).filter(p=>Boolean(p.url));
+ const rawInsights=Array.isArray(o.researchInsights)?o.researchInsights.slice(0,60):[];
+ const insightKinds:ResearchInsightKind[]=['service','team','gallery','trust','faq','booking','contact'];
+ const researchInsights:ResearchInsight[]=rawInsights.map((item,index)=>{
+  const insight=item&&typeof item==='object'?item as Record<string,unknown>:{},sourceUrl=safePublicUrl(insight.sourceUrl);
+  const kind=insightKinds.includes(insight.kind as ResearchInsightKind)?insight.kind as ResearchInsightKind:null;
+  if(!sourceUrl||!kind)return null;
+  return {id:asText(insight.id,80)||String(index),kind,label:asText(insight.label,140),
+   detail:asText(insight.detail,260),sourceUrl,status:insight.status==='reviewed'?'reviewed':'candidate'};
+ }).filter((x):x is ResearchInsight=>Boolean(x&&x.label));
  const stamp=typeof o.researchedAt==='string'&&Number.isFinite(Date.parse(o.researchedAt))?o.researchedAt:null;
+ const rawAuthorization=o.imageAuthorization&&typeof o.imageAuthorization==='object'?o.imageAuthorization as Record<string,unknown>:{};
+ const authorizationMode=['business_site_authorized','manual'].includes(String(rawAuthorization.mode))?
+  rawAuthorization.mode as ImageAuthorization['mode']:'generated_only';
+ const authorizationStamp=typeof rawAuthorization.acceptedAt==='string'&&Number.isFinite(Date.parse(rawAuthorization.acceptedAt))?rawAuthorization.acceptedAt:null;
+ const authorizationHost=typeof rawAuthorization.sourceHost==='string'&&/^[a-z0-9.-]+$/i.test(rawAuthorization.sourceHost)?rawAuthorization.sourceHost.toLowerCase().replace(/^www\./,''):null;
  const seen=new Set<string>();
  return {
-  researchPages,researchedAt:stamp,
+  researchPages,researchInsights,researchedAt:stamp,
   about:asText(o.about,1100),audience:asText(o.audience,200),
   appointmentUrl:safePublicUrl(o.appointmentUrl),
   sourceUrl:safePublicUrl(o.sourceUrl),
   factStatus:o.factStatus==='owner_approved'?'owner_approved':
     o.factStatus==='researched'?'researched':'unreviewed',
   images:images.filter(x=>{const k=x.url+'|'+x.role;if(seen.has(k))return false;seen.add(k);return true;}),
-  heroTreatment:o.heroTreatment==='photo-led'?'photo-led':'typographic'
+  heroTreatment:o.heroTreatment==='photo-led'?'photo-led':'typographic',
+  generatedImageryEnabled:o.generatedImageryEnabled!==false,
+  imageAuthorization:{mode:authorizationMode,acceptedAt:authorizationStamp,sourceHost:authorizationHost}
  };
 }
 export function buildSiteBlueprint(
@@ -118,9 +158,42 @@ export function buildSiteBlueprint(
  if(content.images.some(i=>i.permission==='reference_only'))
   blockers.push('Some collected image references have no confirmed display rights. Never publish them.');
  const previewReady=content.factStatus!=='unreviewed'&&services.length>0&&Boolean(content.about);
- const publishReady=content.factStatus==='owner_approved'&&blockers.length===0;
- return {
-  version:1,template,businessName:asText(copy.brand,140)||asText(business.name,140),
+ const design={variant:copy.design?.variant==='bold'?'bold' as const:'editorial' as const,
+   compact:Boolean(copy.design?.compact),prominentNav:Boolean(copy.design?.prominentNav),
+   composition:copy.generationSpec?.composition??copy.design?.composition??'split-editorial',
+   typography:copy.generationSpec?.typography??copy.design?.typography??'humanist',
+   imageTreatment:copy.generationSpec?.imageTreatment??copy.design?.imageTreatment??'framed',
+   motion:copy.generationSpec?.motion??(template==='medical'?'calm':template==='landscaping'?'cinematic':'precise'),
+   motionPlan:copy.generationSpec?.motionPlan??{required:true as const,pageEntry:'soft-rise' as const,
+    sectionReveal:'cascade' as const,mediaMotion:'masked-reveal' as const,
+    navigationMotion:'underline-track' as const,staggerMs:90},
+   cardStyle:copy.generationSpec?.cardStyle??copy.design?.cardStyle??'numbered',
+   alignment:copy.generationSpec?.alignment??copy.design?.alignment??'left',
+   sectionOrder:copy.generationSpec?.sectionOrder??['hero','services','about','contact']};
+ const serviceText=services.join(' ').toLowerCase();
+ const dental=template==='medical'&&/dental|dentistry|sedation|orthodont|invisalign/.test(serviceText);
+ const place=contact.city?`A ${contact.city} practice`:'A local practice';
+ const narrative=template==='medical'?{
+   servicesHeading:dental?'Comfort-focused dentistry, clearly explained.':'Care options, clearly explained.',
+   servicesIntro:dental?'Review the practice’s confirmed areas of dental care before requesting an appointment.':'Review confirmed care options before contacting the practice.',
+   aboutHeading:dental?`${place} centered on clarity and comfort.`:'A clearer introduction to the practice.',
+   contactHeading:dental?'Ready to plan your visit?':'Take the next step with the practice.',
+   processHeading:'A simpler path from questions to an appointment.'
+  }:template==='landscaping'?{
+   servicesHeading:'Outdoor work, organized around your property.',
+   servicesIntro:'Review confirmed capabilities before starting a project conversation.',
+   aboutHeading:'A closer look at the company behind the work.',
+   contactHeading:'Start a conversation about your property.',
+   processHeading:'From first conversation to a clearer project plan.'
+  }:{
+   servicesHeading:'Expertise organized around what comes next.',
+   servicesIntro:'Review the business’s confirmed services and choose the most relevant next step.',
+   aboutHeading:'A more useful introduction to the business.',
+   contactHeading:'Talk directly with the team.',
+   processHeading:'A direct path from interest to action.'
+  };
+ const candidate={
+  version:1 as const,template,businessName:asText(copy.brand,140)||asText(business.name,140),
   eyebrow:asText(copy.eyebrow,140),
   headline:asText(copy.headline,200),
   description:asText(copy.description,800),
@@ -129,8 +202,10 @@ export function buildSiteBlueprint(
   services,contact,content,
   internalDisclaimer:asText(copy.disclaimer,400)||
    'Independent private design concept; not endorsed or published by the business.',
-  quality:{previewReady,publishReady,blockers},
-  design:{variant:copy.design?.variant==='bold'?'bold':'editorial',
-   compact:Boolean(copy.design?.compact),prominentNav:Boolean(copy.design?.prominentNav)}
+  design,narrative
  };
+ const evaluation=evaluateSiteBlueprint(candidate);
+ for(const failure of evaluation.failures)if(!blockers.includes(failure))blockers.push(failure);
+ const publishReady=content.factStatus==='owner_approved'&&blockers.length===0&&evaluation.accepted;
+ return {...candidate,quality:{previewReady,publishReady,blockers,evaluation}};
 }

@@ -2,8 +2,14 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireWorkspace, shortText, validUuid } from '@/lib/workspace';
-import { derivePreferences, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
-import {cleanSiteContent,safeImage,safePublicUrl,type SiteImage,type ImagePermission} from '@/lib/site-blueprint';
+import { derivePreferences, planGeneration, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
+import {businessImageAuthorization,canAutoUseBusinessImage,cleanSiteContent,safeImage,safePublicUrl,type SiteImage,type ImagePermission} from '@/lib/site-blueprint';
+import {deriveResearchInsights} from '@/lib/research-intelligence';
+// These dependency-free guards are shared with the local research runner.
+// @ts-expect-error JavaScript module intentionally has no generated declarations.
+import {preflightPublicWebsite} from '../../../scripts/local-audit-guard.mjs';
+// @ts-expect-error JavaScript module intentionally has no generated declarations.
+import {extractCandidates,robotsAllows} from '../../../scripts/site-candidates.mjs';
 const issueTags=['layout','visuals','generic_copy','missing_content','navigation','mobile','other'];
 
 export async function rateDemo(form:FormData) {
@@ -50,6 +56,100 @@ function checkedUrl(value:FormDataEntryValue|null,label:string):string|null{
  return url;
 }
 
+async function boundedHtml(response:Response,maxBytes=1_500_000){
+ const declared=Number(response.headers.get('content-length')||0);
+ if(declared>maxBytes)throw new Error('Page exceeds the research size limit.');
+ const bytes=await response.arrayBuffer();
+ if(bytes.byteLength>maxBytes)throw new Error('Page exceeds the research size limit.');
+ return new TextDecoder().decode(bytes);
+}
+
+/** Private, bounded, same-domain research. Imported material remains unapproved. */
+export async function researchBusinessWebsite(form:FormData){
+ const {supabase,organizationId}=await requireWorkspace(true);
+ const id=shortText(form.get('demo_id'),64),expectedRevision=Number(form.get('revision_no'));
+ if(!validUuid(id)||!Number.isInteger(expectedRevision)||expectedRevision<1)throw new Error('Invalid demo revision.');
+ const {data:demo}=await supabase.from('demo_sites').select('id,business_id,draft_content,revision_no')
+  .eq('id',id).eq('organization_id',organizationId).maybeSingle();
+ if(!demo||demo.revision_no!==expectedRevision)throw new Error('Reload the current demo revision before researching.');
+ const {data:business}=await supabase.from('businesses').select('website_url')
+  .eq('id',demo.business_id).eq('organization_id',organizationId).maybeSingle();
+ const requested=safePublicUrl(business?.website_url);
+ if(!requested)redirect('/app/demos/'+id+'?research_error=missing-website');
+ const homepage=await preflightPublicWebsite(requested);
+ const rootHost=new URL(homepage).hostname;
+ const old=(demo.draft_content??{}) as DemoCopy,existing=cleanSiteContent(old.siteContent);
+ let robots='';
+ try{
+  const robotsResponse=await fetch(new URL('/robots.txt',homepage),{redirect:'manual',signal:AbortSignal.timeout(8000),headers:{'User-Agent':'CommandCenterContentResearch/1.0'}});
+  if(robotsResponse.ok)robots=await boundedHtml(robotsResponse,100_000);
+ }catch{/* Missing robots file is not permission to leave the approved domain. */}
+ const todo=[homepage],visited=new Set<string>(),pages:Array<{url:string;title:string;description:string;headings:string[];excerpts:string[]}>=[];
+ const images:SiteImage[]=[];
+ while(todo.length&&pages.length<5&&visited.size<12){
+  const candidate=todo.shift();
+  if(!candidate||visited.has(candidate))continue;
+  visited.add(candidate);
+  const parsed=new URL(candidate);
+  if(parsed.hostname!==rootHost||!robotsAllows(robots,parsed.pathname))continue;
+  try{
+   const checked=await preflightPublicWebsite(candidate);
+   if(new URL(checked).hostname!==rootHost)continue;
+   const response=await fetch(checked,{redirect:'manual',signal:AbortSignal.timeout(12000),headers:{Accept:'text/html','User-Agent':'CommandCenterContentResearch/1.0'}});
+   if(!response.ok||response.status>=300||!/text\/html/i.test(response.headers.get('content-type')||''))continue;
+   const found=extractCandidates(await boundedHtml(response),checked);
+   const normalized={url:checked,title:String(found.title||''),description:String(found.description||''),
+    headings:(Array.isArray(found.headings)?found.headings:[]).map((h:unknown)=>typeof h==='object'&&h?String((h as {text?:unknown}).text||''):String(h)).filter(Boolean).slice(0,24),
+    excerpts:(Array.isArray(found.excerpts)?found.excerpts:[]).map(String).slice(0,8)};
+   pages.push(normalized);
+   for(const raw of (Array.isArray(found.images)?found.images:[]).slice(0,30)){
+    const source=typeof raw==='object'&&raw&&'sourceUrl' in raw?String((raw as {sourceUrl?:unknown}).sourceUrl||checked):checked;
+    const image=safeImage({...raw,permission:canAutoUseBusinessImage(existing.imageAuthorization,source)?'approved':'reference_only'});
+    if(image&&!images.some(x=>x.url===image.url))images.push(image);
+   }
+   for(const link of (Array.isArray(found.links)?found.links:[]).slice(0,12))
+    if(typeof link==='string'&&!visited.has(link)&&!todo.includes(link)&&todo.length<15)todo.push(link);
+  }catch{/* Individual page failures do not turn candidates into facts. */}
+ }
+ if(!pages.length)redirect('/app/demos/'+id+'?research_error=no-readable-pages');
+ const researchInsights=deriveResearchInsights(pages);
+ const updated:DemoCopy={...old,siteContent:cleanSiteContent({...existing,pages:undefined,
+  researchPages:pages,researchInsights,researchedAt:new Date().toISOString(),images:[...existing.images,...images]})};
+ const {error}=await supabase.rpc('save_demo_revision',{p_demo_id:id,p_expected_revision:expectedRevision,p_content:updated});
+ if(error)throw new Error('Could not save live research: '+error.message);
+ revalidatePath('/app/demos/'+id);
+ redirect('/app/demos/'+id+'?saved=live-research');
+}
+
+/** Apply operator-reviewed source candidates to the next private revision. */
+export async function applyReviewedResearch(form:FormData){
+ const {supabase,organizationId}=await requireWorkspace(true);
+ const id=shortText(form.get('demo_id'),64),expectedRevision=Number(form.get('revision_no'));
+ if(!validUuid(id)||!Number.isInteger(expectedRevision)||expectedRevision<1)throw new Error('Invalid demo revision.');
+ const selected=new Set(form.getAll('insight').map(value=>shortText(value,80)).filter(Boolean));
+ if(selected.size<1||selected.size>30)throw new Error('Select between 1 and 30 sourced candidates.');
+ const {data:demo}=await supabase.from('demo_sites').select('id,business_id,draft_content,revision_no')
+  .eq('id',id).eq('organization_id',organizationId).maybeSingle();
+ if(!demo||demo.revision_no!==expectedRevision)throw new Error('Reload the current demo revision before applying research.');
+ const existing=(demo.draft_content??{}) as DemoCopy,content=cleanSiteContent(existing.siteContent);
+ const matched=content.researchInsights.filter(item=>selected.has(item.id));
+ if(matched.length!==selected.size)throw new Error('One or more research candidates no longer exist.');
+ const researchInsights=content.researchInsights.map(item=>({...item,status:selected.has(item.id)?'reviewed' as const:item.status}));
+ const sourcedServices=matched.filter(item=>item.kind==='service').map(item=>item.label);
+ const services=[...(existing.services??[]),...sourcedServices]
+  .filter((value,index,all)=>all.findIndex(item=>item.toLowerCase()===value.toLowerCase())===index).slice(0,8);
+ const moduleKinds=matched.map(item=>item.kind).filter(kind=>['team','gallery','trust','faq'].includes(kind));
+ const baseOrder=existing.generationSpec?.sectionOrder??['hero','services','about','contact'];
+ const sectionOrder=[...baseOrder];
+ for(const kind of moduleKinds)if(!sectionOrder.includes(kind))sectionOrder.splice(Math.max(2,sectionOrder.length-1),0,kind);
+ const updated:DemoCopy={...existing,services,siteContent:cleanSiteContent({...content,researchInsights}),
+  generationSpec:existing.generationSpec?{...existing.generationSpec,sectionOrder}:existing.generationSpec};
+ const {error}=await supabase.rpc('save_demo_revision',{p_demo_id:id,p_expected_revision:expectedRevision,p_content:updated});
+ if(error)throw new Error('Could not apply reviewed research: '+error.message);
+ revalidatePath('/app/demos/'+id);
+ redirect('/app/demos/'+id+'?saved=research-applied');
+}
+
 // Import explicit public-site research as references ONLY. Owner permission
 // and facts are separately reviewed in the content editor before any display.
 export async function importSiteResearch(form:FormData){
@@ -79,6 +179,8 @@ export async function importSiteResearch(form:FormData){
  if(!base||!scanned)throw new Error('Invalid website evidence.');
  const host=(url:string)=>new URL(url).hostname.toLowerCase().replace(/^www\./,'');
  if(host(base)!==host(scanned))throw new Error('Research website does not match the CRM website.');
+ const old=(demo.draft_content??{}) as DemoCopy;
+ const existing=cleanSiteContent(old.siteContent);
  const raw=Array.isArray(report.pages)?report.pages:[];
  if(raw.length<1||raw.length>5)throw new Error('Expected 1–5 researched pages.');
  const pages=[];const assets:SiteImage[]=[];
@@ -102,18 +204,16 @@ export async function importSiteResearch(form:FormData){
    const candidate=image as Record<string,unknown>;
    const item=safeImage({
     url:String(candidate.url||''),alt:String(candidate.alt||'Business image reference').slice(0,180),
-    sourceUrl:source,role:'gallery',permission:'reference_only'
+    sourceUrl:source,role:'gallery',permission:canAutoUseBusinessImage(existing.imageAuthorization,source)?'approved':'reference_only'
    });
    if(item)assets.push(item);
    if(assets.length>=80)break;
   }
  }
- const old=(demo.draft_content??{}) as DemoCopy;
- const existing=cleanSiteContent(old.siteContent);
  const updatedSite=cleanSiteContent({
   ...existing,
   researchPages:pages,researchedAt:typeof report.generated_at==='string'?report.generated_at:new Date().toISOString(),
-  images:[...existing.images,...assets]
+  researchInsights:deriveResearchInsights(pages),images:[...existing.images,...assets]
  });
  const updated:DemoCopy={...old,siteContent:updatedSite};
  const {error}=await supabase.rpc('save_demo_revision',{
@@ -129,7 +229,7 @@ export async function saveDemoCopy(form:FormData) {
  const id=shortText(form.get('demo_id'),64);
  const revision=Number(form.get('revision_no'));
  if(!validUuid(id)||!Number.isInteger(revision)||revision<1) throw new Error('Invalid demo/version.');
- const {data:demo}=await supabase.from('demo_sites').select('id,draft_content,revision_no')
+ const {data:demo}=await supabase.from('demo_sites').select('id,business_id,draft_content,revision_no')
    .eq('id',id).eq('organization_id',organizationId).single();
  if(!demo) throw new Error('Demo not found.');
  const old=demo.draft_content as DemoCopy;
@@ -152,14 +252,21 @@ export async function saveDemoCopy(form:FormData) {
  const rawFactStatus=shortText(form.get('factStatus'),32);
  const factStatus=['researched','owner_approved'].includes(rawFactStatus)?
   rawFactStatus:'unreviewed';
+ const {data:business}=await supabase.from('businesses').select('website_url')
+  .eq('id',demo.business_id).eq('organization_id',organizationId).maybeSingle();
+ const authorizeBusinessImages=form.get('businessImagesAuthorized')==='on';
+ const businessSite=safePublicUrl(business?.website_url);
+ if(authorizeBusinessImages&&!businessSite)throw new Error('Add a verified independent business website before authorizing its images.');
  const siteContent=cleanSiteContent({
-  ...old.siteContent,
+   ...old.siteContent,
   about:shortText(form.get('siteAbout'),1100),
   audience:shortText(form.get('siteAudience'),200),
   sourceUrl,appointmentUrl,
-  factStatus,
-  heroTreatment:shortText(form.get('heroTreatment'),20),
-  images
+   factStatus,
+   heroTreatment:shortText(form.get('heroTreatment'),20),
+   generatedImageryEnabled:form.get('generatedImageryEnabled')==='on',
+   imageAuthorization:businessImageAuthorization(businessSite,authorizeBusinessImages),
+   images
  });
 
  // Editing copy is human-controlled. No automated claims, testimonials, phone numbers or credentials.
@@ -200,10 +307,11 @@ export async function applyLearnedPreferences(form:FormData) {
    .eq('organization_id',organizationId).eq('user_id',user.id)
    .order('created_at',{ascending:false}).limit(200);
  if(feedbackError) throw new Error('Your feedback could not be loaded.');
- const preferences=derivePreferences((ratings??[]) as FeedbackSample[],demo.template as Template);
+ const preferences=derivePreferences((ratings??[]) as FeedbackSample[],demo.template as Template,id);
  const existing=(demo.draft_content??{}) as DemoCopy;
- const updated={...existing,design:preferences};
- if(JSON.stringify(existing.design??{})===JSON.stringify(preferences)) {
+ const generationSpec=planGeneration(existing.brand||'Business',demo.template as Template,preferences);
+ const updated={...existing,design:preferences,generationSpec};
+ if(JSON.stringify({design:existing.design??{},generationSpec:existing.generationSpec??{}})===JSON.stringify({design:preferences,generationSpec})) {
     redirect('/app/demos/'+id+'?saved=unchanged');
  }
  const {error}=await supabase.rpc('save_demo_revision',{

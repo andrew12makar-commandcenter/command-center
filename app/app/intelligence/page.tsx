@@ -121,7 +121,7 @@ export default async function WebsiteIntelligence({
      <a href="https://developers.google.com/speed/docs/insights/v5/get-started" className="mt-2 inline-block text-sm text-cyan-300 underline" target="_blank" rel="noopener noreferrer">Official Google PageSpeed API setup ↗</a>
      <div className="mt-5 border-t border-[#2b4350] pt-5">
        <h3 className="font-semibold">Import a Chrome Lighthouse report instead</h3>
-       <p className="muted mt-2 max-w-4xl text-sm leading-6">In Chrome, open the company's actual homepage, then DevTools → Lighthouse → Mobile → Analyze page load. Export the resulting report as <strong>JSON</strong> (not HTML). Import it below. Only a matching report from the last 7 days is accepted. This is locally produced, operator-supplied evidence, not an independently authenticated PageSpeed API response.</p>
+       <p className="muted mt-2 max-w-4xl text-sm leading-6">In Chrome, open the company&apos;s actual homepage, then DevTools → Lighthouse → Mobile → Analyze page load. Export the resulting report as <strong>JSON</strong> (not HTML). Import it below. Only a matching report from the last 7 days is accepted. This is locally produced, operator-supplied evidence, not an independently authenticated PageSpeed API response.</p>
        {auditable.length>0?<form action={importLighthouseReport} className="mt-4 grid gap-3 sm:grid-cols-[minmax(220px,1fr)_minmax(220px,1fr)_auto] sm:items-end">
          <label className="text-sm">Business<select name="business_id" defaultValue={selectedId&&auditable.some(b=>b.id===selectedId)?selectedId:auditable[0].id} className="mt-2" required>
            {auditable.map(b=><option key={b.id} value={b.id}>{b.name}</option>)}

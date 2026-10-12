@@ -1,20 +1,22 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireWorkspace } from '@/lib/workspace';
-import { rateDemo,saveDemoCopy,applyLearnedPreferences,importSiteResearch } from '../feedback-actions';
+import {rateDemo,saveDemoCopy,applyLearnedPreferences,importSiteResearch,researchBusinessWebsite,applyReviewedResearch} from '../feedback-actions';
 import { derivePreferences, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
 import {classifyIndustry} from '@/lib/business-classification';
 import { ArrowUpRight, ArrowDown, Check, BadgeInfo } from 'lucide-react';
 import {buildSiteBlueprint} from '@/lib/site-blueprint';
 import SiteRenderer from '@/components/site-renderer';
+import {getGeneratedConceptSet} from '@/lib/concept-imagery';
+import {groupResearchInsights} from '@/lib/research-intelligence';
 
 const issueOptions=[
  ['layout','Layout and hierarchy'],['visuals','Visual quality'],['generic_copy','Generic messaging'],
  ['missing_content','Missing real details'],['navigation','Navigation or CTA'],['mobile','Mobile layout'],['other','Other']
 ];
-export default async function DemoPreview({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{saved?:string}>}){
+export default async function DemoPreview({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{saved?:string;research_error?:string}>}){
   const {id}=await params;
-  const {saved}=await searchParams;
+  const {saved,research_error:researchError}=await searchParams;
   const {supabase,organizationId,user}=await requireWorkspace();
   const {data:demo,error}=await supabase.from('demo_sites').select('*')
     .eq('id',id).eq('organization_id',organizationId).maybeSingle();
@@ -34,12 +36,13 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
   const industry=classifyIndustry(business?.name||'',business?.category);
   const industryMismatch=Boolean(industry.template&&industry.template!==demo.template);
   const copy=(demo.draft_content??{}) as Partial<DemoCopy>;
-  const preferences=derivePreferences((myRatings??[]) as FeedbackSample[],demo.template as Template);
+  const preferences=derivePreferences((myRatings??[]) as FeedbackSample[],demo.template as Template,id);
   const variant=(copy.design?.variant??demo.visual_variant)==='bold'?'bold':'editorial';
   const site=buildSiteBlueprint(demo.template as Template,copy,{
     name:business?.name??'',city:business?.city,
     phone:business?.phone,email:business?.contact_email
   });
+  const conceptMedia=getGeneratedConceptSet(demo.template as Template);
   const name=site.businessName;
   const services=site.services;
   const hero=site.content.images.find(x=>x.role==='hero');
@@ -47,16 +50,21 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
     [x.url,x.alt,x.sourceUrl,x.role].join(' | ');
   const researchedImages=site.content.images.filter(x=>x.permission==='reference_only'&&x.role!=='hero');
   const approvedGallery=site.content.images.filter(x=>x.permission==='approved'&&x.role!=='hero');
+  const researchGroups=groupResearchInsights(site.content.researchInsights);
   return <main className="max-w-[1320px]">
     <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
       <div><Link href="/app/demos" className="muted text-sm">← Demo Studio</Link>
       <p className="kicker mt-3">Internal preview / revision {demo.revision_no??1} / {variant} / {demo.template}</p>
       <h1 className="mt-2 text-2xl font-semibold">{name}</h1></div>
       <div className="flex flex-wrap gap-3"><a className="btn" href="#demo-feedback">Rate & improve <ArrowDown size={15}/></a>
+      <Link className="btn" href={'/preview/demos/'+id} target="_blank">Open full-screen site <ArrowUpRight size={15}/></Link>
       <Link className="btn" href={'/app/leads/'+demo.business_id}>CRM record <ArrowUpRight size={15}/></Link></div>
     </div>
     {saved&&<p role="status" className="mb-4 rounded-xl border border-[#2f726b] bg-[#14372f] p-3 text-sm text-[#bbebd8]">
-      <Check className="mr-2 inline" size={16}/>{saved==='rating'?'Feedback saved. Your next generated demo now uses your updated preferences.':saved==='adapted'?'A new revision was created with your learned layout preferences.':saved==='unchanged'?'This demo already reflects your saved preferences.':saved==='research'?'Website research imported as unapproved references for review.':'Copy saved as a new revision.'}
+      <Check className="mr-2 inline" size={16}/>{saved==='rating'?'Feedback saved. Your next generated demo now uses your updated preferences.':saved==='adapted'?'A new revision was created with your learned layout preferences.':saved==='unchanged'?'This demo already reflects your saved preferences.':saved==='research-applied'?'Reviewed research applied to a new private revision.':saved==='live-research'?'Live website research saved as sourced candidates for review.':saved==='research'?'Website research imported as unapproved references for review.':'Copy saved as a new revision.'}
+    </p>}
+    {researchError&&<p role="alert" className="mb-4 rounded-xl border border-amber-700 bg-amber-950/30 p-3 text-sm text-amber-100">
+     {researchError==='missing-website'?'This CRM record has no independent company website. Add and verify one before live research.':'The recorded site did not provide readable public pages within the safety limits. No research was saved.'}
     </p>}
     <section className="panel mb-6 p-5">
       <div className="flex flex-wrap justify-between gap-3">
@@ -93,7 +101,23 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
        <span className="rounded-full border border-[#2a5053] px-4 py-2">Private preview: {site.quality.previewReady?'Content reviewed':'Research incomplete'}</span>
        <span className="rounded-full border border-[#2a5053] px-4 py-2">Publishing: {site.quality.publishReady?'Meets basic content gate':'Blocked until approval'}</span>
        <span className="rounded-full border border-[#2a5053] px-4 py-2">Approved images: {site.content.images.filter(x=>x.permission==='approved').length}</span>
+       <span className="rounded-full border border-[#2a5053] px-4 py-2">Generated visual system: {site.content.generatedImageryEnabled?'Active':'Off'}</span>
+       <span className="rounded-full border border-[#2a5053] px-4 py-2">Business-site photo authorization: {site.content.imageAuthorization.mode==='business_site_authorized'?'Recorded':'Not granted'}</span>
+       <span className="rounded-full border border-[#2a5053] px-4 py-2">Motion system: Required · {site.design.motionPlan.sectionReveal.replaceAll('-',' ')}</span>
+       <span className="rounded-full border border-[#2a5053] px-4 py-2">Quality preflight: {site.quality.evaluation.score}/100</span>
+       <span className="rounded-full border border-[#2a5053] px-4 py-2">Composition: {site.design.composition.replaceAll('-',' ')}</span>
       </div>
+      <details className="mt-5 rounded-xl border border-[#273b48] p-4 text-sm">
+       <summary className="cursor-pointer font-semibold">Design specification and evaluation evidence</summary>
+       <div className="mt-4 grid gap-5 lg:grid-cols-2">
+        <div><p className="kicker">Generator rationale</p><ul className="mt-3 list-disc space-y-2 pl-5">
+         {(copy.generationSpec?.rationale??['Legacy draft; save or apply preferences to generate a structured design specification.']).map(x=><li key={x}>{x}</li>)}
+        </ul></div>
+        <div><p className="kicker">Measured preflight</p><ul className="mt-3 list-disc space-y-2 pl-5">
+         {site.quality.evaluation.evidence.map(x=><li key={x}>{x}</li>)}
+        </ul><p className="muted mt-3 text-xs">This score is a deterministic content and design preflight, not a Lighthouse or screenshot score.</p></div>
+       </div>
+      </details>
       {site.quality.blockers.length>0&&<div className="mt-5 rounded-xl border border-amber-800/60 p-5">
        <p className="text-sm font-semibold text-amber-200">Before showing this to a prospect</p>
        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-amber-100/90">
@@ -112,7 +136,13 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
     <section className="panel mb-6 p-6">
       <p className="kicker">Content intelligence · local / no paid API</p>
       <h2 className="mt-2 text-xl font-semibold">Research the existing website before designing</h2>
-      <p className="muted mt-3 text-sm leading-6">Use the same approved one-business queue from Website Intelligence. In a separate VS Code terminal, run <code>node scripts/local-site-research.mjs ~/Downloads/command-center-audit-queue.json</code>. This inspects up to five public same-domain pages for candidate headings, service information, and photo URLs. It never downloads photos or grants display permission.</p>
+      <p className="muted mt-3 text-sm leading-6">Inspect up to five public pages from this business’s recorded website. Command Center identifies source-backed candidates for services, team, gallery, trust, FAQs, booking, and contact structure. Nothing is treated as owner-approved copy or licensed photography.</p>
+      <form action={researchBusinessWebsite} className="mt-5">
+       <input type="hidden" name="demo_id" value={id}/><input type="hidden" name="revision_no" value={demo.revision_no??1}/>
+       <button type="submit" className="btn">Research live company website →</button>
+      </form>
+      <details className="mt-5 text-sm"><summary className="cursor-pointer font-semibold">Local JSON fallback</summary>
+       <p className="muted mt-3 text-xs leading-5">Use the approved one-business queue and local research script only when the in-app research action cannot read the site.</p>
       <form action={importSiteResearch} className="mt-5 flex flex-wrap items-end gap-4">
        <input type="hidden" name="demo_id" value={id}/>
        <input type="hidden" name="revision_no" value={demo.revision_no??1}/>
@@ -121,6 +151,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
        </label>
        <button type="submit" className="btn">Import research references →</button>
       </form>
+      </details>
       {site.content.researchPages.length>0&&<details className="mt-6 rounded-xl border border-[#2e5861] p-4" open>
        <summary className="cursor-pointer text-sm font-semibold">Sourced candidates · {site.content.researchPages.length} inspected pages · {site.content.images.filter(x=>x.permission==='reference_only').length} unapproved image references</summary>
        <p className="muted mt-3 text-xs">Candidate text is NOT verified practice information. Independently check it, rewrite appropriately, and obtain image permission before use in a real site.</p>
@@ -130,9 +161,19 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
         <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-cyan-200">Discovered headings</p>
         <p className="mt-2 text-sm leading-6">{page.headings.slice(0,12).join(' · ')||'None available'}</p>
        </div>)}</div>
+       {site.content.researchInsights.length>0&&<form action={applyReviewedResearch} className="mt-5 border-t border-[#2e5861] pt-5">
+        <input type="hidden" name="demo_id" value={id}/><input type="hidden" name="revision_no" value={demo.revision_no??1}/>
+        <p className="text-sm font-semibold">Detected content modules · {site.content.researchInsights.length} sourced candidates</p>
+        <p className="muted mt-2 text-xs">Select only candidates you checked against their linked source. This updates the private revision, not publication approval.</p>
+        <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{Object.entries(researchGroups).map(([kind,items])=><div className="rounded-xl bg-[#0c1b23] p-4" key={kind}>
+         <p className="text-xs font-bold uppercase tracking-wider text-cyan-200">{kind}</p>
+         <ul className="mt-3 space-y-2 text-sm">{items?.slice(0,8).map(item=><li className="flex items-start gap-2" key={item.id}><input className="mt-1" type="checkbox" name="insight" value={item.id} defaultChecked={item.status==='reviewed'}/><a className="underline decoration-white/20 underline-offset-4 hover:decoration-white" href={item.sourceUrl} target="_blank" rel="noopener noreferrer">{item.label}</a></li>)}</ul>
+        </div>)}</div>
+        <button className="btn mt-4" type="submit">Apply reviewed research to next revision →</button>
+       </form>}
       </details>}
     </section>
-    <SiteRenderer site={site}/>
+    <SiteRenderer site={site} conceptMedia={conceptMedia}/>
     <div id="demo-feedback" className="mt-9 grid scroll-mt-8 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <section className="panel min-w-0 p-5 sm:p-7"><p className="kicker">Iterative improvement</p><h2 className="mt-2 text-xl font-semibold">Rate this version</h2>
         <p className="muted mt-3 text-sm">Your rating immediately shapes the next demo. Criticisms like cramped navigation or generic copy also become design settings.</p>
@@ -185,8 +226,14 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
           <label className="text-sm">Headline<input className="mt-2" name="headline" maxLength={200} defaultValue={copy.headline??''} required/></label>
           <label className="text-sm">Description<textarea className="mt-2" name="description" rows={4} maxLength={800} defaultValue={copy.description??''}/></label>
           <div className="rounded-xl border border-[#2e5861] p-4">
-            <p className="text-sm font-semibold">Real business photography</p>
-            <p className="muted mt-2 text-xs leading-5">You may record existing photos for research without displaying them. Only photos you confirm you have the right to use may appear on the website. Do not assume that public availability grants reuse rights.</p>
+            <p className="text-sm font-semibold">Image system</p>
+            <p className="muted mt-2 text-xs leading-5">Generated concept images can be selected and placed automatically. One saved authorization can also cover imagery collected from this business&apos;s verified website.</p>
+            <label className="mt-4 flex items-start gap-3 text-sm"><input className="mt-1" type="checkbox" name="generatedImageryEnabled" defaultChecked={site.content.generatedImageryEnabled}/>
+             Use expansive AI-generated imagery throughout the site when approved business photography is unavailable.</label>
+            <label className="mt-3 flex items-start gap-3 text-sm"><input className="mt-1" type="checkbox" name="businessImagesAuthorized" defaultChecked={site.content.imageAuthorization.mode==='business_site_authorized'}/>
+             I am authorized to reuse imagery from this business&apos;s verified website. Apply this authorization to same-domain research images automatically.</label>
+            <p className="muted mt-3 text-xs">Unrelated websites, competitors, and unknown sources are never covered by this authorization.</p>
+            <details className="mt-4"><summary className="cursor-pointer text-sm font-semibold">Add or override individual business photos</summary>
             <label className="mt-4 block text-sm">Hero image URL<input className="mt-2" type="url" name="heroImageUrl" defaultValue={hero?.url??copy.heroImageUrl??''} placeholder="https://example.org/practice-photo.jpg"/></label>
             <label className="mt-3 block text-sm">Where the image came from<input className="mt-2" type="url" name="heroImageSourceUrl" defaultValue={hero?.sourceUrl??''} placeholder="https://business.example/gallery/"/></label>
             <label className="mt-3 flex items-start gap-3 text-sm"><input className="mt-1" type="checkbox" name="heroImageApproved" defaultChecked={hero?.permission==='approved'}/>
@@ -201,6 +248,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
             </label>
             <label className="mt-3 flex items-start gap-3 text-sm"><input className="mt-1" type="checkbox" name="galleryRightsApproved" defaultChecked={approvedGallery.length>0}/>
              I confirmed the rights to display every image listed in the approved gallery.</label>
+            </details>
           </div>
           <label className="text-sm">Confirmed services (one per line)<textarea className="mt-2" name="services" rows={5} maxLength={1000} defaultValue={services.join('\n')} placeholder="Only services verified by the business"/></label>
           <div className="rounded-xl border border-[#2e5861] p-4">

@@ -113,14 +113,21 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
         </section>
         <section className="panel p-7"><p className="kicker">Proposal accelerator</p><h2 className="mt-2 text-xl font-semibold">Website demo drafts</h2>
           <p className="muted mt-3 text-sm">Industry suggestion: <strong>{industryLabel(industry)}</strong>. {industry.explanation}. Check or correct the industry category above before creating a draft. Old mismatched drafts are not silently overwritten.</p>
-          <form action={createDemo} className="mt-5 flex flex-wrap gap-3"><input type="hidden" name="business_id" value={id}/>
+          <form action={createDemo} className="mt-5 grid gap-3"><input type="hidden" name="business_id" value={id}/>
+          <div className="flex flex-wrap gap-3">
           <select name="template" aria-label="Website industry template"><option value="auto">Auto-match industry (recommended)</option>{[['landscaping','Home services if unclassified'],['medical','Medical / dental if unclassified'],['universal','Professional / general if unclassified']].map(([key,name])=><option key={key} value={key}>{name}</option>)}</select>
           <select name="visual_variant" aria-label="Design style">
             <option value="auto">Auto style</option>
             <option value="editorial">Editorial</option>
             <option value="bold">Bold</option>
           </select>
-          <button className="btn" type="submit">Generate internal demo →</button></form>
+          </div>
+          <div className="rounded-xl border border-[#2e5861] p-4">
+           <label className="flex items-start gap-3 text-sm"><input className="mt-1" type="checkbox" name="generated_imagery_ack" required/>Use AI-generated concept imagery automatically. I understand it is not photography of this business.</label>
+           <label className="mt-3 flex items-start gap-3 text-sm"><input className="mt-1" type="checkbox" name="business_images_authorized"/>I am authorized to reuse imagery from this business&apos;s verified website.</label>
+           <p className="muted mt-3 text-xs">This single authorization covers same-domain images collected during research. Unrelated sources remain excluded.</p>
+          </div>
+          <button className="btn justify-self-start" type="submit">Generate internal demo →</button></form>
           <div className="mt-5 space-y-2">{(demos??[]).map(d=><Link className="block rounded-xl border border-[#253a46] p-3 text-sm hover:bg-[#122531]" key={d.id} href={'/app/demos/'+d.id}>{d.template} · {d.status}{industry.template&&industry.template!==d.template?' · MISMATCH: regenerate':''} ↗</Link>)}</div>
         </section>
       </div>

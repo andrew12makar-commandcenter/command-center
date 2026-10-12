@@ -10,6 +10,7 @@ import {
   createDraft, derivePreferences, templates, variants,
   type Template, type Variant, type FeedbackSample, type DemoCopy,
 } from '@/lib/demo-engine';
+import {businessImageAuthorization,cleanSiteContent,safePublicUrl} from '@/lib/site-blueprint';
 
 // This query runs for every generated site. The last rating is visible immediately;
 // there is no minimum-review threshold or delayed batch job.
@@ -38,6 +39,14 @@ function withEvidence(
   goals:brief.designGoals
  }};
 }
+function withImagePolicy(draft:DemoCopy,website:unknown,form:FormData):DemoCopy{
+ if(form.get('generated_imagery_ack')!=='on')
+  throw new Error('Confirm the generated-imagery disclosure before creating a website.');
+ const site=safePublicUrl(website);
+ const authorized=form.get('business_images_authorized')==='on';
+ return {...draft,siteContent:cleanSiteContent({...draft.siteContent,generatedImageryEnabled:true,
+  imageAuthorization:businessImageAuthorization(site,authorized)})};
+}
 
 export async function createDemo(form:FormData) {
   const {supabase,organizationId,user}=await requireWorkspace(true);
@@ -58,7 +67,7 @@ export async function createDemo(form:FormData) {
     .order('assessed_at',{ascending:false}).limit(25);
   if(auditError)throw new Error('Could not read existing website evidence. Demo creation aborted.');
   const copy=withEvidence(b as OpportunityBusiness,(audits??[]) as AuditRecord[],
-    createDraft(b.name,b.city,b.category,template,design));
+    withImagePolicy(createDraft(b.name,b.city,b.category,template,design),b.website_url,form));
   const {data,error}=await supabase.from('demo_sites').insert({
     organization_id:organizationId,business_id:id,template,visual_variant:variant,status:'draft',
     draft_content:copy,
@@ -99,7 +108,7 @@ export async function createDemoBatch(form:FormData) {
     return {
       organization_id:organizationId,business_id:b.id,template:b.template,visual_variant:variant,status:'draft',
       draft_content:withEvidence(b as OpportunityBusiness,byBusiness.get(b.id)||[],
-        createDraft(b.name,b.city,b.category,b.template,design)),
+        withImagePolicy(createDraft(b.name,b.city,b.category,b.template,design),b.website_url,form)),
     };
   }));
   if(error) throw new Error('Batch creation failed: '+error.message);

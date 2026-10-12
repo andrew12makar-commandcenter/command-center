@@ -11,6 +11,7 @@ test('empty research has quality blockers, no fabricated photos, providers, serv
  const site=buildSiteBlueprint('medical',data,source);
  assert.equal(site.quality.previewReady,false);
  assert.equal(site.quality.publishReady,false);
+ assert.equal(site.quality.evaluation.accepted,false);
  assert.equal(site.content.images.length,0);
  assert.deepEqual(site.services,[]);
  assert.equal(site.content.about,'');
@@ -40,6 +41,7 @@ test('owner-reviewed specific content and approved images produce a portable sit
  assert.equal(site.version,1);
  assert.equal(site.quality.previewReady,true);
  assert.equal(site.quality.publishReady,true);
+ assert.equal(site.quality.evaluation.accepted,true);
  assert.equal(site.content.images[0].permission,'approved');
  assert.equal(site.content.appointmentUrl,'https://example.org/appointments');
 });
@@ -72,4 +74,16 @@ test('owner-approved typography-led site can pass without photos, but never with
   ...approved,images:[{url:img,sourceUrl:src,role:'gallery',permission:'reference_only'}]
  })},source);
  assert.equal(refs.quality.publishReady,false);
+});
+
+test('dental narrative uses the actual city instead of overfitting the Brighton benchmark',()=>{
+ const site=buildSiteBlueprint('medical',{
+  ...data,services:['Restorative dentistry'],
+  siteContent:cleanSiteContent({
+   about:'A source-backed description of the dental practice and its approach.',
+   sourceUrl:src,factStatus:'researched'
+  })
+ },{...source,city:'Worcester'});
+ assert.match(site.narrative.aboutHeading,/Worcester/);
+ assert.doesNotMatch(site.narrative.aboutHeading,/Brighton/);
 });

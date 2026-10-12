@@ -75,14 +75,14 @@ export default async function ProspectBrief({params}:{params:Promise<Params>}){
       <p className="muted text-sm">{x.label}</p><strong className="mt-2 block text-xl">{x.value}</strong>
       <small className="muted mt-2 block">{x.kind==='estimated'?'Lighthouse estimated opportunity, not guaranteed savings':'Lab observation from the saved assessment'}</small>
      </div>)}</div>:
-    <p className="muted mt-4">No applicable measurements were saved. Audit this company's actual website before preparing quantitative claims.</p>}
+    <p className="muted mt-4">No applicable measurements were saved. Audit this company&apos;s actual website before preparing quantitative claims.</p>}
   </section>
   <section className="panel mt-6 p-6">
    <p className="kicker">Demo build priorities</p>
    <h2 className="mt-2 text-xl font-semibold">Improve the experience, then test the result</h2>
    <ol className="mt-5 list-decimal space-y-3 pl-5 text-sm leading-6">{brief.designGoals.map((goal,i)=><li key={i}>{goal}</li>)}</ol>
    {latestDemo?<p className="mt-5 text-sm text-cyan-200">Internal demo recorded: <Link className="underline" href={'/app/demos/'+latestDemo.id}>Open {latestDemo.template} draft ↗</Link></p>:
-    <p className="muted mt-5 text-sm">No demo exists yet. Generate the industry-matched design from this business's CRM record.</p>}
+    <p className="muted mt-5 text-sm">No demo exists yet. Generate the industry-matched design from this business&apos;s CRM record.</p>}
   </section>
   <section className="panel mt-6 p-6">
    <p className="kicker">Commercial approach · draft positioning</p>

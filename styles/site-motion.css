@@ -1,0 +1,46 @@
+@keyframes site-rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes site-soft-in{from{opacity:0;transform:scale(1.025)}to{opacity:1;transform:scale(1)}}
+@keyframes site-header-in{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)}}
+@keyframes site-wipe-in{from{clip-path:inset(0 100% 0 0);transform:scale(1.04)}to{clip-path:inset(0 0 0 0);transform:scale(1)}}
+@keyframes site-precision-in{from{opacity:0;clip-path:inset(0 0 100% 0);transform:translateY(12px)}to{opacity:1;clip-path:inset(0);transform:translateY(0)}}
+@keyframes site-depth-in{from{opacity:0;transform:translate3d(7vw,30px,0) scale(1.06)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes site-cascade{from{opacity:0;transform:translateY(42px) rotate(.3deg)}to{opacity:1;transform:translateY(0) rotate(0)}}
+
+@media (prefers-reduced-motion:no-preference){
+ .site-motion .motion-header{animation:site-header-in .72s cubic-bezier(.16,1,.3,1) both}
+ .site-motion .motion-hero-copy{animation:site-rise .84s cubic-bezier(.16,1,.3,1) .1s both}
+ .site-motion .motion-hero-media{animation:site-wipe-in 1.18s cubic-bezier(.16,1,.3,1) .16s both}
+ .site-motion[data-motion-entry="cinematic-wipe"] .motion-hero-copy{animation-name:site-depth-in;animation-duration:1.05s}
+ .site-motion[data-motion-entry="precision-reveal"] .motion-hero-copy{animation-name:site-precision-in;animation-duration:.68s}
+ .site-motion[data-motion-media="slow-scale"] .motion-hero-media img{animation:site-soft-in 1.6s cubic-bezier(.16,1,.3,1) .12s both}
+ .site-motion[data-motion-media="depth-shift"] .motion-hero-media{animation-name:site-depth-in}
+ .site-motion a,.site-motion button{transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s ease,background-color .25s ease,color .25s ease,box-shadow .3s ease}
+ .site-motion a:hover,.site-motion button:hover{transform:translateY(-1px)}
+ .site-motion a:active,.site-motion button:active{transform:translateY(0) scale(.985)}
+ .site-motion header nav a{position:relative}
+ .site-motion header nav a::after{content:"";position:absolute;right:0;bottom:-8px;left:0;height:1px;background:currentColor;transform:scaleX(0);transform-origin:right;transition:transform .35s cubic-bezier(.16,1,.3,1)}
+ .site-motion header nav a:hover::after{transform:scaleX(1);transform-origin:left}
+ .site-motion[data-motion-navigation="pill-shift"] header nav a{border-radius:999px;padding:.45rem .7rem;transition:background-color .3s ease,transform .3s ease}
+ .site-motion[data-motion-navigation="pill-shift"] header nav a:hover{background:color-mix(in srgb,currentColor 9%,transparent)}
+ .site-motion .motion-media img{transition:transform 1.1s cubic-bezier(.16,1,.3,1),filter .6s ease}
+ .site-motion .motion-media:hover img{transform:scale(1.035)}
+ .site-motion.composition-asymmetric .motion-section:nth-of-type(even) .motion-copy{transform-origin:left center}
+ .site-motion.composition-centered .motion-copy{text-align:center}
+ @supports (animation-timeline:view()){
+  .site-motion .motion-reveal,.site-motion .motion-card,.site-motion .motion-copy,.site-motion .motion-media{
+   animation:site-cascade linear both;
+   animation-timeline:view();
+   animation-range:entry 4% cover 28%;
+  }
+  .site-motion[data-motion-reveal="layered-wipe"] .motion-reveal,
+  .site-motion[data-motion-reveal="layered-wipe"] .motion-media{animation-name:site-wipe-in;animation-range:entry 0% cover 38%}
+  .site-motion[data-motion-reveal="indexed-rise"] .motion-card{animation-name:site-precision-in;animation-range:entry 10% cover 25%}
+  .site-motion[data-motion-media="depth-shift"] .motion-media{animation-name:site-depth-in;animation-range:entry 0% cover 35%}
+  .site-motion.motion-cinematic .motion-reveal{animation-range:entry 0% cover 36%}
+  .site-motion.motion-precise .motion-reveal{animation-range:entry 12% cover 26%}
+ }
+}
+
+@media (prefers-reduced-motion:reduce){
+ .site-motion *{animation:none!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}

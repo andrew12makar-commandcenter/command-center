@@ -9,9 +9,17 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const files={
  'components/site-renderer.tsx':'components/site-renderer.tsx',
  'lib/site-blueprint.ts':'lib/site-blueprint.ts',
+ 'lib/site-evaluation.ts':'lib/site-evaluation.ts',
  'lib/demo-engine.ts':'lib/demo-engine.ts',
- 'lib/web-presence.ts':'lib/web-presence.ts'
+ 'lib/concept-imagery.ts':'lib/concept-imagery.ts',
+ 'lib/web-presence.ts':'lib/web-presence.ts',
+ 'styles/site-motion.css':'styles/site-motion.css'
 };
+const conceptAssets=[
+ 'medical-calm-interior-v1.jpg','medical-reception-editorial-v1.jpg','medical-treatment-detail-v1.jpg',
+ 'landscaping-crafted-outdoor-v1.jpg','landscaping-stone-path-v1.jpg','landscaping-garden-threshold-v1.jpg',
+ 'universal-consultation-studio-v1.jpg','universal-material-studio-v1.jpg','universal-collaboration-v1.jpg'
+];
 const html=(s)=>String(s||'').replace(/<[^>]*>/g,'').slice(0,160);
 const isPublicLink=(value)=>{
  if(typeof value!=='string')return false;
@@ -32,6 +40,8 @@ export function validateExport(raw){
  const c=bp.content||{};
  if(c.factStatus!=='owner_approved'||!bp.quality?.publishReady)
   throw Error('Only owner-approved content passing the basic publication gate can be exported.');
+ if(bp.quality.evaluation&&bp.quality.evaluation.accepted!==true)
+  throw Error('The generator quality preflight must pass before export.');
  if(typeof bp.businessName!=='string'||!bp.businessName.trim()||
    !Array.isArray(bp.services)||bp.services.length===0||
    typeof c.about!=='string'||!c.about.trim()||!c.sourceUrl)
@@ -51,7 +61,7 @@ export function validateExport(raw){
   throw Error('Photo-led sites require an explicitly approved hero image.');
  const safe={
   ...bp,
-  content:{...c,images, researchPages:[],researchedAt:null},
+  content:{...c,images,researchPages:[],researchInsights:[],researchedAt:null},
   // Internal commercial briefs and source research must not ship to clients.
   internalDisclaimer:'',
   quality:{previewReady:true,publishReady:true,blockers:[]}
@@ -71,12 +81,15 @@ export async function exportProject(raw,output){
    await mkdir(dirname(join(target,dest)),{recursive:true});
    await copyFile(join(root,source),join(target,dest));
   }
+  await mkdir(join(target,'public','concepts'),{recursive:true});
+  for(const asset of conceptAssets)await copyFile(join(root,'public','concepts',asset),join(target,'public','concepts',asset));
   await mkdir(join(target,'app'),{recursive:true});
   await writeFile(join(target,'site-blueprint.json'),asJson(bp));
   await writeFile(join(target,'app','page.tsx'),`import SiteRenderer from '@/components/site-renderer';
 import data from '@/site-blueprint.json';
 import type {SiteBlueprint} from '@/lib/site-blueprint';
-export default function Home(){return <SiteRenderer site={data as SiteBlueprint} standalone/>;}
+import {getGeneratedConceptSet} from '@/lib/concept-imagery';
+export default function Home(){const site=data as SiteBlueprint;return <SiteRenderer site={site} standalone conceptMedia={getGeneratedConceptSet(site.template)}/>;}
 `);
   await writeFile(join(target,'app','layout.tsx'),`import type {Metadata} from 'next';
 import content from '@/site-blueprint.json';
@@ -89,7 +102,7 @@ export default function RootLayout({children}:{children:React.ReactNode}){
  return <html lang="en"><body className="m-0 min-h-screen antialiased">{children}</body></html>;
 }
 `);
-  await writeFile(join(target,'app','globals.css'),'@import "tailwindcss";\n');
+  await writeFile(join(target,'app','globals.css'),'@import "tailwindcss";\n@import "../styles/site-motion.css";\n');
   await writeFile(join(target,'package.json'),asJson({
    name:'client-site-blueprint',version:'0.1.0',private:true,
    scripts:{dev:'next dev',build:'next build',start:'next start',typecheck:'tsc --noEmit'},

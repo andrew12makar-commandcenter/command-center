@@ -15,11 +15,12 @@ export default async function DemoStudio({searchParams}:{searchParams:Promise<{c
   const {created}=await searchParams;
   return <main>
     <p className="kicker">Proposal accelerator</p><h1 className="mt-3 text-4xl font-semibold">Demo Studio</h1>
-    <p className="muted mt-3 max-w-3xl">Three layouts, now matched to each prospect's recorded industry. Mixed batches use the right layout per company. Previews remain private until authorized share links are built.</p>
+    <p className="muted mt-3 max-w-3xl">Six composition families, matched to each prospect&apos;s recorded industry and your saved feedback. Mixed batches plan each company independently. Previews remain private until authorized share links are built.</p>
+    <Link className="btn mt-5" href="/app/demos/benchmarks">Open cross-industry benchmark gallery →</Link>
     {created&&<p className="mt-4 text-sm text-cyan-200">{created} new demo drafts created.</p>}
     <div className="mt-8 grid gap-6 xl:grid-cols-2">
       <section className="panel p-7"><h2 className="text-xl font-semibold">Generate a batch</h2>
-        <p className="muted mt-3 text-sm">Select up to 20 businesses. Auto-match checks each company's category separately, so doctors cannot accidentally receive landscaping drafts.</p>
+        <p className="muted mt-3 text-sm">Select up to 20 businesses. Auto-match checks each company&apos;s category separately, so doctors cannot accidentally receive landscaping drafts.</p>
         <form action={createDemoBatch} className="mt-5">
           <label className="text-sm">Template<select name="template" className="mt-2">
             <option value="auto">Auto-match each business (recommended)</option>
@@ -42,6 +43,16 @@ export default async function DemoStudio({searchParams}:{searchParams:Promise<{c
             {!businesses?.length&&<p className="muted p-3 text-sm">Add a CRM business first.</p>}
           </div>
           <p className="muted mt-4 text-xs">Recorded industry takes priority over manual layout choices. For incorrect source categories, correct the CRM first. Unclassified companies default to a neutral general-business draft.</p>
+          <div className="mt-5 rounded-xl border border-[#2e5861] bg-[#10242d] p-4">
+            <p className="text-sm font-semibold">Image authorization</p>
+            <label className="mt-3 flex items-start gap-3 text-sm"><input className="mt-1" type="checkbox" name="generated_imagery_ack" required/>
+              <span>Use AI-generated concept imagery automatically. I understand it is visual direction, not photography of the selected businesses.</span>
+            </label>
+            <label className="mt-3 flex items-start gap-3 text-sm"><input className="mt-1" type="checkbox" name="business_images_authorized"/>
+              <span>I am authorized to reuse imagery from each selected business&apos;s verified website. Same-domain research images may be selected automatically.</span>
+            </label>
+            <p className="muted mt-3 text-xs">Unrelated websites and unknown image sources remain excluded.</p>
+          </div>
           <button className="btn mt-5" type="submit">Create selected demo drafts</button>
         </form>
       </section>
