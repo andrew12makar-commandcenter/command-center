@@ -27,16 +27,25 @@ This is the compact recovery checkpoint for continued development of the **local
 - Important limitation: `composePage` is the deterministic feedback-loop page planner. This test does **not** establish that the production Next.js `SiteRenderer` displays every feedback change correctly. Real screenshot/reviewer evaluation remains a future task.
 - Latest **verified code commit**: `fb830c182d183d91d3a6012a57a4c41076ce3d47`.
 
+## Verified checkpoint 4: production customer-site layout wiring
+- Tested feature head: `c8878802fbebba8f9c7c105d941170712dfb7806`.
+- Live `SiteRenderer` now honors blueprint `sectionOrder`, keeping actual DOM and keyboard reading order consistent rather than styling sections with CSS visual-only order.
+- A pure `lib/site-section-order.ts` handles allowed existing sections, duplicates and missing modules without inventing content. Unsupported proof/trust placeholders remain unsupported.
+- `candidateToPreferences` and `planGeneration` now carry offer/story/action-first hierarchy into `generationSpec` and then the actual site's blueprint. `imageTreatment='minimal'` suppresses available approved and generated photos in the client renderer.
+- Standalone export bundles the section-order helper. Regression tests: `tests/site-section-order.test.ts` and `tests/generator-production-order.test.ts`.
+- Evidence: [GitHub Actions run 38211358242](https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38211358242) **passed** all repository tests, TypeScript, production build, and cold-install exported customer-site production build.
+- Still unverified: browser screenshots and human design ratings, live Supabase feedback action (the loop adapters exist, but `app/app/demos/feedback-actions.ts` still uses the older preference derivation), and production DB migrations. DO NOT claim feedback is automatically applied to live user accounts yet.
+
 ## Evaluation baseline (not a production claim)
 - Prior documented fictional benchmark: rules+search holdout agreement 0.625; baseline 0.292; cross-validation 0.652; unfamiliar-style interpreter recall 0.167. Source: `docs/feedback-loop.md`.
 - Six generator cases scored 100/100 on permissive *structural preflight*; that is not a measured visual-quality score.
 - External client content, rights, real browsers, and production database state are still unverified in this checkpoint.
 
 ## Current objective
-Connect validated feedback-to-preference decisions to genuinely inspected production SiteRenderer output across three verticals, with real desktop/mobile evidence and human design review. Do not claim this was done yet. Improve evaluator's ability to discriminate weak layouts only after establishing defensible visual evidence.
+Next task: validate actual production renderer in a running browser across medical, landscaping, and professional-services demos, then safely wire saved reviews to structured feedback rules using org-scoped Supabase data once migration state is verified. Do not claim the private authenticated user flow has been tested.
 
 ## Recovery instructions
 1. Inspect this file, check `git status` and branch; do not reset original Mac work.
-2. Read only relevant `lib/generator-loop/integration.ts`, `components/site-renderer.tsx`, and renderer/benchmark paths.
-3. Implement one bounded feedback-to-render improvement plus regression tests, validate browser output when available, and run CI.
+2. Read only relevant `app/app/demos/feedback-actions.ts`, `lib/generator-loop/integration.ts`, and `components/site-renderer.tsx`.
+3. Validate browser output before enabling the live feedback adapter; add a small org-scoped integration patch with tests, then run CI.
 4. Update this checkpoint with the latest verified commit and next task.
