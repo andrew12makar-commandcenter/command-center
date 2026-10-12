@@ -5,6 +5,7 @@ import { requireWorkspace, shortText, validUuid } from '@/lib/workspace';
 import { derivePreferences, planGeneration, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
 import {businessImageAuthorization,canAutoUseBusinessImage,cleanSiteContent,safeImage,safePublicUrl,type SiteImage,type ImagePermission} from '@/lib/site-blueprint';
 import {deriveResearchInsights} from '@/lib/research-intelligence';
+import {deriveSiteRedesignReference} from '@/lib/source-redesign-reference';
 // These dependency-free guards are shared with the local research runner.
 // @ts-expect-error JavaScript module intentionally has no generated declarations.
 import {preflightPublicWebsite} from '../../../scripts/local-audit-guard.mjs';
@@ -143,8 +144,20 @@ export async function applyReviewedResearch(form:FormData){
  const baseOrder=existing.generationSpec?.sectionOrder??['hero','services','about','contact'];
  const sectionOrder=[...baseOrder];
  for(const kind of moduleKinds)if(!sectionOrder.includes(kind))sectionOrder.splice(Math.max(2,sectionOrder.length-1),0,kind);
- const updated:DemoCopy={...existing,services,siteContent:cleanSiteContent({...content,researchInsights}),
-  generationSpec:existing.generationSpec?{...existing.generationSpec,sectionOrder}:existing.generationSpec};
+ const reviewedContent=cleanSiteContent({...content,researchInsights});
+ // Use the company's existing site and *reviewed* source candidates as design
+ // references. Previously accepted feedback always wins over source heuristics.
+ const reference=deriveSiteRedesignReference(reviewedContent,demo.template as Template,services);
+ const canReplan=(existing.design?.feedbackCount??0)===0;
+ const updatedSpec=existing.generationSpec?{
+  ...existing.generationSpec,sectionOrder,
+  composition:canReplan?reference.recommendedComposition:existing.generationSpec.composition,
+  imageTreatment:canReplan?reference.recommendedImageTreatment:existing.generationSpec.imageTreatment,
+  rationale:[...existing.generationSpec.rationale.slice(0,10),
+   canReplan?`Reviewed source-backed design direction: ${reference.recommendedComposition} (${reference.approvedImages} approved images; ${reference.unapprovedImageReferences} awaiting permission)`:
+    'Preserved explicit design feedback over source-site suggestions'].slice(0,12)
+ }:existing.generationSpec;
+ const updated:DemoCopy={...existing,services,siteContent:reviewedContent,generationSpec:updatedSpec};
  const {error}=await supabase.rpc('save_demo_revision',{p_demo_id:id,p_expected_revision:expectedRevision,p_content:updated});
  if(error)throw new Error('Could not apply reviewed research: '+error.message);
  revalidatePath('/app/demos/'+id);
