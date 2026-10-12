@@ -67,3 +67,38 @@ test('a host that rejects HEAD gets one ordinary GET; a GET refusal is still res
  const limited=async(_u,init)=>new Response(null,{status:init.method==='HEAD'?405:429});
  await assert.rejects(preflightPublicWebsite('https://shop.example.org/',{resolver,request:limited}),/429/);
 });
+
+
+test('local audit diagnostics report denied HEAD+GET without pretending the site has an unsafe IP',async()=>{
+ const resolver=async()=>[{address:'8.8.8.8',family:4}];
+ const methods=[];
+ const denied=async(_u,options)=>{methods.push(options.method);return new Response(null,{status:403});};
+ await assert.rejects(preflightPublicWebsite('https://brooklinebooksmith.com/',{resolver,request:denied}),
+  error=>error.code==='local-denied'&&/denied/i.test(error.message));
+ assert.deepEqual(methods,['HEAD','GET']);
+});
+test('rate limiting, DNS resolution, network failures and unsafe redirects are separate outcomes',async()=>{
+ const resolver=async()=>[{address:'8.8.8.8',family:4}];
+ const limited=async(_u,options)=>new Response(null,{status:options.method==='HEAD'?405:429});
+ await assert.rejects(preflightPublicWebsite('https://example.org/',{resolver,request:limited}),
+  error=>error.code==='local-rate-limited');
+ const noDns=async()=>{throw Error('ENOTFOUND');};
+ await assert.rejects(preflightPublicWebsite('https://example.org/',{resolver:noDns}),
+  error=>error.code==='local-dns');
+ const request=async()=>{throw TypeError('TLS handshake unavailable');};
+ await assert.rejects(preflightPublicWebsite('https://example.org/',{resolver,request}),
+  error=>error.code==='local-network');
+ const redirect=async()=>new Response(null,{status:302,headers:{location:'http://127.0.0.1/admin'}});
+ await assert.rejects(preflightPublicWebsite('https://example.org/',{resolver,request:redirect}),
+  error=>error.code==='local-unsafe');
+});
+test('ordinary website redirects still work without weakening their DNS guard',async()=>{
+ let calls=0;
+ const resolver=async()=>[{address:'8.8.8.8',family:4}];
+ const request=async()=>calls++===0
+  ?new Response(null,{status:308,headers:{location:'https://brooklinebooksmith.com/'}})
+  :new Response(null,{status:200});
+ assert.equal(await preflightPublicWebsite('https://www.brooklinebooksmith.com/',{resolver,request}),
+  'https://brooklinebooksmith.com/');
+ assert.equal(calls,2);
+});
