@@ -63,9 +63,11 @@ export default function SiteRenderer({site,standalone=false}:RendererProps){
   (x.role==='gallery'||x.role==='team')&&x.permission==='approved').slice(0,8);
  const photoHero=Boolean(hero)&&site.content.heroTreatment==='photo-led';
  const contactHref=site.content.appointmentUrl||
-  (site.contact.email?'mailto:'+site.contact.email:
-   site.contact.phone?'tel:'+site.contact.phone.replace(/[^+0-9]/g,''):null);
+  (site.contact.phone?'tel:'+site.contact.phone.replace(/[^+0-9]/g,''):
+   site.contact.email?'mailto:'+site.contact.email:null);
  const hasContact=Boolean(contactHref);
+ const contactActionLabel=site.content.appointmentUrl?site.primaryAction:
+  site.contact.phone?'Call us':site.contact.email?'Email us':site.primaryAction;
  const primaryContactTarget=site.content.appointmentUrl?'_blank':undefined;
  const primaryContactRel=primaryContactTarget?'noopener noreferrer':undefined;
  const hasServices=site.services.length>0;
@@ -94,7 +96,7 @@ export default function SiteRenderer({site,standalone=false}:RendererProps){
      {site.description&&<p className={`mt-7 max-w-[560px] text-base leading-8 sm:text-lg ${theme.muted}`}>{site.description}</p>}
      <div className="mt-10 flex flex-wrap items-center gap-6">
       {hasContact&&contactHref&&<a className={`inline-flex items-center gap-3 rounded-full px-7 py-4 text-sm font-semibold ${theme.main}`} href={contactHref} target={primaryContactTarget} rel={primaryContactRel}>
-        {site.primaryAction} <ArrowUpRight size={18}/>
+        {contactActionLabel} <ArrowUpRight size={18}/>
       </a>}
       {hasServices&&<a href="#services" className="inline-flex items-center gap-3 text-sm font-semibold underline underline-offset-8">
        {site.secondaryAction}<ArrowRight size={16}/></a>}
@@ -140,7 +142,7 @@ export default function SiteRenderer({site,standalone=false}:RendererProps){
   {gallery.length>0&&<section id="gallery" className="px-7 py-20 sm:px-12 lg:px-16 lg:py-28">
    <p className={`text-xs font-bold uppercase tracking-[.22em] ${theme.eyebrow}`}>{wording.galleryLabel}</p>
    <div className="mb-10 flex flex-wrap justify-between gap-6"><h2 className="mt-5 text-4xl font-semibold tracking-[-.05em] sm:text-5xl">{wording.galleryTitle}</h2>
-    <p className={`mt-5 max-w-xs text-sm leading-7 ${theme.muted}`}>Curated images approved for this concept.</p></div>
+    <p className={`mt-5 max-w-xs text-sm leading-7 ${theme.muted}`}>{standalone?'A look at the spaces, people, and work behind the business.':'Curated images approved for this concept.'}</p></div>
    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{gallery.map((img,i)=>
     <figure key={img.url+i} className="overflow-hidden rounded-[14px] border border-black/5">
       <div className="relative aspect-[4/3] overflow-hidden bg-black/5"><img src={img.url} alt={img.alt} loading="lazy" className="h-full w-full object-cover"/></div>
