@@ -12,6 +12,7 @@ const files={
  'lib/site-evaluation.ts':'lib/site-evaluation.ts',
  'lib/demo-engine.ts':'lib/demo-engine.ts',
  'lib/concept-imagery.ts':'lib/concept-imagery.ts',
+ 'lib/research-intelligence.ts':'lib/research-intelligence.ts',
  'lib/web-presence.ts':'lib/web-presence.ts',
  'styles/site-motion.css':'styles/site-motion.css'
 };
@@ -40,7 +41,7 @@ export function validateExport(raw){
  const c=bp.content||{};
  if(c.factStatus!=='owner_approved'||!bp.quality?.publishReady)
   throw Error('Only owner-approved content passing the basic publication gate can be exported.');
- if(bp.quality.evaluation&&bp.quality.evaluation.accepted!==true)
+ if(bp.quality.evaluation?.accepted!==true)
   throw Error('The generator quality preflight must pass before export.');
  if(typeof bp.businessName!=='string'||!bp.businessName.trim()||
    !Array.isArray(bp.services)||bp.services.length===0||
@@ -64,7 +65,7 @@ export function validateExport(raw){
   content:{...c,images,researchPages:[],researchInsights:[],researchedAt:null},
   // Internal commercial briefs and source research must not ship to clients.
   internalDisclaimer:'',
-  quality:{previewReady:true,publishReady:true,blockers:[]}
+  quality:{previewReady:true,publishReady:true,blockers:[],evaluation:bp.quality.evaluation}
  };
  return safe;
 }
@@ -89,7 +90,7 @@ export async function exportProject(raw,output){
 import data from '@/site-blueprint.json';
 import type {SiteBlueprint} from '@/lib/site-blueprint';
 import {getGeneratedConceptSet} from '@/lib/concept-imagery';
-export default function Home(){const site=data as SiteBlueprint;return <SiteRenderer site={site} standalone conceptMedia={getGeneratedConceptSet(site.template)}/>;}
+export default function Home(){const site=data as unknown as SiteBlueprint;return <SiteRenderer site={site} standalone conceptMedia={getGeneratedConceptSet(site.template)}/>;}
 `);
   await writeFile(join(target,'app','layout.tsx'),`import type {Metadata} from 'next';
 import content from '@/site-blueprint.json';
@@ -112,7 +113,7 @@ export default function RootLayout({children}:{children:React.ReactNode}){
   await writeFile(join(target,'postcss.config.mjs'),`export default {plugins:{'@tailwindcss/postcss':{}}};\n`);
   await writeFile(join(target,'tsconfig.json'),asJson({
    compilerOptions:{target:'ES2017',lib:['dom','dom.iterable','esnext'],allowJs:true,
-    skipLibCheck:true,strict:true,noEmit:true,esModuleInterop:true,module:'esnext',
+    skipLibCheck:true,strict:true,noEmit:true,allowImportingTsExtensions:true,esModuleInterop:true,module:'esnext',
     moduleResolution:'bundler',resolveJsonModule:true,isolatedModules:true,
     jsx:'react-jsx',incremental:true,paths:{'@/*':['./*']}},
    include:['next-env.d.ts','**/*.ts','**/*.tsx','.next/types/**/*.ts'],

@@ -39,6 +39,12 @@
   .site-motion.motion-cinematic .motion-reveal{animation-range:entry 0% cover 36%}
   .site-motion.motion-precise .motion-reveal{animation-range:entry 12% cover 26%}
  }
+ /* Conversion details and proof must remain fully readable even when the page
+    ends before a view-timeline animation can reach its final keyframe. */
+ .site-motion #gallery,.site-motion #gallery .motion-card,.site-motion #gallery .motion-media,
+ .site-motion #contact,.site-motion #contact .motion-copy{
+  animation:none
+ }
 }
 
 @media (prefers-reduced-motion:reduce){

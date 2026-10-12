@@ -15,7 +15,12 @@ const valid=()=>({
   content:{about:'Approved factual introduction.',factStatus:'owner_approved',
    sourceUrl:'https://example.org/about',appointmentUrl:'https://example.org/book',
    heroTreatment:'typographic',images:[],researchPages:[{url:'https://example.org/gallery',title:'Confidential candidate'}]},
-  quality:{publishReady:true,blockers:[]},
+  quality:{publishReady:true,blockers:[],evaluation:{
+   score:100,threshold:78,accepted:true,failures:[],evidence:[],dimensions:{
+    contentAccuracy:20,conversion:20,informationArchitecture:20,
+    visualSpecificity:20,accessibility:15,performanceReadiness:5
+   }
+  }},
   design:{variant:'editorial',compact:false,prominentNav:false}
  }
 });
@@ -29,6 +34,9 @@ test('client project export rejects research-only assets, unapproved facts and i
  const c=valid();
  c.blueprint.quality.publishReady=false;
  assert.throws(()=>validateExport(c),/owner-approved/i);
+ const d=valid();
+ delete d.blueprint.quality.evaluation;
+ assert.throws(()=>validateExport(d),/quality preflight/i);
 });
 test('standalone project has no CRM login, removes research notes, and never overwrites an existing folder',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'cc-site-export-'));
@@ -40,10 +48,17 @@ test('standalone project has no CRM login, removes research notes, and never ove
   const raw=JSON.parse(await readFile(join(target,'site-blueprint.json'),'utf8'));
   assert.deepEqual(raw.content.researchPages,[]);
   assert.equal(raw.content.factStatus,'owner_approved');
+  assert.deepEqual(raw.content.researchInsights,[]);
+  assert.ok(raw.quality.evaluation);
   assert.ok((await readFile(join(target,'app','page.tsx'),'utf8')).includes('standalone'));
   assert.ok((await readFile(join(target,'components','site-renderer.tsx'),'utf8')).includes('SiteRenderer'));
   assert.ok((await readFile(join(target,'lib','site-evaluation.ts'),'utf8')).includes('evaluateSiteBlueprint'));
   assert.ok((await stat(join(target,'package.json'))).size>10);
+  const tsconfig=JSON.parse(await readFile(join(target,'tsconfig.json'),'utf8'));
+  assert.equal(tsconfig.compilerOptions.allowImportingTsExtensions,true);
+  const motionCss=await readFile(join(target,'styles','site-motion.css'),'utf8');
+  assert.match(motionCss,/#gallery[^}]+animation:none/s);
+  assert.match(motionCss,/#contact[^}]+animation:none/s);
   const readme=await readFile(join(target,'README.md'),'utf8');
   assert.match(readme,/No speed improvements are guaranteed/);
   assert.match(readme,/NO CRM or Supabase connection/);
