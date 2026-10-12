@@ -55,3 +55,15 @@ test('successful public preflight and approved redirect is allowed',async()=>{
   new Response(null,{status:200});
  assert.equal(await preflightPublicWebsite('https://www.example.org/',{resolver,request}),'https://example.org/');
 });
+
+test('a host that rejects HEAD gets one ordinary GET; a GET refusal is still respected',async()=>{
+ const resolver=async()=>[{address:'8.8.8.8',family:4}];
+ const methods=[];
+ const headOnlyBlocked=async(_url,init)=>{methods.push(init.method);return new Response(null,{status:init.method==='HEAD'?403:200});};
+ assert.equal(await preflightPublicWebsite('https://shop.example.org/',{resolver,request:headOnlyBlocked}),'https://shop.example.org/');
+ assert.deepEqual(methods,['HEAD','GET']);
+ const denied=async()=>new Response(null,{status:403});
+ await assert.rejects(preflightPublicWebsite('https://shop.example.org/',{resolver,request:denied}),/denied/);
+ const limited=async(_u,init)=>new Response(null,{status:init.method==='HEAD'?405:429});
+ await assert.rejects(preflightPublicWebsite('https://shop.example.org/',{resolver,request:limited}),/429/);
+});

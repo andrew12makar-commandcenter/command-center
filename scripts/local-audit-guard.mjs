@@ -74,10 +74,16 @@ export async function preflightPublicWebsite(input,{resolver=lookup,request=fetc
  let url=publicAuditUrl(input);
  for(let i=0;i<5;i++){
   await checkPublicDns(url,resolver);
-  const response=await request(url,{
-   method:'HEAD',redirect:'manual',signal:AbortSignal.timeout(10000),
-   headers:{'User-Agent':'CommandCenterLighthousePilot/1.0'}
-  });
+  const headers={'User-Agent':'CommandCenterLighthousePilot/1.0 (manual local research)','Accept':'text/html'};
+  let response=await request(url,{method:'HEAD',redirect:'manual',signal:AbortSignal.timeout(10000),headers});
+  // Many hosts (Shopify, some CDNs) reject HEAD with 403/405 while serving a
+  // normal GET. Ask once more with an ordinary GET, same honest user agent,
+  // discarding the body. A refusal of THAT request is respected as a denial;
+  // this is not an attempt to get past bot protection.
+  if(response.status===403||response.status===405){
+   response=await request(url,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(12000),headers});
+   await response.body?.cancel?.().catch(()=>{});
+  }
   if([301,302,303,307,308].includes(response.status)){
    const location=response.headers.get('location');
    if(!location)throw Error('Redirect without destination.');

@@ -10,11 +10,11 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.ts && node --test tests/*.test.mjs",
     "audit:local": "node scripts/local-lighthouse.mjs",
-    "benchmark:generator": "node --experimental-strip-types scripts/run-generator-benchmarks.ts",
-    "qa:browser": "node --experimental-strip-types scripts/browser-qa/run.mjs",
-    "qa:browser:lighthouse": "node --experimental-strip-types scripts/browser-qa/run.mjs --lighthouse",
-    "research:local": "node --experimental-strip-types scripts/local-site-research.mjs",
-    "discover:overture": "node --experimental-strip-types scripts/overture-discovery.mjs"
+    "benchmark:generator": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/run-generator-benchmarks.ts",
+    "qa:browser": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/browser-qa/run.mjs",
+    "qa:browser:lighthouse": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/browser-qa/run.mjs --lighthouse",
+    "research:local": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/local-site-research.mjs",
+    "discover:overture": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/overture-discovery.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.0",
