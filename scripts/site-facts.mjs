@@ -131,6 +131,32 @@ export function extractBusinessFacts(html,url,capturedAt=new Date().toISOString(
   });
  });
 
+ // 5b. Service pages linked from navigation (/service/family-dental-care).
+ // Many builders (Webflow, Squarespace) list services only as menu links.
+ const servicePath=/\/(?:services?|treatments?|procedures?|practice-areas?|what-we-do|our-work)\/[^/?#]+/i;
+ const genericLink=/^(?:learn more|read more|more|details|view|see all|view all|click here|book now|services?)$/i;
+ $('a[href]').each((_,a)=>{
+  const href=safeLink($(a).attr('href'),url);
+  const t=clean($(a).text(),70);
+  if(!href||!servicePath.test(new URL(href).pathname)||t.length<3||genericLink.test(t))return;
+  if(new URL(href).hostname!==new URL(url).hostname)return;
+  fact('serviceCandidate',t,'service-page-link',`${t} → ${href}`);
+ });
+ // On a service page itself, its section headings are the sub-services.
+ if(servicePath.test(new URL(url).pathname))$('h2,h3').slice(0,16).each((_,h)=>{
+  const t=clean($(h).text(),70);
+  if(t.length>=3&&t.length<=60&&!/\b(book|schedule|call|contact|today|appointment|why|how|what|faq)\b/i.test(t)&&!/[.!?]$/.test(t))
+   fact('serviceCandidate',t,'service-page-heading',t);
+ });
+
+ // 5c. Named clinicians / staff. Only explicit titles count; plain names in
+ // headings are too ambiguous to label as staff.
+ const staffRe=/^(?:Dr\.?\s+[A-Z][\w'’.-]+(?:\s+[A-Z][\w'’.-]+){0,3}|[A-Z][\w'’.-]+(?:\s+[A-Z][\w'’.-]+){1,3},\s*(?:DDS|DMD|MD|DO|DVM|VMD|PhD|NP|PA-C|RN|RDH|Esq\.?|CPA))$/;
+ $('a,h2,h3,h4').each((_,el)=>{
+  const t=clean($(el).text(),70);
+  if(staffRe.test(t))fact('staffCandidate',t,el.tagName==='a'?'link-text':'heading',t);
+ });
+
  // 6. FAQ written as <details>.
  $('details').slice(0,15).each((_,d)=>{
   const q=clean($(d).find('summary').first().text(),200);
@@ -157,7 +183,11 @@ export function extractBusinessFacts(html,url,capturedAt=new Date().toISOString(
   frequentColors:Object.entries(colorCounts).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([c])=>c),
   fonts:[...fonts].slice(0,6),
   navigation:[...new Set(nav)].slice(0,25),
-  logoCandidates:$('img').filter((_,i)=>/logo|brand/i.test(($(i).attr('class')||'')+($(i).attr('alt')||'')+($(i).attr('src')||''))).map((_,i)=>safeLink($(i).attr('src'),url)).get().filter(Boolean).slice(0,3)
+  // Header/nav images first: a logo in the body is often an affiliation badge.
+  logoCandidates:[...new Set([...$('header img, nav img, [class*="navbar"] img').slice(0,2).map((_,i)=>safeLink($(i).attr('src'),url)).get(),
+   ...$('img').filter((_,i)=>/logo|brand/i.test(($(i).attr('class')||'')+($(i).attr('alt')||'')+($(i).attr('src')||''))).map((_,i)=>safeLink($(i).attr('src'),url)).get()].filter(Boolean))].slice(0,3),
+  // The page's own section order: what the business chose to emphasize.
+  sections:$('h2').map((_,h)=>clean($(h).text(),90)).get().filter(t=>t.length>=3).filter((t,i,a)=>a.indexOf(t)===i).slice(0,20)
  };
  const structure={
   title:clean($('title').first().text(),170),

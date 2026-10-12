@@ -93,3 +93,35 @@ test('an empty site produces an honest missing-information list, not filler',()=
  assert.deepEqual(b.missing.map(m=>m.field),['phone','address','hours','service','conversionLink']);
  assert.ok(b.observations.some(o=>/booking/.test(o.finding)));
 });
+
+// Modeled on the first live brief (a Webflow dental site, Oct 12 2026):
+// services only in menu links, clinicians in the menu, qualified Saturday hours,
+// JSON-LD on the homepage only, and the same crowded nav on every page.
+test('live-site patterns: menu services, clinicians, qualified hours, grouped findings',()=>{
+ const site='https://dental.example.org/';
+ const nav=`<nav><a href="/">Home</a><a href="/about-us">About Us</a><a href="/dr-kim">Dr. Hana Kim</a><a href="/dr-ruiz">Dr. Leo Ruiz</a>
+  <a href="/our-services">Our Services</a><a href="/service/family-dental-care">Family Dentistry</a><a href="/service/preventative-dental-care">Preventative Dental Care</a>
+  <a href="/service/sealants">Sealants</a><a href="/service/sealants">Learn more</a><a href="/contact">Contact</a><a href="/blog">Blog</a><a href="/careers">Careers</a></nav>`;
+ const ld=`<script type="application/ld+json">{"@type":"Dentist","name":"Example Dental","telephone":"617-555-0101",
+  "openingHoursSpecification":[{"dayOfWeek":"Saturday","opens":"08:00","closes":"14:00"},{"dayOfWeek":"Monday","opens":"08:00","closes":"16:00"}]}</script>`;
+ const home=`<html><head><meta name="viewport" content="x"><meta name="description" content="d">${ld}</head><body><header><img src="/Logo.svg" alt="">${nav}</header>
+  <h1>Expert dentistry</h1><h2>Comprehensive Dental Services</h2><h2>Insurance</h2><h2>We Are Accepting New Patients</h2>
+  <ul><li>Saturday 8:00 am - 2:00 pm (Open One Saturday a Month)</li></ul><img src="/iti-logo.avif" alt="ITI logo"></body></html>`;
+ const svc=`<html><head><meta name="viewport" content="x"><meta name="description" content="d"></head><body><header>${nav}</header><h1>Preventative Care</h1>
+  <h2>Dental Checkups</h2><h2>Dental Cleanings</h2><h2>Book a Dental Checkup Appointment Today</h2></body></html>`;
+ const pages=[extractBusinessFacts(home,site,at),extractBusinessFacts(svc,site+'service/preventative-dental-care',at)];
+ const b=buildWebsiteBrief('Example Dental',site,pages,new Date(at));
+ const services=b.facts.serviceCandidate.map(f=>f.value);
+ for(const s of ['Family Dentistry','Preventative Dental Care','Sealants','Dental Checkups','Dental Cleanings'])assert.ok(services.includes(s),s);
+ assert.ok(!services.includes('Learn more'));
+ assert.ok(!services.some(s=>/Book/.test(s)));
+ assert.deepEqual(b.facts.staffCandidate.map(f=>f.value),['Dr. Hana Kim','Dr. Leo Ruiz']);
+ assert.ok(!b.missing.some(m=>m.field==='service'));
+ assert.ok(b.conflicts.some(c=>c.field==='hours'&&/One Saturday a Month/.test(String(c.values[0]))));
+ const crowded=b.observations.filter(o=>o.finding==='Navigation is crowded.');
+ assert.equal(crowded.length,1);assert.equal(crowded[0].page,'2 of 2 pages');
+ assert.ok(!b.observations.some(o=>/structured business data/.test(o.finding)),'homepage JSON-LD covers the site');
+ assert.equal(b.design.logoCandidates[0],'https://dental.example.org/Logo.svg');
+ assert.deepEqual(b.design.homepageSections,['Comprehensive Dental Services','Insurance','We Are Accepting New Patients']);
+ assert.match(briefToMarkdown(b),/Homepage sections, in order: Comprehensive Dental Services → Insurance/);
+});
