@@ -127,3 +127,30 @@ test('live-site patterns: menu services, clinicians, qualified hours, grouped fi
  assert.match(md,/Homepage sections, in order: Comprehensive Dental Services → Insurance/);
  assert.match(md,/- Sealants _\(service-page-link, https:\/\/dental\.example\.org\/ \+ 1 more page, 2026-10-12\)_/);
 });
+
+// Modeled on the second live brief (a hibu-built plumbing site, Oct 12 2026):
+// root-level service slugs, a page-builder div wrapping the whole page, and
+// marketing headings/claims that were wrongly listed as services.
+test('live plumbing patterns: slug services, no marketing headings, claims kept apart',()=>{
+ const site='https://plumb.example.org/';
+ const html=`<html><head><meta name="viewport" content="x"><meta name="description" content="d">
+ <script type="application/ld+json">{"@type":"LocalBusiness","name":"Example Plumbing","logo":"https://cdn.example.org/logo.jpg"}</script></head>
+ <body><div class="page"><header><img src="/gallery-maintenance.png" alt=""><nav><a href="/">Home</a><a href="/residential-plumbing">Residential Plumbing</a>
+ <a href="/repiping-services">Repiping Services</a><a href="/sump-pump-repair">Sump Pump Repair</a><a href="/boiler-installation">Boiler Installation</a>
+ <a href="/contact">Contact</a><a href="/blog">Blog</a></nav></header>
+ <h1>Repiping</h1><h2>Repiping Services We Offer</h2><ul><li>Whole-house repiping</li><li>PEX pipe installation</li></ul>
+ <h2>Signs You May Need Repiping Services</h2><ul><li>Low water pressure</li><li>Discolored or rusty water</li></ul>
+ <h2>Why Choose Us</h2><ul><li>Over 150 years of combined experience</li><li>Certified technicians ensuring quality workmanship</li></ul>
+ </div></body></html>`;
+ const r=extractBusinessFacts(html,site+'repiping-services',at);
+ const services=r.facts.filter(f=>f.field==='serviceCandidate').map(f=>f.value);
+ for(const s of ['Repiping Services','Sump Pump Repair','Boiler Installation','Whole-house repiping','PEX pipe installation'])assert.ok(services.includes(s),s);
+ for(const bad of ['Low water pressure','Discolored or rusty water','Signs You May Need Repiping Services','Over 150 years of combined experience','Certified technicians ensuring quality workmanship','Contact','Blog'])
+  assert.ok(!services.includes(bad),bad);
+ const claims=r.facts.filter(f=>f.field==='claimCandidate').map(f=>f.value);
+ assert.ok(claims.includes('Over 150 years of combined experience'));
+ assert.ok(claims.includes('Certified technicians ensuring quality workmanship'));
+ const b=buildWebsiteBrief('Example Plumbing',site,[r],new Date(at));
+ assert.equal(b.design.logoCandidates[0],'https://cdn.example.org/logo.jpg','declared logo outranks header guesses');
+ assert.match(briefToMarkdown(b),/Claims the site makes \(verify before any reuse\)/);
+});

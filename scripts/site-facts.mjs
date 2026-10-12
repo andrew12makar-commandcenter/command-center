@@ -120,33 +120,57 @@ export function extractBusinessFacts(html,url,capturedAt=new Date().toISOString(
   if(dayRe.test(t)&&timeRe.test(t))fact('hours',t,'text-pattern',t);
  });
 
- // 5. Services listed under a services-like heading (same section only).
+ // Marketing headings and claims are not services. Seen on a live plumbing
+ // site: "Signs You May Need Repiping", symptoms, "Over 150 years of combined
+ // experience", "Certified technicians". Claims are kept separately below.
+ const notService=t=>t.length<3||t.length>60||t.split(/\s+/).length>7||/[?!:]$/.test(t)||/[.!?].+[.!?]/.test(t)||phoneRe.test(t)||
+  /^(?:signs?|why|how|what|when|where|who|is|are|do|does|can|should|upgrade|get|call|contact|book|schedule|request|choose|meet|learn|read|our|your|the|we|over|trusted|recent|welcome|about|testimonials?|reviews?)\b/i.test(t)||
+  /\b(?:today|now|near you|years?|experience|certified|licensed|insured|guarantee\w*|award\w*|trusted|best|top[- ]rated|#1|free)\b/i.test(t);
+ const claimRe=/\b(?:\d+\+?\s+years?|since\s+(?:19|20)\d\d|family[- ]owned|licensed|insured|bonded|certified|award[- ]winning|top[- ]rated|#1|best\s+in|guarantee\w*|24\/7|emergency service)\b/i;
+
+ // 5. Services listed directly under a services-like heading. Scope is the
+ // run of elements up to the next heading of the same or higher level, not the
+ // whole enclosing <div> (which on page builders is often the entire page).
  $('h1,h2,h3').each((_,h)=>{
-  if(!serviceHint.test($(h).text()))return;
-  const scope=$(h).closest('section,article,div');
-  scope.find('h3,h4,li').slice(0,24).each((__,item)=>{
-   if(item===h)return;
+  const heading=clean($(h).text(),120);
+  // "Signs You May Need Repiping Services" mentions services but lists symptoms.
+  if(!serviceHint.test(heading)||/^(?:signs?|why|how|what|when|benefits?|reasons?|common|is|are|do|does)\b/i.test(heading))return;
+  const level=Number(h.tagName.slice(1));
+  const stop=Array.from({length:level},(_,i)=>'h'+(i+1)).join(',');
+  let items=$(h).nextUntil(stop).find('li,h3,h4').add($(h).nextUntil(stop).filter('li,h3,h4'));
+  if(!items.length)items=$(h).parent().nextUntil(':has('+stop+')').find('li,h3,h4').slice(0,24);
+  items.slice(0,24).each((__,item)=>{
    const t=clean($(item).text(),90);
-   if(t.length>=3&&t.length<=90&&!/[.!?].+[.!?]/.test(t)&&!phoneRe.test(t))fact('serviceCandidate',t,'heading-section',`${clean($(h).text(),60)} → ${t}`);
+   if(!notService(t))fact('serviceCandidate',t,'heading-section',`${clean($(h).text(),60)} → ${t}`);
   });
  });
 
- // 5b. Service pages linked from navigation (/service/family-dental-care).
- // Many builders (Webflow, Squarespace) list services only as menu links.
+ // 5b. Service pages linked from the site's own menus. Two URL styles occur:
+ // /service/family-dental-care (Webflow dental site) and /repiping-services,
+ // /sump-pump-repair (hibu plumbing site).
  const servicePath=/\/(?:services?|treatments?|procedures?|practice-areas?|what-we-do|our-work)\/[^/?#]+/i;
- const genericLink=/^(?:learn more|read more|more|details|view|see all|view all|click here|book now|services?)$/i;
+ const serviceSlug=/^\/[a-z0-9-]*(?:services?|repairs?|installation|cleaning|maintenance|replacement|inspection|treatments?|therapy|removal|design|remodel\w*|restoration)\/?$/i;
+ const genericLink=/^(?:learn more|read more|more|details|view|see all|view all|click here|book now|services?|our services|all services)$/i;
+ const isServiceUrl=path=>servicePath.test(path)||serviceSlug.test(path);
  $('a[href]').each((_,a)=>{
   const href=safeLink($(a).attr('href'),url);
   const t=clean($(a).text(),70);
-  if(!href||!servicePath.test(new URL(href).pathname)||t.length<3||genericLink.test(t))return;
-  if(new URL(href).hostname!==new URL(url).hostname)return;
+  if(!href||t.length<3||genericLink.test(t))return;
+  const target=new URL(href);
+  if(target.hostname!==new URL(url).hostname||!isServiceUrl(target.pathname))return;
   fact('serviceCandidate',t,'service-page-link',`${t} → ${href}`);
  });
- // On a service page itself, its section headings are the sub-services.
- if(servicePath.test(new URL(url).pathname))$('h2,h3').slice(0,16).each((_,h)=>{
+ // On a service page itself, short section headings name sub-services.
+ if(isServiceUrl(new URL(url).pathname))$('h2,h3').slice(0,16).each((_,h)=>{
   const t=clean($(h).text(),70);
-  if(t.length>=3&&t.length<=60&&!/\b(book|schedule|call|contact|today|appointment|why|how|what|faq)\b/i.test(t)&&!/[.!?]$/.test(t))
-   fact('serviceCandidate',t,'service-page-heading',t);
+  if(!notService(t))fact('serviceCandidate',t,'service-page-heading',t);
+ });
+
+ // 5d. Marketing claims: recorded so a reviewer can verify them, never reused
+ // automatically in generated copy.
+ $('h2,h3,h4,li,strong').each((_,el)=>{
+  const t=clean($(el).text(),120);
+  if(t.length>=8&&t.length<=120&&claimRe.test(t)&&!$(el).find('h2,h3,h4,li').length)fact('claimCandidate',t,'page-text',t);
  });
 
  // 5c. Named clinicians / staff. Only explicit titles count; plain names in

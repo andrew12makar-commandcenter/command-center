@@ -99,7 +99,8 @@ export function buildWebsiteBrief(businessName:string,website:string,pages:PageE
  return {kind:'command-center-website-brief/v1',businessName,website,generatedAt:now.toISOString(),
   pagesAnalyzed:pages.map(p=>p.url),facts,conflicts,missing,
   design:{themeColor:pages.map(p=>p.design.themeColor).find(Boolean)??null,colors:pick(p=>p.design.frequentColors).slice(0,8),
-   fonts:pick(p=>p.design.fonts),navigation:pick(p=>p.design.navigation).slice(0,20),logoCandidates:pick(p=>p.design.logoCandidates).slice(0,3),
+   fonts:pick(p=>p.design.fonts),navigation:pick(p=>p.design.navigation).slice(0,20),// A logo the site declares in structured data outranks any guess.
+   logoCandidates:[...new Set([...(facts.logo??[]).map(f=>String(f.value)),...pick(p=>p.design.logoCandidates)])].slice(0,3),
    homepageSections:pages[0]?.design.sections??[]},
   observations,status:'source_stated_unverified'};
 }
@@ -121,7 +122,7 @@ function sourceSummary(sources:FactSource[]):string{
  return `${methods}, ${urls[0]}${urls.length>1?` + ${urls.length-1} more page${urls.length>2?'s':''}`:''}, ${date}`;
 }
 const labels:Record<string,string>={name:'Business name',businessType:'Declared type',phone:'Phone',email:'Email',address:'Address',geo:'Coordinates',
- hours:'Hours',serviceArea:'Service area',service:'Services (structured data)',serviceCandidate:'Service candidates (from service pages and headings, review needed)',staffCandidate:'Named clinicians / staff (review needed)',
+ hours:'Hours',serviceArea:'Service area',service:'Services (structured data)',serviceCandidate:'Service candidates (from service pages and headings, review needed)',staffCandidate:'Named clinicians / staff (review needed)',claimCandidate:'Claims the site makes (verify before any reuse)',
  conversionLink:'Booking / estimate links',profileLink:'Linked profiles',priceRange:'Price range',faq:'FAQ',logo:'Logo'};
 
 export function briefToMarkdown(b:WebsiteBrief):string{
