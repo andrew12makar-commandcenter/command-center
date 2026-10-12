@@ -9,6 +9,7 @@ import {buildSiteBlueprint} from '@/lib/site-blueprint';
 import SiteRenderer from '@/components/site-renderer';
 import {getGeneratedConceptSet} from '@/lib/concept-imagery';
 import {groupResearchInsights} from '@/lib/research-intelligence';
+import {deriveSiteRedesignReference} from '@/lib/source-redesign-reference';
 
 const issueOptions=[
  ['layout','Layout and hierarchy'],['visuals','Visual quality'],['generic_copy','Generic messaging'],
@@ -51,6 +52,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
   const researchedImages=site.content.images.filter(x=>x.permission==='reference_only'&&x.role!=='hero');
   const approvedGallery=site.content.images.filter(x=>x.permission==='approved'&&x.role!=='hero');
   const researchGroups=groupResearchInsights(site.content.researchInsights);
+  const siteReference=deriveSiteRedesignReference(site.content,demo.template as Template,site.services);
   return <main className="max-w-[1320px]">
     <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
       <div><Link href="/app/demos" className="muted text-sm">← Demo Studio</Link>
@@ -155,6 +157,23 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
       {site.content.researchPages.length>0&&<details className="mt-6 rounded-xl border border-[#2e5861] p-4" open>
        <summary className="cursor-pointer text-sm font-semibold">Sourced candidates · {site.content.researchPages.length} inspected pages · {site.content.images.filter(x=>x.permission==='reference_only').length} unapproved image references</summary>
        <p className="muted mt-3 text-xs">Candidate text is NOT verified practice information. Independently check it, rewrite appropriately, and obtain image permission before use in a real site.</p>
+       <div className="mt-5 rounded-xl border border-[#2e5861] p-4" data-testid="existing-site-design-reference">
+        <h3 className="text-sm font-semibold">Existing-website redesign reference</h3>
+        <p className="muted mt-2 text-xs leading-5">This plan starts with the company's researched public site instead of treating every prospect as the same template. Research evidence is for private design planning until reviewed.</p>
+        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+         <div><dt className="muted text-xs">Original site</dt><dd className="mt-1 break-all">{siteReference.sourceHosts.join(', ')||'No reference yet'}</dd></div>
+         <div><dt className="muted text-xs">Suggested composition</dt><dd className="mt-1">{siteReference.recommendedComposition.replaceAll('-',' ')}</dd></div>
+         <div><dt className="muted text-xs">Photos with display approval</dt><dd className="mt-1">{siteReference.approvedImages}</dd></div>
+         <div><dt className="muted text-xs">Imagery direction</dt><dd className="mt-1">{siteReference.mediaPlan.replaceAll('-',' ')}</dd></div>
+         <div><dt className="muted text-xs">Original theme-color cues (unverified)</dt><dd className="mt-1">{siteReference.sourceThemeColors.join(', ')||'Not detected'}</dd></div>
+         <div><dt className="muted text-xs">Original photo references awaiting permission</dt><dd className="mt-1">{siteReference.unapprovedImageReferences}</dd></div>
+        </dl>
+        {siteReference.warnings.length>0&&<ul className="muted mt-4 list-disc space-y-1 pl-5 text-xs leading-5">{siteReference.warnings.map(w=><li key={w}>{w}</li>)}</ul>}
+        {siteReference.imageBriefs.length>0&&<details className="mt-4 border-t border-[#2e5861] pt-4"><summary className="cursor-pointer text-xs font-semibold">AI conceptual image briefs for later generation</summary>
+         <ol className="muted mt-3 list-decimal space-y-2 pl-5 text-xs leading-5">{siteReference.imageBriefs.map(x=><li key={x}>{x}</li>)}</ol>
+         <p className="muted mt-3 text-xs">These are NOT generated photos and must not be presented as real business facilities, staff, or completed projects.</p>
+        </details>}
+       </div>
        <div className="mt-4 grid gap-4 lg:grid-cols-2">{site.content.researchPages.map(page=><div className="rounded-xl border border-[#273b48] p-4" key={page.url}>
         <a className="break-all text-sm font-semibold text-cyan-300 underline" href={page.url} target="_blank" rel="noopener noreferrer">{page.title||page.url} ↗</a>
         {page.description&&<p className="muted mt-2 text-xs leading-5">{page.description}</p>}
