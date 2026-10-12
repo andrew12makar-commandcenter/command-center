@@ -94,3 +94,43 @@ export function IndustryNextSteps({site,theme,compact}:Props){
     </li>)}</ol>
   </div></section>;
 }
+
+type GalleryImage={src:string;alt:string;credit?:string|null;concept:boolean};
+export function IndustryGallery({site,theme,images}:{site:SiteBlueprint;theme:Tone;images:GalleryImage[]}){
+ if(!images.length)return null;
+ const {gallery:layout}=selectSectionPresentation(site);
+ const outdoor=site.template==='landscaping';
+ const medical=site.template==='medical';
+ const eyebrow=outdoor?'Outdoor inspiration':medical?'Visual references':'A closer look';
+ const title=outdoor?'Considered spaces, thoughtfully composed.':
+  medical?'A calm, considered visual direction.':'Details that define the experience.';
+ const intro=outdoor?'Concept directions and approved imagery provide a visual starting point.':
+  medical?'Any conceptual imagery is illustrative, not a photograph of the practice.':
+  'A mix of approved business photography and clearly marked concepts.';
+ const dark=layout==='project-grid';
+ const bg=dark?theme.ink:layout==='editorial'?theme.soft:theme.paper;
+ const muted=dark?'text-white/70':theme.muted;
+ const border=dark?'border-white/15':'border-black/10';
+ return <section id="gallery" data-gallery-layout={layout}
+  className={`motion-section motion-reveal ${pad} py-20 lg:py-28 ${bg}`}>
+  <div className="mx-auto max-w-[1450px]">
+   <header className={`mb-10 flex flex-col gap-6 border-b pb-8 lg:flex-row lg:items-end lg:justify-between ${border}`}>
+    <div><p className={`text-xs font-semibold uppercase tracking-[.22em] ${dark?'text-white/60':theme.eyebrow}`}>{eyebrow}</p>
+     <h2 className="mt-5 max-w-3xl text-[clamp(2.1rem,4.1vw,4.5rem)] font-semibold leading-[1.08] tracking-[-.045em]">{title}</h2></div>
+    <p className={`max-w-sm text-sm leading-7 ${muted}`}>{intro}</p>
+   </header>
+   <div className={`grid gap-5 ${layout==='project-grid'?'md:grid-cols-[minmax(0,1.35fr)_minmax(0,.65fr)]':
+     layout==='editorial'?'md:grid-cols-[minmax(0,.75fr)_minmax(0,1.25fr)]':'md:grid-cols-2'}`}>
+    {images.map((img,i)=><figure key={img.src+i} className={`motion-media motion-card min-w-0 overflow-hidden ${dark?'bg-white/10':'bg-black/[.025]'}`}>
+     <div className={`relative overflow-hidden ${layout==='project-grid'&&i===0?'aspect-[4/3] md:aspect-[3/4]':
+       layout==='editorial'&&i===1?'aspect-[4/3]':'aspect-[5/4]'}`}>
+      <img src={img.src} alt={img.alt} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.025]"/>
+     </div>
+     <figcaption className={`flex min-w-0 gap-4 border-t p-4 text-xs leading-6 ${border} ${muted}`}>
+      <span className="font-semibold tracking-wider">{index(i)}</span>
+      <span>{img.concept?'AI-generated concept visual. Not a photograph of this business.':img.alt}
+       {img.credit?' · '+img.credit:''}</span>
+     </figcaption>
+    </figure>)}</div>
+  </div></section>;
+}
