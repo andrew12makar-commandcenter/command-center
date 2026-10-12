@@ -36,13 +36,21 @@ This is the compact recovery checkpoint for continued development of the **local
 - Evidence: [GitHub Actions run 38211358242](https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38211358242) **passed** all repository tests, TypeScript, production build, and cold-install exported customer-site production build.
 - Still unverified: browser screenshots and human design ratings, live Supabase feedback action (the loop adapters exist, but `app/app/demos/feedback-actions.ts` still uses the older preference derivation), and production DB migrations. DO NOT claim feedback is automatically applied to live user accounts yet.
 
+## Verified checkpoint 5: cross-industry design systems
+- Latest verified feature commit `4fe640d21e7812f7c4908d2f69f8b548d074024e` (includes renderer integration fix); earlier code commits `f4ff02c`, `c6a1366`, `0db40da`, `9efbfa9`, `b61cb7c`.
+- Added `lib/site-presentation.ts` and `components/site-industry-sections.tsx` to select distinct, content-appropriate service presentation systems for clinical, landscaping, and professional services. A narrow generic three-card process grid was replaced by a full-width responsive journey section with industry-specific, non-fabricated guidance.
+- `components/site-renderer.tsx` now uses these sections. `scripts/export-client-site.mjs` includes their two dependencies in independent customer projects.
+- Added `tests/site-presentation.test.ts` to cover multiple compositions per industry, cross-industry variance, and sparse-service fallbacks.
+- Evidence: [GitHub Actions run 38220052264](https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38220052264) PASSED unit tests, typecheck, main build and standalone client export production build. An earlier intermediate commit briefly failed typecheck due to orphan JSX and was corrected before this verified checkpoint.
+- Important: no browser screenshot comparison of the new output has yet been made; quality has not been human-approved. The benchmark still scores structural preflight only.
+
 ## Evaluation baseline (not a production claim)
 - Prior documented fictional benchmark: rules+search holdout agreement 0.625; baseline 0.292; cross-validation 0.652; unfamiliar-style interpreter recall 0.167. Source: `docs/feedback-loop.md`.
 - Six generator cases scored 100/100 on permissive *structural preflight*; that is not a measured visual-quality score.
 - External client content, rights, real browsers, and production database state are still unverified in this checkpoint.
 
 ## Current objective
-Next task: validate actual production renderer in a running browser across medical, landscaping, and professional-services demos, then safely wire saved reviews to structured feedback rules using org-scoped Supabase data once migration state is verified. Do not claim the private authenticated user flow has been tested.
+Next task: develop a source-website reference brief from bounded existing business-site research (title, headings, approved image candidates, site look cues with provenance) and integrate it into subsequent design decisions without copying content or assuming asset rights. Then visually review new layouts in browser (user runs localhost:3001), revise based on screenshots, and upgrade style/media diversity. Live Supabase migration status remains unknown.
 
 ## Recovery instructions
 1. Inspect this file, check `git status` and branch; do not reset original Mac work.
