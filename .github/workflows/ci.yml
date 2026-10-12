@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/nextjs-foundation
+      - integration/claude-roadmap-oct12
   pull_request:
     branches:
       - main

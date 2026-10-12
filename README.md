@@ -165,3 +165,18 @@ npm run dev
 ```
 
 The project must still undergo client sign-off, image hosting/optimization, real booking or forms integration, accessibility and performance testing, domain configuration, and deployment. The export is a code scaffold, **not an approved or published client site**. A site cannot be exported when it still contains research-only image references.
+
+## Dual-venture progress tracker (integration branch)
+
+This integration branch starts from the preserved Claude generator checkpoint. Its original generator source, feedback loop, benchmarks, art assets, styles, export engine, and tests remain intact. The only imported application feature is the Command Center roadmap sidebar and detailed progress screen at `/app/roadmap`. No site-generator files or prior database migrations are overwritten.
+
+The sequence for NEW roadmap migrations is:
+
+1. Check which migrations have actually run in the **existing for-profit** Command Center Supabase project. Never rerun a migration because a README says to.
+2. Claude's `0004_generator_intelligence.sql` is preserved unchanged. If it has not been applied, review and apply it once according to Claude's generator requirements.
+3. After 0004, apply `0005_project_roadmap.sql` **once** to create the organization-scoped milestone table.
+4. Then apply `0006_roadmap_execution_log.sql` **once** to support active/blocked states and a history of manually recorded progress updates.
+
+If the tracker migrations have not been run, the sidebar and full roadmap show a **read-only preview**. The baseline milestones are an engineering snapshot, not a claim of live deployments or paid clients. Only explicitly saved changes advance a milestone; there are no automatic background coding agents. 
+
+**Before switching to this branch on the Mac:** Claude's local checkpoint is on `claude-local-work-oct12`, with an outstanding generated `next-env.d.ts` change and an older Git stash. Keep the Finder backup. Do not force a pull, discard changes, or run migrations without verifying database state. CI must pass before considering the integrated branch.
