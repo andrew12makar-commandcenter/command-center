@@ -22,20 +22,41 @@ const sourceHost=(s:string)=>{try{return new URL(s).hostname.replace(/^www\./,''
 const safeService=(value:string)=>value.replace(/[<>\n\r]/g,' ').trim().slice(0,65);
 
 function conceptBrief(template:Template,services:string[]):string[]{
- // A generated *concept* must never imply it is the company's real site,
- // employees, work, treatment results, facility or customer testimonial.
+ // These describe proposed *new concept images*, never observed photographs.
+ // Deliberately distinguish medical specialties and home-service trades.
+ const topics=services.join(' ').toLowerCase();
  const focus=safeService(services[0]??'');
- if(template==='medical')return [
-  'Editorial abstract healthcare still life: natural materials, indirect daylight, calm architectural textures. No patient, staff, identifiable facility or clinical outcome. Mark as AI concept.',
-  'Non-identifiable close-up of clean materials and light in a modern healthcare-inspired environment. No identifiable practice or medical equipment claims. AI concept, not a business photograph.'
- ];
- if(template==='landscaping')return [
-  `Conceptual landscape design photograph of an aspirational garden setting${focus?` inspired by ${focus}`:''}, natural seasonal light, original composition, no identifiable property or claim of completed work. Label AI concept.`,
-  'Conceptual close-up of garden materials and planting textures, professionally composed, no claimed client project or company equipment. Label AI concept.'
+ if(template==='medical'){
+  if(/\b(vet\w*|pets?|animal\w*|feline|canine|puppy|kitten)\b/.test(topics))return [
+   'Original editorial AI concept of a healthy dog and cat in a calming pet-care-inspired setting, authentic natural textures. No claimed veterinary facility, real patients, staff, logos or treatment outcome. Clearly label as AI concept.',
+   'Original AI concept of pet-care essentials in natural light with neutral background, composition suited to a veterinary website. No identifiable clinical premises, procedures or business identity. Clearly label as AI concept.'
+  ];
+  if(/\b(dent\w*|orthodont\w*|tooth|teeth|implant\w*)\b/.test(topics))return [
+   'Original conceptual image of a contemporary dental-inspired treatment space, premium architectural lighting, no recognizable practice or patient. Not a photograph of the business. Clearly label AI concept.',
+   'Original abstract dental wellness image with modern clinical material details; no actual staff, patients, proprietary brands or treatment outcome. Clearly label AI concept.'
+  ];
+  return [
+   'Original healthcare editorial AI concept with non-identifiable wellness objects and gentle daylight, no identifiable clinic, clinicians, patients, treatments or clinical outcomes. Clearly label AI concept.',
+   'Abstract healthcare-inspired material still life suitable for an information-focused primary-care site, without implying an actual office or physician. Clearly label AI concept.'
+  ];
+ }
+ if(template==='landscaping'){
+  if(/\b(plumb\w*|hvac|heat\w*|electri\w*|roof\w*|repair\w*)\b/.test(topics))return [
+   'Original conceptual editorial photograph of clean home-service tools and precision materials associated with '+focus+', no claimed completed project, worker, employer branding or identifiable property. Clearly label AI concept.',
+   'Close-up AI concept of textures and tools appropriate for '+focus+', editorial lighting and restrained composition, not actual business work or a client property. Clearly label AI concept.'
+  ];
+  return [
+   'Original aspirational landscape design AI concept inspired by '+focus+', natural seasonal light and strong photographic composition; no claimed completed company project or identifiable property. Clearly label AI concept.',
+   'Original garden material and planting texture AI concept, richly art-directed, no claimed company jobsite, client property or branded equipment. Clearly label AI concept.'
+  ];
+ }
+ if(/\b(book\w*|reading|literature)\b/.test(topics))return [
+  'Original editorial AI concept featuring contemporary book stacks, warm textures and reading objects, no claimed photograph of the bookstore or its actual inventory. Clearly label AI concept.',
+  'Original bookshop-inspired still life, intentional lighting and typographic composition, no recognizable premises or trademarked book covers. Clearly label AI concept.'
  ];
  return [
-  `Editorial still life for a professional service${focus?` in the domain of ${focus}`:''}, tactile material, natural light, original design. No employees, headquarters or claimed customer projects. Label AI concept.`,
-  'Abstract premium professional-services architectural detail, restrained lighting and geometry, not a picture of the company. Label AI concept.'
+  'Original premium editorial still life reflecting '+(focus||'professional services')+', sophisticated material, natural light and restrained visual hierarchy; no claimed business office or completed client project. Clearly label AI concept.',
+  'Original abstract architectural-detail AI concept for '+(focus||'a professional service')+', no actual employee, headquarters or customer work. Clearly label AI concept.'
  ];
 }
 
