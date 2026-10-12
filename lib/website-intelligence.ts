@@ -8,7 +8,7 @@ export type AuditEvidence={
   detail:string;source:'Google Lighthouse';measured_at:string
 };
 export type AuditFindings={
-  version:1;provider:'Google PageSpeed Insights';strategy:'mobile';
+  version:1;provider:'Google PageSpeed Insights'|'Local Chrome Lighthouse';strategy:'mobile';
   analyzed_url:string;final_url:string|null;measured_at:string;
   performance_score:number|null;seo_score:number|null;
   technical_opportunity_score:number|null;
