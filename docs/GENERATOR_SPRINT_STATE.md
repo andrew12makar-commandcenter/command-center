@@ -13,16 +13,23 @@ This is the compact recovery checkpoint for continued development of the **local
 - Evidence: [GitHub Actions run 38209922935](https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38209922935) **passed** tests, TypeScript, production build, and standalone client export build.
 - Unmeasured: genuine unfamiliar-feedback recall, visual quality, real users. Never present these changes as model training or claim recall improved without a separately preserved holdout.
 
+## Verified checkpoint 2: publication preflight safety and honest quality scope
+- Commits: `f675f00` preflight hardening, `70fa3b0` URL-regex correction, `7b751f0` regression tests.
+- The evaluator now rejects unsafe or credential-bearing source/booking destinations, including local/private host patterns, even when other contact methods are present. Existing upstream URL sanitation remains intact.
+- Quality records identify the 0–100 number as **blueprint preflight** and explicitly mark rendered visual quality, runtime performance and client acceptance **unverified**. This does not fix the benchmark's limited visual discrimination.
+- Evidence: [GitHub Actions run 38210198295](https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38210198295) **passed** unit tests, TypeScript, main build, and cold-install standalone client export production build.
+- Latest **tested feature commit**: `7b751f0c43d5c5ff84fabfa9a2402f6f7dbccb7a`. Later documentation-only commits do not replace this test evidence.
+
 ## Evaluation baseline (not a production claim)
 - Prior documented fictional benchmark: rules+search holdout agreement 0.625; baseline 0.292; cross-validation 0.652; unfamiliar-style interpreter recall 0.167. Source: `docs/feedback-loop.md`.
 - Six generator cases scored 100/100 on permissive *structural preflight*; that is not a measured visual-quality score.
 - External client content, rights, real browsers, and production database state are still unverified in this checkpoint.
 
 ## Current objective
-Tighten blueprint quality evidence and distinguish structural preflight success from unassessed visual quality, without weakening export or asset gates.
+Connect validated feedback-to-preference decisions to genuinely inspected production SiteRenderer output across three verticals, with real desktop/mobile evidence and human design review. Do not claim this was done yet. Improve evaluator's ability to discriminate weak layouts only after establishing defensible visual evidence.
 
 ## Recovery instructions
 1. Inspect this file, check `git status` and branch; do not reset original Mac work.
-2. Read only relevant `lib/site-evaluation.ts` and `tests/site-blueprint.test.ts`.
-3. Implement one bounded improvement plus regression tests, run targeted tests and GitHub CI, commit it.
-4. Update this checkpoint with the latest verified commit and one next task.
+2. Read only relevant `lib/generator-loop/integration.ts`, `components/site-renderer.tsx`, and renderer/benchmark paths.
+3. Implement one bounded feedback-to-render improvement plus regression tests, validate browser output when available, and run CI.
+4. Update this checkpoint with the latest verified commit and next task.
