@@ -9,6 +9,7 @@ export type SiteRedesignReference={
  sourceThemeColors:string[];
  approvedImages:number;
  unapprovedImageReferences:number;
+ rejectedImages:number;
  reviewedTopics:string[];
  recommendedComposition:CompositionFamily;
  recommendedImageTreatment:ImageTreatment;
@@ -70,7 +71,8 @@ export function deriveSiteRedesignReference(
  const reviewed=content.researchInsights.filter(i=>i.status==='reviewed');
  const reviewedTopics=unique(reviewed.map(i=>i.kind));
  const approvedImages=content.images.filter(i=>i.permission==='approved').length;
- const unapprovedImageReferences=content.images.filter(i=>i.permission!=='approved').length;
+ const unapprovedImageReferences=content.images.filter(i=>i.permission==='reference_only').length;
+ const rejectedImages=content.images.filter(i=>i.permission==='rejected').length;
  const hasVisualSource=approvedImages>=2&&reviewedTopics.includes('gallery');
  let recommendedComposition:CompositionFamily;
  if(template==='medical')recommendedComposition=services.length>=5?'service-index':reviewedTopics.includes('team')?'asymmetric':'split-editorial';
@@ -83,7 +85,7 @@ export function deriveSiteRedesignReference(
  if(unapprovedImageReferences)warnings.push(`${unapprovedImageReferences} source image reference(s) lack confirmed commercial display rights.`);
  if(sourceThemeColors.length)warnings.push('Detected theme colors are unverified styling cues, not approved brand colors.');
  if(!approvedImages&&content.generatedImageryEnabled)warnings.push('Concept prompts require a separate generation step, human review and AI-image disclosure.');
- return {sourcePages:content.researchPages.length,sourceHosts,sourceThemeColors,approvedImages,
+ return {sourcePages:content.researchPages.length,sourceHosts,sourceThemeColors,approvedImages,rejectedImages,
   unapprovedImageReferences,reviewedTopics,recommendedComposition,recommendedImageTreatment,
   mediaPlan,imageBriefs:mediaPlan==='concept-image-brief-needed'?conceptBrief(template,[...services]):[],warnings};
 }

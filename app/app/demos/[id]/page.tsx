@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireWorkspace } from '@/lib/workspace';
-import {rateDemo,saveDemoCopy,applyLearnedPreferences,importSiteResearch,researchBusinessWebsite,applyReviewedResearch} from '../feedback-actions';
+import {rateDemo,saveDemoCopy,applyLearnedPreferences,importSiteResearch,researchBusinessWebsite,applyReviewedResearch,reviewImageRights} from '../feedback-actions';
 import { derivePreferences, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
 import {classifyIndustry} from '@/lib/business-classification';
 import { ArrowUpRight, ArrowDown, Check, BadgeInfo } from 'lucide-react';
@@ -10,6 +10,7 @@ import SiteRenderer from '@/components/site-renderer';
 import {getMatchedConceptSet} from '@/lib/concept-imagery';
 import {groupResearchInsights} from '@/lib/research-intelligence';
 import {deriveSiteRedesignReference} from '@/lib/source-redesign-reference';
+import {summarizeAssetRights} from '@/lib/asset-rights';
 
 const issueOptions=[
  ['layout','Layout and hierarchy'],['visuals','Visual quality'],['generic_copy','Generic messaging'],
@@ -53,6 +54,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
   const approvedGallery=site.content.images.filter(x=>x.permission==='approved'&&x.role!=='hero');
   const researchGroups=groupResearchInsights(site.content.researchInsights);
   const siteReference=deriveSiteRedesignReference(site.content,demo.template as Template,site.services);
+  const rights=summarizeAssetRights(site.content);
   return <main className="max-w-[1320px]">
     <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
       <div><Link href="/app/demos" className="muted text-sm">← Demo Studio</Link>
@@ -63,7 +65,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
       <Link className="btn" href={'/app/leads/'+demo.business_id}>CRM record <ArrowUpRight size={15}/></Link></div>
     </div>
     {saved&&<p role="status" className="mb-4 rounded-xl border border-[#2f726b] bg-[#14372f] p-3 text-sm text-[#bbebd8]">
-      <Check className="mr-2 inline" size={16}/>{saved==='rating'?'Feedback saved. Your next generated demo now uses your updated preferences.':saved==='adapted'?'A new revision was created with your learned layout preferences.':saved==='unchanged'?'This demo already reflects your saved preferences.':saved==='research-applied'?'Reviewed research applied to a new private revision.':saved==='live-research'?'Live website research saved as sourced candidates for review.':saved==='research'?'Website research imported as unapproved references for review.':'Copy saved as a new revision.'}
+      <Check className="mr-2 inline" size={16}/>{saved==='rating'?'Feedback saved. Your next generated demo now uses your updated preferences.':saved==='adapted'?'A new revision was created with your learned layout preferences.':saved==='unchanged'?'This demo already reflects your saved preferences.':saved==='research-applied'?'Reviewed research applied to a new private revision.':saved==='live-research'?'Live website research saved as sourced candidates for review.':saved==='research'?'Website research imported as unapproved references for review.':saved==='rights'?'Asset-rights decision saved in a new private revision.':'Copy saved as a new revision.'}
     </p>}
     {researchError&&<p role="alert" className="mb-4 rounded-xl border border-amber-700 bg-amber-950/30 p-3 text-sm text-amber-100">
      {researchError==='missing-website'?'This CRM record has no independent company website. Add and verify one before live research.':'The recorded site did not provide readable public pages within the safety limits. No research was saved.'}
@@ -102,7 +104,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
       <div className="mt-4 flex flex-wrap gap-3 text-sm">
        <span className="rounded-full border border-[#2a5053] px-4 py-2">Private preview: {site.quality.previewReady?'Content reviewed':'Research incomplete'}</span>
        <span className="rounded-full border border-[#2a5053] px-4 py-2">Publishing: {site.quality.publishReady?'Meets basic content gate':'Blocked until approval'}</span>
-       <span className="rounded-full border border-[#2a5053] px-4 py-2">Approved images: {site.content.images.filter(x=>x.permission==='approved').length}</span>
+       <span className="rounded-full border border-[#2a5053] px-4 py-2">Image rights: {rights.approved} approved · {rights.pending} pending · {rights.rejected} rejected</span>
        <span className="rounded-full border border-[#2a5053] px-4 py-2">Generated visual system: {site.content.generatedImageryEnabled?'Active':'Off'}</span>
        <span className="rounded-full border border-[#2a5053] px-4 py-2">Business-site photo authorization: {site.content.imageAuthorization.mode==='business_site_authorized'?'Recorded':'Not granted'}</span>
        <span className="rounded-full border border-[#2a5053] px-4 py-2">Motion system: Required · {site.design.motionPlan.sectionReveal.replaceAll('-',' ')}</span>
@@ -126,12 +128,23 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
         {site.quality.blockers.map(x=><li key={x}>{x}</li>)}
        </ul>
       </div>}
-      {site.content.images.length>0&&<details className="mt-5 text-sm">
-       <summary className="cursor-pointer font-semibold">Asset provenance and permission inventory ({site.content.images.length})</summary>
-       <div className="mt-3 space-y-3">{site.content.images.map((img,i)=><div className="rounded-xl border border-[#273b48] p-3" key={i}>
-        <p><strong>{img.role}</strong> · {img.permission==='approved'?'Operator-confirmed permission':'Reference only, not displayed'}</p>
+      {site.content.images.length>0&&<details className="mt-5 text-sm" open={rights.pending>0}>
+       <summary className="cursor-pointer font-semibold">Asset rights queue ({rights.pending} awaiting review)</summary>
+       <p className="muted mt-3 text-xs leading-5">A public photo or Google listing is only a reference. Approve an item only after independently confirming commercial display rights. Rejected items remain in the revision history and are never rendered.</p>
+       <div className="mt-3 space-y-3">{site.content.images.map((img,i)=><div className="rounded-xl border border-[#273b48] p-4" key={i}>
+        <p><strong>{img.role}</strong> · {img.permission==='approved'?'Approved for display':img.permission==='rejected'?'Rejected, not displayed':'Pending rights review, not displayed'}</p>
         <p className="muted mt-1 break-all">{img.alt}</p>
         <a href={img.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 block break-all text-cyan-300 underline">View recorded source ↗</a>
+        {img.rightsNote&&<p className="muted mt-2 text-xs leading-5">Review note: {img.rightsNote}</p>}
+        <form action={reviewImageRights} className="mt-4 grid gap-3 rounded-lg bg-[#0c1b23] p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+         <input type="hidden" name="demo_id" value={id}/><input type="hidden" name="revision_no" value={demo.revision_no??1}/><input type="hidden" name="asset_url" value={img.url}/>
+         <label className="text-xs">Rights evidence or rejection reason<textarea className="mt-2" name="rights_evidence" rows={2} maxLength={500} defaultValue={img.rightsNote??''} required/></label>
+         <div className="flex min-w-[190px] flex-col justify-end gap-2">
+          <select name="decision" defaultValue={img.permission==='rejected'?'rejected':'approved'} aria-label="Asset rights decision"><option value="approved">Approve for display</option><option value="rejected">Reject asset</option></select>
+          <label className="flex items-start gap-2 text-[11px] leading-4"><input className="mt-0.5" type="checkbox" name="rights_confirmed"/>I independently verified display permission. Required for approval.</label>
+          <button type="submit" className="btn">Save rights decision</button>
+         </div>
+        </form>
        </div>)}</div>
       </details>}
     </section>
@@ -159,7 +172,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
        <p className="muted mt-3 text-xs">Candidate text is NOT verified practice information. Independently check it, rewrite appropriately, and obtain image permission before use in a real site.</p>
        <div className="mt-5 rounded-xl border border-[#2e5861] p-4" data-testid="existing-site-design-reference">
         <h3 className="text-sm font-semibold">Existing-website redesign reference</h3>
-        <p className="muted mt-2 text-xs leading-5">This plan starts with the company's researched public site instead of treating every prospect as the same template. Research evidence is for private design planning until reviewed.</p>
+        <p className="muted mt-2 text-xs leading-5">This plan starts with the company&apos;s researched public site instead of treating every prospect as the same template. Research evidence is for private design planning until reviewed.</p>
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
          <div><dt className="muted text-xs">Original site</dt><dd className="mt-1 break-all">{siteReference.sourceHosts.join(', ')||'No reference yet'}</dd></div>
          <div><dt className="muted text-xs">Suggested composition</dt><dd className="mt-1">{siteReference.recommendedComposition.replaceAll('-',' ')}</dd></div>
@@ -167,6 +180,7 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
          <div><dt className="muted text-xs">Imagery direction</dt><dd className="mt-1">{siteReference.mediaPlan.replaceAll('-',' ')}</dd></div>
          <div><dt className="muted text-xs">Original theme-color cues (unverified)</dt><dd className="mt-1">{siteReference.sourceThemeColors.join(', ')||'Not detected'}</dd></div>
          <div><dt className="muted text-xs">Original photo references awaiting permission</dt><dd className="mt-1">{siteReference.unapprovedImageReferences}</dd></div>
+         <div><dt className="muted text-xs">Rejected source images</dt><dd className="mt-1">{siteReference.rejectedImages}</dd></div>
         </dl>
         {siteReference.warnings.length>0&&<ul className="muted mt-4 list-disc space-y-1 pl-5 text-xs leading-5">{siteReference.warnings.map(w=><li key={w}>{w}</li>)}</ul>}
         {siteReference.imageBriefs.length>0&&<details className="mt-4 border-t border-[#2e5861] pt-4"><summary className="cursor-pointer text-xs font-semibold">AI conceptual image briefs for later generation</summary>

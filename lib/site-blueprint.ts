@@ -6,10 +6,10 @@ import {buildServiceSpecificCopy} from './business-specific-copy.ts';
 import type {ResearchInsight,ResearchInsightKind} from './research-intelligence.ts';
 
 export type ImageRole='hero'|'gallery'|'team'|'logo';
-export type ImagePermission='reference_only'|'approved';
+export type ImagePermission='reference_only'|'approved'|'rejected';
 export type SiteImage={
   url:string;alt:string;sourceUrl:string;role:ImageRole;
-  permission:ImagePermission;credit?:string;
+  permission:ImagePermission;credit?:string;rightsNote?:string;rightsReviewedAt?:string;
 };
 export type ResearchPage={url:string;title:string;description:string;headings:string[];excerpts:string[];themeColor?:string|null};
 export type ImageAuthorization={
@@ -76,8 +76,10 @@ export function safeImage(raw:Partial<SiteImage>):SiteImage|null{
   raw.role as ImageRole:'gallery';
  if(!url||!sourceUrl)return null;
  return {url,sourceUrl,role,alt:asText(raw.alt,180)||'Business imagery',
-  permission:raw.permission==='approved'?'approved':'reference_only',
-  credit:asText(raw.credit,140)||undefined};
+  permission:raw.permission==='approved'?'approved':raw.permission==='rejected'?'rejected':'reference_only',
+  credit:asText(raw.credit,140)||undefined,
+  rightsNote:asText(raw.rightsNote,500)||undefined,
+  rightsReviewedAt:typeof raw.rightsReviewedAt==='string'&&Number.isFinite(Date.parse(raw.rightsReviewedAt))?raw.rightsReviewedAt:undefined};
 }
 export function cleanSiteContent(value:unknown):SiteContent{
  const o=value&&typeof value==='object'?value as Record<string,unknown>:{};

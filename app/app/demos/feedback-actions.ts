@@ -6,6 +6,7 @@ import { derivePreferences, planGeneration, type DemoCopy, type FeedbackSample, 
 import {businessImageAuthorization,canAutoUseBusinessImage,cleanSiteContent,safeImage,safePublicUrl,type SiteImage,type ImagePermission} from '@/lib/site-blueprint';
 import {deriveResearchInsights} from '@/lib/research-intelligence';
 import {deriveSiteRedesignReference} from '@/lib/source-redesign-reference';
+import {applyImageRightsDecision} from '@/lib/asset-rights';
 // These dependency-free guards are shared with the local research runner.
 // @ts-expect-error JavaScript module intentionally has no generated declarations.
 import {preflightPublicWebsite} from '../../../scripts/local-audit-guard.mjs';
@@ -162,6 +163,33 @@ export async function applyReviewedResearch(form:FormData){
  if(error)throw new Error('Could not apply reviewed research: '+error.message);
  revalidatePath('/app/demos/'+id);
  redirect('/app/demos/'+id+'?saved=research-applied');
+}
+
+/** Record a human rights decision for one sourced asset. Revisions preserve
+ * the prior reference and no image is approved from public visibility alone. */
+export async function reviewImageRights(form:FormData){
+ const {supabase,organizationId}=await requireWorkspace(true);
+ const id=shortText(form.get('demo_id'),64),expectedRevision=Number(form.get('revision_no'));
+ const assetUrl=checkedUrl(form.get('asset_url'),'Image URL');
+ const decision=shortText(form.get('decision'),20);
+ const evidence=shortText(form.get('rights_evidence'),500);
+ if(!validUuid(id)||!Number.isInteger(expectedRevision)||expectedRevision<1||!assetUrl)
+  throw new Error('Invalid image-rights review.');
+ if(!['approved','rejected'].includes(decision))throw new Error('Choose an asset-rights decision.');
+ const {data:demo}=await supabase.from('demo_sites').select('id,draft_content,revision_no')
+  .eq('id',id).eq('organization_id',organizationId).maybeSingle();
+ if(!demo||demo.revision_no!==expectedRevision)throw new Error('Reload the current demo revision before reviewing assets.');
+ const existing=(demo.draft_content??{}) as DemoCopy;
+ const siteContent=applyImageRightsDecision(cleanSiteContent(existing.siteContent),{
+  url:assetUrl,decision:decision as 'approved'|'rejected',evidence,
+  confirmed:form.get('rights_confirmed')==='on',reviewedAt:new Date().toISOString()
+ });
+ const {error}=await supabase.rpc('save_demo_revision',{
+  p_demo_id:id,p_expected_revision:expectedRevision,p_content:{...existing,siteContent}
+ });
+ if(error)throw new Error('Could not save the asset-rights decision: '+error.message);
+ revalidatePath('/app/demos/'+id);revalidatePath('/app/demos');
+ redirect('/app/demos/'+id+'?saved=rights');
 }
 
 // Import explicit public-site research as references ONLY. Owner permission
