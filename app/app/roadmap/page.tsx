@@ -138,7 +138,7 @@ export default async function RoadmapPage({searchParams}:{searchParams:Promise<S
   </nav>
   {availability!=='ready'&&<div role="status" className="mb-7 rounded-xl border border-[#987846] bg-[#2a251c] p-5 text-sm leading-6 text-[#eed8b0]">
    {availability==='setup_required'?
-    'Roadmap is currently read-only. Apply 0005_project_roadmap.sql and then 0006_roadmap_execution_log.sql once in your existing for-profit Command Center Supabase project, after the generator's 0004 migration. Check which migrations already ran; never rerun previous ones or touch Campus2Care's database.':
+    'Roadmap is currently read-only. Apply 0005_project_roadmap.sql and then 0006_roadmap_execution_log.sql once in your existing for-profit Command Center Supabase project, after the generator\'s 0004 migration. Check which migrations already ran; never rerun previous ones or touch Campus2Care\'s database.':
     'Saved progress could not be loaded. The source-controlled roadmap is shown without editing; no progress was changed.'}
   </div>}
   <div className="space-y-12">{shown.map(project=><ProjectOverview key={project.id} project={project} editable={editable}/>)}</div>
