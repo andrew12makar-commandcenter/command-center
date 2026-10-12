@@ -45,11 +45,17 @@ export async function auditBusiness(form:FormData){
   try{raw=await runOneLocalLighthouse(target);}
   catch(error){
    const message=error instanceof Error?error.message:'';
-   const code=/still running/i.test(message)?'local-busy':
-    /not installed/i.test(message)?'local-install':
-    /preflight|unsafe|DNS|denied|HTTP 403|HTTP 429/i.test(message)?'local-preflight':
-    'local-failed';
-   redirect('/app/intelligence?business='+id+'&error='+code+'#local-lighthouse-queue');
+   // Preflight failures are categorized by the guarded local runner, never
+   // by blindly displaying untrusted remote HTTP error text in the UI.
+   const reportedCode=(error as Error&{code?:unknown})?.code;
+   const safeCodes=new Set([
+    'local-unsafe','local-dns','local-network','local-redirect',
+    'local-denied','local-rate-limited','local-unavailable'
+   ]);
+   const code=typeof reportedCode==='string'&&safeCodes.has(reportedCode)?reportedCode:
+    /still running/i.test(message)?'local-busy':
+    /not installed/i.test(message)?'local-install':'local-failed';
+   redirect('/app/intelligence?business='+id+'&error='+code+'#lighthouse-fallback');
   }
   try{result=interpretLocalLighthouseJson(raw,target);}
   catch{redirect('/app/intelligence?business='+id+'&error=local-report#local-lighthouse-queue');}
