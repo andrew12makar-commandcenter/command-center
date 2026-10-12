@@ -71,6 +71,15 @@ export function buildPlacesQuery(source:string,box:BBox,columns:readonly string[
  return `SELECT ${sel.join(', ')} FROM read_parquet(${sqlString(source)}, hive_partitioning=1) WHERE ${where.join(' AND ')} ORDER BY ${order} LIMIT ${limit}`;
 }
 
+// Remote extract for the local cache: every column, same filters, no ORDER or
+// LIMIT. One scan of the release per envelope; per-area queries then run
+// against the local Parquet copy in well under a second.
+export function buildCacheQuery(source:string,box:BBox,columns:readonly string[],minConfidence:number):string{
+ const q=buildPlacesQuery(source,box,columns,{limit:1,minConfidence});
+ const where=q.slice(q.indexOf(' WHERE '),q.lastIndexOf(' ORDER BY '));
+ return `SELECT * FROM read_parquet(${sqlString(source)}, hive_partitioning=1)${where}`;
+}
+
 export type OvertureRow={
  id:string;name:string|null;lon:number|string;lat:number|string;
  categories?:{primary?:string|null;alternate?:string[]|null}|null;

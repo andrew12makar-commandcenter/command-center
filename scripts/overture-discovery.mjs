@@ -8,18 +8,19 @@
 // Output (in .local-discovery/<run>/): candidates.json with full provenance and
 // review-ready CSV part files (≤500 rows) for /app/leads/import. Nothing is
 // written to Supabase. Every row is an unverified discovery candidate.
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,access,rename} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {DuckDBInstance} from '@duckdb/node-api';
-import {selectAreas,validBBox} from '../lib/discovery-regions.ts';
-import {OVERTURE_STAC_CATALOG,OVERTURE_ATTRIBUTION_URL,latestReleaseFromCatalog,placesPath,buildPlacesQuery,
+import {selectAreas,validBBox,unionBBox} from '../lib/discovery-regions.ts';
+import {buildCacheQuery,OVERTURE_STAC_CATALOG,OVERTURE_ATTRIBUTION_URL,latestReleaseFromCatalog,placesPath,buildPlacesQuery,
  normalizeOvertureRow,dedupeCandidates,reviewOrder,candidatesToCsv} from '../lib/overture-places.ts';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 
 export function parseArgs(argv){
- const o={areas:null,ring:null,limit:600,minConfidence:0.6,release:null,source:null,out:null};
+ const o={areas:null,ring:null,limit:2000,cache:true,minConfidence:0.6,release:null,source:null,out:null};
  for(let i=0;i<argv.length;i++){
   const a=argv[i],v=()=>{if(i+1>=argv.length)throw Error(a+' needs a value');return argv[++i];};
   if(a==='--areas')o.areas=v().split(',').map(s=>s.trim()).filter(Boolean);
@@ -29,9 +30,10 @@ export function parseArgs(argv){
   else if(a==='--release')o.release=v();
   else if(a==='--source')o.source=v(); // local parquet (tests / offline copies)
   else if(a==='--out')o.out=v();
+  else if(a==='--no-cache')o.cache=false;
   else throw Error('Unknown option '+a);
  }
- if(!Number.isInteger(o.limit)||o.limit<1||o.limit>2000)throw Error('--limit must be 1–2000 per area');
+ if(!Number.isInteger(o.limit)||o.limit<1||o.limit>5000)throw Error('--limit must be 1–5000 per area');
  if(!(o.minConfidence>=0&&o.minConfidence<=1))throw Error('--min-confidence must be between 0 and 1');
  return o;
 }
@@ -46,16 +48,39 @@ export async function runDiscovery(opts,log=console.log){
  const areas=selectAreas({areas:opts.areas??undefined,ring:opts.ring??undefined});
  for(const a of areas)if(!validBBox(a.bbox))throw Error('Invalid bounding box for '+a.id);
  const release=opts.source?(opts.release??'local-file'):(opts.release??await discoverRelease());
- const source=opts.source?resolve(opts.source):placesPath(release);
+ // remoteOverride lets tests exercise the remote+cache path with a local file.
+ let source=opts.source?resolve(opts.source):opts.remoteOverride?resolve(opts.remoteOverride):placesPath(release);
  log(`Overture release ${release} · areas: ${areas.map(a=>a.label).join(', ')}`);
  const db=await DuckDBInstance.create(':memory:');
  const conn=await db.connect();
  try{
-  if(!opts.source){
+  if(!opts.source&&!opts.remoteOverride){
    await conn.run("INSTALL httpfs; LOAD httpfs; SET s3_region='us-west-2';");
   }
-  const columns=(await conn.runAndReadAll(`DESCRIBE SELECT * FROM read_parquet('${source.replace(/'/g,"''")}', hive_partitioning=1)`))
+  const describe=async src=>(await conn.runAndReadAll(`DESCRIBE SELECT * FROM read_parquet('${src.replace(/'/g,"''")}', hive_partitioning=1)`))
    .getRowObjectsJson().map(r=>String(r.column_name));
+  let columns=await describe(source);
+  // Remote releases: download the selected areas' envelope ONCE into a local
+  // Parquet cache keyed by release, envelope and confidence floor. The first
+  // live run spent ~10 minutes re-scanning overlapping data per neighbourhood.
+  if(!opts.source&&opts.cache!==false){
+   const env=unionBBox(areas);
+   if(!validBBox(env))throw Error('Selected areas span too large an area for one query; choose fewer areas.');
+   const key=createHash('sha256').update(JSON.stringify([release,env,opts.minConfidence])).digest('hex').slice(0,16);
+   const cacheDir=resolve(opts.cacheDir||join(root,'.local-discovery','cache'));
+   const cached=join(cacheDir,`places-${release}-${key}.parquet`);
+   let hit=true;try{await access(cached);}catch{hit=false;}
+   if(!hit){
+    await mkdir(cacheDir,{recursive:true});
+    log('  Downloading map data for these areas once (later runs reuse the local copy)...');
+    const t=Date.now(),tmp=cached+'.partial';
+    await conn.run(`COPY (${buildCacheQuery(source,env,columns,opts.minConfidence)}) TO '${tmp.replace(/'/g,"''")}' (FORMAT parquet)`);
+    await rename(tmp,cached);
+    log(`  Saved local copy in ${((Date.now()-t)/1000).toFixed(0)}s.`);
+   }else log('  Using local copy of this release and area (delete .local-discovery/cache to refresh).');
+   source=cached;
+   columns=await describe(source);
+  }
   const all=[],queries=[];let outside=0;
   for(const area of areas){
    const sql=buildPlacesQuery(source,area.bbox,columns,{limit:opts.limit,minConfidence:opts.minConfidence});
