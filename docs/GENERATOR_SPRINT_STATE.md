@@ -63,13 +63,21 @@ This is the compact recovery checkpoint for continued development of the **local
 - New tests: `tests/business-specific-copy.test.ts`, `tests/reviewed-business-features.test.ts`, subtype coverage in `tests/concept-imagery.test.ts` and `tests/source-redesign-reference.test.ts`. One intermediate test failed due a prompt wording assertion and was corrected before the green CI above.
 - **Not accomplished**: direct Google Business Profile/Places photo ingestion, licensing or attribution clearance; bulk original-site photo imports with commercial rights; on-demand AI image rendering; automated business-specific visual compositions from screenshots; browser-based visual QA. Public availability is not a license. The legacy nine static concept JPEGs remain for matching categories only. Private Supabase, backups and original branches unchanged.
 
+## Verified checkpoint 8: visible sprint state and per-asset rights decisions
+- Commits: `3f95a44` makes the website sprint visible in the Command Center sidebar and `/app/roadmap`; `b3b02ef` adds a per-image rights queue.
+- The roadmap now tracks business facts, source-media provenance, rights review, opt-in AI concepts, design variance, motion QA, responsive screenshot QA, and the final client-demo gate as distinct milestones. The AI-media milestone is explicitly blocked until a provider, budget and paid use are approved.
+- Each collected image remains `reference_only` until a human records a specific evidence note and independently confirms display permission. An operator can reject an item without approving it. Approved, pending and rejected counts are visible; source URLs, review notes and timestamps remain attached to the private revision. Rejected images never render.
+- No migration was added or applied. Roadmap baselines remain source-controlled and existing organization-scoped Supabase overrides still take precedence when migrations 0005 and 0006 are already installed.
+- Local verification: 148 TypeScript tests and 15 JavaScript tests passed, TypeScript passed, focused lint passed, the main Next.js production build passed with webpack, and `scripts/smoke-client-export.mjs` completed a clean install and production build of the isolated customer site.
+- Browser limitation: the available localhost benchmark route redirected to the login screen, so no authenticated desktop/mobile screenshot or human visual-quality claim was recorded in this checkpoint. GitHub CI must still verify the pushed branch with its default build path.
+
 ## Evaluation baseline (not a production claim)
 - Prior documented fictional benchmark: rules+search holdout agreement 0.625; baseline 0.292; cross-validation 0.652; unfamiliar-style interpreter recall 0.167. Source: `docs/feedback-loop.md`.
 - Six generator cases scored 100/100 on permissive *structural preflight*; that is not a measured visual-quality score.
 - External client content, rights, real browsers, and production database state are still unverified in this checkpoint.
 
 ## Current objective
-Next task: inspect desktop/mobile screenshots of the newly changed benchmark gallery after user safely pulls into isolated preview. Prioritize further layout/typography improvements based on concrete rendered deficiencies; implement an external photo-reference intake for business website and Google listings with provider attribution, permissions, caching restrictions and operator approval (do not scrape/reuse unauthorized Google photos). Then implement opt-in on-demand per-business AI concept image generation, storage and human review. Existing original-site HTML analysis captures selected content metadata, NOT entire design reproduction. Supabase migration status is unverified.
+Next task: push checkpoints 8 and 9 through the existing draft PR and require green GitHub CI. Then inspect authenticated desktop/mobile screenshots after the isolated preview pulls the branch and prioritize layout or typography fixes from concrete rendered deficiencies. Implement external photo-reference intake only with provider attribution, permissions, caching restrictions and operator approval; do not scrape or reuse unauthorized Google photos. On-demand generation remains blocked until explicit provider and budget approval. Existing original-site HTML analysis captures selected content metadata, not entire design reproduction. Supabase migration status is unverified.
 
 ## Recovery instructions
 1. Inspect this file, check `git status` and branch; do not reset original Mac work.
