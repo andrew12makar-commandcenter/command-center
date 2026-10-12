@@ -26,8 +26,8 @@ function safePublicDestination(value:string|null):boolean{
   const u=new URL(value);
   return ['https:','http:'].includes(u.protocol)&&!u.username&&!u.password&&
    u.hostname.includes('.')&&!u.hostname.includes(':')&&
-   !/(^|\\.)(localhost|local|internal|test|invalid)$/.test(u.hostname)&&
-   !/^(?:\\d{1,3}\\.){3}\\d{1,3}$/.test(u.hostname);
+   !/(^|\.)(localhost|local|internal|test|invalid)$/.test(u.hostname)&&
+   !/^(?:\d{1,3}\.){3}\d{1,3}$/.test(u.hostname);
  }catch{return false;}
 }
 
