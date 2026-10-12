@@ -68,32 +68,60 @@ export async function checkPublicDns(url,resolver=lookup){
  return records.map(record=>record.address);
 }
 
-// Check redirect targets before launching Chrome. This is a conservative
-// safety preflight, NOT a network sandbox or protection from DNS rebinding.
+// Only safe, fixed categories travel from the preflight to the UI. No raw URL,
+// remote response body, resolved internal address, or token enters an error link.
+export class LocalAuditPreflightError extends Error{
+ constructor(code,message){
+  super(message);
+  this.name='LocalAuditPreflightError';
+  this.code=code;
+ }
+}
+
+const fail=(code,message)=>{throw new LocalAuditPreflightError(code,message);};
+
+// The redirect checks remain conservative: no browser is launched before
+// every HTTP redirect and target DNS lookup has been checked. We do NOT use
+// an alternate user agent, proxy or browser to circumvent an HTTP refusal.
+// Diagnostics distinguish safety rejections from ordinary site/CDN failures.
 export async function preflightPublicWebsite(input,{resolver=lookup,request=fetch}={}){
- let url=publicAuditUrl(input);
+ let url;
+ try{url=publicAuditUrl(input);}
+ catch{fail('local-unsafe','The requested address is not a permitted public website.');}
  for(let i=0;i<5;i++){
-  await checkPublicDns(url,resolver);
-  const headers={'User-Agent':'CommandCenterLighthousePilot/1.0 (manual local research)','Accept':'text/html'};
-  let response=await request(url,{method:'HEAD',redirect:'manual',signal:AbortSignal.timeout(10000),headers});
-  // Many hosts (Shopify, some CDNs) reject HEAD with 403/405 while serving a
-  // normal GET. Ask once more with an ordinary GET, same honest user agent,
-  // discarding the body. A refusal of THAT request is respected as a denial;
-  // this is not an attempt to get past bot protection.
-  if(response.status===403||response.status===405){
-   response=await request(url,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(12000),headers});
-   await response.body?.cancel?.().catch(()=>{});
+  try{await checkPublicDns(url,resolver);}
+  catch(error){
+   if(error instanceof Error&&/non-public|unsafe IP/i.test(error.message))
+    fail('local-unsafe','The website resolved to a non-public or unsafe IP address.');
+   fail('local-dns','Public DNS resolution failed; the website was not audited.');
   }
+  const headers={'User-Agent':'CommandCenterLighthousePilot/1.0 (manual local research)','Accept':'text/html'};
+  let response;
+  try{
+   response=await request(url,{method:'HEAD',redirect:'manual',signal:AbortSignal.timeout(10000),headers});
+   // Some sites do not support HEAD. Try one ordinary GET, never an evasive
+   // request. If their GET denies access, respect that denial.
+   if(response.status===403||response.status===405){
+    response=await request(url,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(12000),headers});
+    await response.body?.cancel?.().catch(()=>{});
+   }
+  }catch{fail('local-network','The HTTP preflight could not connect or timed out. The website was not audited.');}
   if([301,302,303,307,308].includes(response.status)){
    const location=response.headers.get('location');
-   if(!location)throw Error('Redirect without destination.');
-   url=publicAuditUrl(new URL(location,url).toString());
+   if(!location)fail('local-redirect','The website redirected without a destination.');
+   try{url=publicAuditUrl(new URL(location,url).toString());}
+   catch{fail('local-unsafe','The website redirected to a disallowed or non-public address.');}
    continue;
   }
-  if(response.status===405||response.status===403||response.status===429)
-   throw Error('Site denied the safety preflight (HTTP '+response.status+'); skipped.');
-  if(response.status>=500)throw Error('Site unavailable during preflight (HTTP '+response.status+').');
+  if(response.status===429)
+   fail('local-rate-limited','The website returned HTTP 429 during its preflight; no Chrome audit was attempted.');
+  if(response.status===401||response.status===403)
+   fail('local-denied','Site denied the safety preflight (HTTP '+response.status+'); skipped.');
+  if(response.status>=500)
+   fail('local-unavailable','The website was unavailable during preflight (HTTP '+response.status+').');
+  if(response.status>=400)
+   fail('local-unavailable','The website returned HTTP '+response.status+' during preflight.');
   return url;
  }
- throw Error('Website redirects too many times to audit safely.');
+ fail('local-redirect','Website redirects too many times to audit safely.');
 }
