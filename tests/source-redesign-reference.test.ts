@@ -57,3 +57,18 @@ test('without existing site and without AI permission, leave a safe typographic 
  assert.deepEqual(plan.imageBriefs,[]);
  assert.equal(plan.recommendedImageTreatment,'minimal');
 });
+
+test('AI concept directions are specialty-specific and cannot pose as real facilities',()=>{
+ const empty=cleanSiteContent({generatedImageryEnabled:true});
+ const vet=deriveSiteRedesignReference(empty,'medical',['Veterinary wellness exams','Senior pet care']);
+ const dental=deriveSiteRedesignReference(empty,'medical',['Dental checkups','Orthodontic visits']);
+ const primary=deriveSiteRedesignReference(empty,'medical',['Primary care visits']);
+ assert.match(vet.imageBriefs[0],/dog and cat/);
+ assert.doesNotMatch(vet.imageBriefs.join(' '),/dental-inspired|dental treatment/i);
+ assert.match(dental.imageBriefs[0],/dental-inspired/);
+ assert.doesNotMatch(primary.imageBriefs.join(' '),/dental|dog and cat/i);
+ for(const plan of [vet,dental,primary]){
+  assert.ok(plan.imageBriefs.every(s=>/clearly label (as )?AI concept/i.test(s)));
+  assert.ok(plan.imageBriefs.every(s=>/no (claimed|recognizable|identifiable|actual)/i.test(s)));
+ }
+});
