@@ -2,6 +2,7 @@
 // customer-approved site. No network scraping, invented facts, or asset licensing.
 import type {DemoCopy,Template,MotionPlan} from './demo-engine.ts';
 import {evaluateSiteBlueprint,type QualityEvaluation} from './site-evaluation.ts';
+import {buildServiceSpecificCopy} from './business-specific-copy.ts';
 import type {ResearchInsight,ResearchInsightKind} from './research-intelligence.ts';
 
 export type ImageRole='hero'|'gallery'|'team'|'logo';
@@ -194,11 +195,18 @@ export function buildSiteBlueprint(
    contactHeading:'Talk directly with the team.',
    processHeading:'A direct path from interest to action.'
   };
+ const businessName=asText(copy.brand,140)||asText(business.name,140);
+ // An untouched generated headline can be rewritten from reviewed service
+ // information. Custom owner/user-authored headlines are preserved.
+ const specific=buildServiceSpecificCopy({
+  headline:asText(copy.headline,200),description:asText(copy.description,800),
+  services,city:contact.city,businessName,factsReviewed:content.factStatus!=='unreviewed'
+ });
  const candidate={
   version:1 as const,template,businessName:asText(copy.brand,140)||asText(business.name,140),
   eyebrow:asText(copy.eyebrow,140),
-  headline:asText(copy.headline,200),
-  description:asText(copy.description,800),
+  headline:specific.headline,
+  description:specific.description,
   primaryAction:asText(copy.primaryAction,80)||'Get in touch',
   secondaryAction:asText(copy.secondaryAction,80)||'Explore services',
   services,contact,content,
