@@ -43,6 +43,8 @@ test('standalone project has no CRM login, removes research notes, and never ove
   assert.ok((await readFile(join(target,'app','page.tsx'),'utf8')).includes('standalone'));
   assert.ok((await readFile(join(target,'components','site-renderer.tsx'),'utf8')).includes('SiteRenderer'));
   assert.ok((await stat(join(target,'package.json'))).size>10);
+  const tsconfig=JSON.parse(await readFile(join(target,'tsconfig.json'),'utf8'));
+  assert.equal(tsconfig.compilerOptions.allowImportingTsExtensions,true);
   const readme=await readFile(join(target,'README.md'),'utf8');
   assert.match(readme,/No speed improvements are guaranteed/);
   assert.match(readme,/NO CRM or Supabase connection/);
