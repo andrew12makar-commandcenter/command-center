@@ -38,6 +38,10 @@ export function extractCandidates(html,url){
  const metas=[...html.matchAll(/<meta\b[^>]*>/gi)];
  const metaDescription=metas.find(m=>/^(?:description|og:description)$/.test((attr(m[0],'name')||attr(m[0],'property')).toLowerCase()));
  const description=metaDescription?tidyText(attr(metaDescription[0],'content'),280):'';
+ // Website styling is a reference for review, not proof of ownership or rights.
+ const themeMeta=metas.find(m=>attr(m[0],'name').toLowerCase()==='theme-color');
+ const themeRaw=themeMeta?attr(themeMeta[0],'content'):'';
+ const themeColor=/^#[0-9a-f]{6}$/i.test(themeRaw)||/^#[0-9a-f]{3}$/i.test(themeRaw)?themeRaw.toLowerCase():null;
  const headings=[...html.matchAll(/<h([1-4])\b[^>]*>([\s\S]*?)<\/h\1>/gi)]
   .map(m=>({level:Number(m[1]),text:tidyText(m[2],130)}))
   .filter(x=>x.text.length>=4).slice(0,28);
@@ -58,7 +62,10 @@ export function extractCandidates(html,url){
   if(!imageUrl||seen.has(imageUrl))continue;
   const alt=tidyText(attr(tag,'alt'),160)||'Image from business website';
   seen.add(imageUrl);
-  images.push({url:imageUrl,alt,sourceUrl:url,role:'gallery',permission:'reference_only'});
+  const context=[alt,attr(tag,'class'),attr(tag,'id')].join(' ').toLowerCase();
+  const role=/\\b(logo|brandmark|wordmark)\\b/.test(context)?'logo':
+   /\\b(hero|banner|masthead|cover-photo)\\b/.test(context)?'hero':'gallery';
+  images.push({url:imageUrl,alt,sourceUrl:url,role,permission:'reference_only'});
   if(images.length>=35)break;
  }
  const openGraphImage=metas.find(m=>attr(m[0],'property').toLowerCase()==='og:image');
@@ -80,7 +87,7 @@ export function extractCandidates(html,url){
   added.add(target);links.push(target);
   if(links.length>=15)break;
  }
- return {url,title,description,headings,excerpts,images,links};
+ return {url,title,description,themeColor,headings,excerpts,images,links};
 }
 // Minimal, conservative robots.txt parsing for wildcard rules.
 export function robotsAllows(body,path){
