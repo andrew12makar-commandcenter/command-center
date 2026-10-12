@@ -111,6 +111,15 @@ const show=(v:unknown):string=>{
  if(o.href)return (o.text||'(no text)')+' → '+o.href;
  return JSON.stringify(v);
 };
+// One readable provenance line per fact: methods, first page, and how many
+// other pages repeat it (menu items appear on every page). Full detail stays
+// in the JSON.
+function sourceSummary(sources:FactSource[]):string{
+ const methods=[...new Set(sources.map(s=>s.method))].join(', ');
+ const urls=[...new Set(sources.map(s=>s.url))];
+ const date=sources[0]?.capturedAt.slice(0,10)??'';
+ return `${methods}, ${urls[0]}${urls.length>1?` + ${urls.length-1} more page${urls.length>2?'s':''}`:''}, ${date}`;
+}
 const labels:Record<string,string>={name:'Business name',businessType:'Declared type',phone:'Phone',email:'Email',address:'Address',geo:'Coordinates',
  hours:'Hours',serviceArea:'Service area',service:'Services (structured data)',serviceCandidate:'Service candidates (from service pages and headings, review needed)',staffCandidate:'Named clinicians / staff (review needed)',
  conversionLink:'Booking / estimate links',profileLink:'Linked profiles',priceRange:'Price range',faq:'FAQ',logo:'Logo'};
@@ -123,7 +132,7 @@ export function briefToMarkdown(b:WebsiteBrief):string{
  if(!fields.length)L.push('No business facts could be extracted.');
  for(const f of fields){
   L.push(`**${labels[f]}**`);
-  for(const v of b.facts[f].slice(0,f==='serviceCandidate'?30:12))L.push(`- ${show(v.value)} _(${v.sources.map(s=>`${s.method}, ${s.url}, ${s.capturedAt.slice(0,10)}`).join('; ')})_`);
+  for(const v of b.facts[f].slice(0,f==='serviceCandidate'?30:12))L.push(`- ${show(v.value)} _(${sourceSummary(v.sources)})_`);
   L.push('');
  }
  L.push('## Conflicts','');

@@ -184,8 +184,17 @@ export function extractBusinessFacts(html,url,capturedAt=new Date().toISOString(
   fonts:[...fonts].slice(0,6),
   navigation:[...new Set(nav)].slice(0,25),
   // Header/nav images first: a logo in the body is often an affiliation badge.
-  logoCandidates:[...new Set([...$('header img, nav img, [class*="navbar"] img').slice(0,2).map((_,i)=>safeLink($(i).attr('src'),url)).get(),
-   ...$('img').filter((_,i)=>/logo|brand/i.test(($(i).attr('class')||'')+($(i).attr('alt')||'')+($(i).attr('src')||''))).map((_,i)=>safeLink($(i).attr('src'),url)).get()].filter(Boolean))].slice(0,3),
+  // Ranked: an image named/labelled "logo" inside the header, then any header
+  // image not named like an icon, then other "logo" images (often badges).
+  logoCandidates:(()=>{
+   const label=i=>(($(i).attr('class')||'')+' '+($(i).attr('alt')||'')+' '+($(i).attr('src')||'')).toLowerCase();
+   const inHeader=i=>$(i).closest('header,nav,[class*="navbar"]').length>0;
+   const imgs=$('img').get();
+   const ranked=[...imgs.filter(i=>inHeader(i)&&/logo|brand/.test(label(i))),
+    ...imgs.filter(i=>inHeader(i)&&!/icon|arrow|chevron|menu|close|search|contact|phone|social/.test(label(i))),
+    ...imgs.filter(i=>/logo|brand/.test(label(i)))];
+   return [...new Set(ranked.map(i=>safeLink($(i).attr('src'),url)).filter(Boolean))].slice(0,3);
+  })(),
   // The page's own section order: what the business chose to emphasize.
   sections:$('h2').map((_,h)=>clean($(h).text(),90)).get().filter(t=>t.length>=3).filter((t,i,a)=>a.indexOf(t)===i).slice(0,20)
  };

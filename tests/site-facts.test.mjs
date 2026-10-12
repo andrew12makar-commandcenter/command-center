@@ -104,7 +104,7 @@ test('live-site patterns: menu services, clinicians, qualified hours, grouped fi
   <a href="/service/sealants">Sealants</a><a href="/service/sealants">Learn more</a><a href="/contact">Contact</a><a href="/blog">Blog</a><a href="/careers">Careers</a></nav>`;
  const ld=`<script type="application/ld+json">{"@type":"Dentist","name":"Example Dental","telephone":"617-555-0101",
   "openingHoursSpecification":[{"dayOfWeek":"Saturday","opens":"08:00","closes":"14:00"},{"dayOfWeek":"Monday","opens":"08:00","closes":"16:00"}]}</script>`;
- const home=`<html><head><meta name="viewport" content="x"><meta name="description" content="d">${ld}</head><body><header><img src="/Logo.svg" alt="">${nav}</header>
+ const home=`<html><head><meta name="viewport" content="x"><meta name="description" content="d">${ld}</head><body><header><img src="/Icons.svg" alt=""><img src="/Logo.svg" alt="">${nav}</header>
   <h1>Expert dentistry</h1><h2>Comprehensive Dental Services</h2><h2>Insurance</h2><h2>We Are Accepting New Patients</h2>
   <ul><li>Saturday 8:00 am - 2:00 pm (Open One Saturday a Month)</li></ul><img src="/iti-logo.avif" alt="ITI logo"></body></html>`;
  const svc=`<html><head><meta name="viewport" content="x"><meta name="description" content="d"></head><body><header>${nav}</header><h1>Preventative Care</h1>
@@ -123,5 +123,7 @@ test('live-site patterns: menu services, clinicians, qualified hours, grouped fi
  assert.ok(!b.observations.some(o=>/structured business data/.test(o.finding)),'homepage JSON-LD covers the site');
  assert.equal(b.design.logoCandidates[0],'https://dental.example.org/Logo.svg');
  assert.deepEqual(b.design.homepageSections,['Comprehensive Dental Services','Insurance','We Are Accepting New Patients']);
- assert.match(briefToMarkdown(b),/Homepage sections, in order: Comprehensive Dental Services → Insurance/);
+ const md=briefToMarkdown(b);
+ assert.match(md,/Homepage sections, in order: Comprehensive Dental Services → Insurance/);
+ assert.match(md,/- Sealants _\(service-page-link, https:\/\/dental\.example\.org\/ \+ 1 more page, 2026-10-12\)_/);
 });
