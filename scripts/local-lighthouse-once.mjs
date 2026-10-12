@@ -3,11 +3,11 @@
 import {mkdtemp,readFile,stat,rm,access} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
 import {tmpdir} from 'node:os';
-import {join,resolve,dirname} from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {join} from 'node:path';
 import {preflightPublicWebsite} from './local-audit-guard.mjs';
 
-const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+// Next.js server bundles change import.meta.url; the dev server's project cwd is stable.
+const root=process.cwd();
 const lighthouseBin=join(root,'node_modules','.bin',process.platform==='win32'?'lighthouse.cmd':'lighthouse');
 const MAX_REPORT_BYTES=8_000_000;
 const MAX_AUDIT_MS=120_000;
