@@ -54,6 +54,7 @@ export async function auditBusiness(form:FormData){
   try{result=interpretLocalLighthouseJson(raw,target);}
   catch{redirect('/app/intelligence?business='+id+'&error=local-report#local-lighthouse-queue');}
   result.findings.source_method='local_lighthouse_execution';
+  result.findings.provider='Local Chrome Lighthouse';
   result.findings.note=result.findings.note.replace(
    'Operator-imported Chrome Lighthouse JSON, not independently authenticated by the PageSpeed API.',
    'Chrome Lighthouse executed on the authenticated local development server. No Google PageSpeed API request was made.'
