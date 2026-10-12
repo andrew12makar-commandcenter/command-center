@@ -3,6 +3,10 @@ export type QualityEvaluation={
   score:number;threshold:number;accepted:boolean;
   dimensions:Record<QualityDimension,number>;
   failures:string[];evidence:string[];
+  /** 0-100 is a deterministic blueprint preflight, not an aesthetic grade. */
+  scoreScope:'blueprint-preflight';
+  /** These require independent real-browser and human assessment. */
+  unverified:['rendered visual quality','runtime performance','client acceptance'];
 };
 
 type EvaluatedSite={
@@ -14,12 +18,26 @@ type EvaluatedSite={
   }};
 };
 
+// Defense in depth: the original blueprint sanitizer validates public URLs, but
+// this evaluator must reject unsafe destinations even when called directly.
+function safePublicDestination(value:string|null):boolean{
+ if(!value||value.length>1600)return false;
+ try{
+  const u=new URL(value);
+  return ['https:','http:'].includes(u.protocol)&&!u.username&&!u.password&&
+   u.hostname.includes('.')&&!u.hostname.includes(':')&&
+   !/(^|\\.)(localhost|local|internal|test|invalid)$/.test(u.hostname)&&
+   !/^(?:\\d{1,3}\\.){3}\\d{1,3}$/.test(u.hostname);
+ }catch{return false;}
+}
+
 // Deterministic preflight. Browser/Lighthouse checks are recorded separately because
 // pretending an unrendered blueprint has measured performance would be misleading.
 export function evaluateSiteBlueprint(site:EvaluatedSite,threshold=78):QualityEvaluation{
  const approved=site.content.images.filter(x=>x.permission==='approved');
- const contact=Boolean(site.contact.phone||site.contact.email||site.content.appointmentUrl);
- const sourced=Boolean(site.content.sourceUrl)&&site.content.factStatus!=='unreviewed';
+ const safeAppointment=site.content.appointmentUrl===null||safePublicDestination(site.content.appointmentUrl);
+ const contact=Boolean(site.contact.phone||site.contact.email||(site.content.appointmentUrl&&safeAppointment));
+ const sourced=safePublicDestination(site.content.sourceUrl)&&site.content.factStatus!=='unreviewed';
  const specificCopy=site.headline.trim().length>=18&&site.description.trim().length>=35&&site.content.about.trim().length>=45;
  const services=site.services.length>=1;
  const imageReady=site.content.heroTreatment!=='photo-led'||approved.some(x=>x.role==='hero');
@@ -37,7 +55,8 @@ export function evaluateSiteBlueprint(site:EvaluatedSite,threshold=78):QualityEv
  };
  const score=Math.min(100,Object.values(dimensions).reduce((a,b)=>a+b,0));
  const failures:string[]=[];
- if(!sourced)failures.push('Business claims are not tied to a reviewed source.');
+ if(!sourced)failures.push('Business claims are not tied to a reviewed, safe public source URL.');
+ if(!safeAppointment)failures.push('The appointment destination is not a safe public URL.');
  if(!services)failures.push('Confirm at least one real service for a useful service path.');
  if(!contact)failures.push('No verified conversion destination is available.');
  if(!specificCopy)failures.push('Copy is too thin or generic to pass the specificity gate.');
@@ -45,6 +64,8 @@ export function evaluateSiteBlueprint(site:EvaluatedSite,threshold=78):QualityEv
  if(!altReady)failures.push('Every approved image needs meaningful alternative text.');
  if(!motionReady)failures.push('Every generated site requires an integrated page, section, media, and navigation motion system.');
  return {score,threshold,accepted:score>=threshold&&failures.length===0,dimensions,failures,
+  scoreScope:'blueprint-preflight',
+  unverified:['rendered visual quality','runtime performance','client acceptance'],
   evidence:[`${site.services.length} confirmed service${site.services.length===1?'':'s'}`,
    `${approved.length} approved image${approved.length===1?'':'s'}`,
    contact?'Verified conversion destination present':'Conversion destination absent',
