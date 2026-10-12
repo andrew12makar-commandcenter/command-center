@@ -14,12 +14,12 @@ import {fileURLToPath} from 'node:url';
 import {DuckDBInstance} from '@duckdb/node-api';
 import {selectAreas,validBBox} from '../lib/discovery-regions.ts';
 import {OVERTURE_STAC_CATALOG,OVERTURE_ATTRIBUTION_URL,latestReleaseFromCatalog,placesPath,buildPlacesQuery,
- normalizeOvertureRow,dedupeCandidates,candidatesToCsv} from '../lib/overture-places.ts';
+ normalizeOvertureRow,dedupeCandidates,reviewOrder,candidatesToCsv} from '../lib/overture-places.ts';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 
 export function parseArgs(argv){
- const o={areas:null,ring:null,limit:150,minConfidence:0.6,release:null,source:null,out:null};
+ const o={areas:null,ring:null,limit:600,minConfidence:0.6,release:null,source:null,out:null};
  for(let i=0;i<argv.length;i++){
   const a=argv[i],v=()=>{if(i+1>=argv.length)throw Error(a+' needs a value');return argv[++i];};
   if(a==='--areas')o.areas=v().split(',').map(s=>s.trim()).filter(Boolean);
@@ -56,24 +56,25 @@ export async function runDiscovery(opts,log=console.log){
   }
   const columns=(await conn.runAndReadAll(`DESCRIBE SELECT * FROM read_parquet('${source.replace(/'/g,"''")}', hive_partitioning=1)`))
    .getRowObjectsJson().map(r=>String(r.column_name));
-  const all=[],queries=[];
+  const all=[],queries=[];let outside=0;
   for(const area of areas){
    const sql=buildPlacesQuery(source,area.bbox,columns,{limit:opts.limit,minConfidence:opts.minConfidence});
    queries.push({area:area.id,sql});
    const t=Date.now();
    const rows=(await conn.runAndReadAll(sql)).getRowObjectsJson();
    const mapped=rows.map(r=>normalizeOvertureRow(r,release,areas)).filter(Boolean);
-   log(`  ${area.label}: ${rows.length} rows → ${mapped.length} candidates (${((Date.now()-t)/1000).toFixed(1)}s)${rows.length>=opts.limit?' · LIMIT reached, raise --limit for fuller coverage':''}`);
+   outside+=rows.length-mapped.length;
+   log(`  ${area.label}: ${rows.length} rows → ${mapped.length} in-area candidates (${((Date.now()-t)/1000).toFixed(1)}s)${rows.length>=opts.limit?' · LIMIT reached, raise --limit for fuller coverage':''}`);
    all.push(...mapped);
   }
-  const candidates=dedupeCandidates(all);
+  const candidates=reviewOrder(dedupeCandidates(all));
   return {kind:'command-center-overture-discovery/v1',createdAt:new Date().toISOString(),release,
    areas:areas.map(({id,label,ring,bbox})=>({id,label,ring,bbox})),
    settings:{limitPerArea:opts.limit,minConfidence:opts.minConfidence},columns,queries,
    status:'unverified_discovery_candidates',
    note:'Overture records can be duplicated, closed, misplaced or incomplete. Stage through /app/leads/import and verify before outreach.',
    attribution:{source:'Overture Maps Foundation, Places theme',release,url:OVERTURE_ATTRIBUTION_URL},
-   counts:{raw:all.length,unique:candidates.length,flaggedDuplicates:candidates.filter(c=>c.possibleDuplicateOf.length).length},
+   counts:{returned:all.length+outside,excludedOutsideAreaOrNonProspect:outside,raw:all.length,unique:candidates.length,flaggedDuplicates:candidates.filter(c=>c.possibleDuplicateOf.length).length},
    candidates};
  }finally{
   conn.closeSync?.();
@@ -99,7 +100,9 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const out=resolve(opts.out||join(root,'.local-discovery','overture-'+new Date().toISOString().replaceAll(/[:.]/g,'-')));
   const files=await writeOutputs(result,out);
   const by=(k)=>Object.entries(result.candidates.reduce((m,c)=>{for(const v of [].concat(c[k]))m[v]=(m[v]||0)+1;return m;},{})).sort((a,b)=>b[1]-a[1]);
-  console.log(`\n${result.counts.unique} unique candidates (${result.counts.flaggedDuplicates} flagged as possible duplicates).`);
+  console.log(`\n${result.counts.unique} unique candidates (${result.counts.flaggedDuplicates} flagged as possible duplicates; ${result.counts.excludedOutsideAreaOrNonProspect} rows dropped as outside the areas' postcodes or not a business prospect).`);
+  const likely=result.candidates.filter(c=>c.website&&!c.flags.some(f=>/brand|multi_location|institutional|practitioner/.test(f))).length;
+  console.log(`${likely} look like independent local businesses with a website (listed first in the CSV).`);
   console.log('By template hint: '+by('templateHint').map(([k,v])=>`${k} ${v}`).join(', '));
   console.log('Review flags: '+(by('flags').map(([k,v])=>`${k} ${v}`).join(', ')||'none'));
   console.log('Saved: '+join(out,'candidates.json'));

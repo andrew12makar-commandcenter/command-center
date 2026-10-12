@@ -11,13 +11,13 @@ export const DISCOVERY_AREAS:DiscoveryArea[]=[
  {id:'allston',label:'Allston',ring:1,bbox:{west:-71.145,south:42.345,east:-71.112,north:42.372},postcodes:['02134','02163']},
  {id:'brighton',label:'Brighton',ring:1,bbox:{west:-71.178,south:42.333,east:-71.135,north:42.366},postcodes:['02135']},
  {id:'brookline',label:'Brookline',ring:1,bbox:{west:-71.18,south:42.296,east:-71.105,north:42.346},postcodes:['02445','02446','02447','02467']},
- {id:'newton',label:'Newton',ring:2,bbox:{west:-71.27,south:42.283,east:-71.157,north:42.37}},
+ {id:'newton',label:'Newton',ring:2,bbox:{west:-71.27,south:42.283,east:-71.157,north:42.37},postcodes:['02458','02459','02460','02461','02462','02464','02465','02466','02467','02468']},
  {id:'watertown',label:'Watertown',ring:2,bbox:{west:-71.21,south:42.355,east:-71.155,north:42.385},postcodes:['02472']},
- {id:'cambridge',label:'Cambridge',ring:2,bbox:{west:-71.161,south:42.352,east:-71.064,north:42.404}},
- {id:'somerville',label:'Somerville',ring:2,bbox:{west:-71.135,south:42.373,east:-71.073,north:42.418}},
- {id:'fenway-back-bay',label:'Fenway / Back Bay',ring:3,bbox:{west:-71.111,south:42.336,east:-71.07,north:42.356}},
+ {id:'cambridge',label:'Cambridge',ring:2,bbox:{west:-71.161,south:42.352,east:-71.064,north:42.404},postcodes:['02138','02139','02140','02141','02142']},
+ {id:'somerville',label:'Somerville',ring:2,bbox:{west:-71.135,south:42.373,east:-71.073,north:42.418},postcodes:['02143','02144','02145']},
+ {id:'fenway-back-bay',label:'Fenway / Back Bay',ring:3,bbox:{west:-71.111,south:42.336,east:-71.07,north:42.356},postcodes:['02115','02215','02116','02199']},
  {id:'jamaica-plain',label:'Jamaica Plain',ring:3,bbox:{west:-71.13,south:42.293,east:-71.095,north:42.33},postcodes:['02130']},
- {id:'south-end-roxbury',label:'South End / Roxbury',ring:3,bbox:{west:-71.1,south:42.31,east:-71.06,north:42.347}}
+ {id:'south-end-roxbury',label:'South End / Roxbury',ring:3,bbox:{west:-71.1,south:42.31,east:-71.06,north:42.347},postcodes:['02118','02119','02120','02121']}
 ];
 
 export function validBBox(b:BBox):boolean{

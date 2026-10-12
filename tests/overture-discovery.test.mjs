@@ -38,10 +38,10 @@ test('areas are configurable rings with bounded boxes',()=>{
 
 async function fixture(path){
  const db=await DuckDBInstance.create(':memory:');const c=await db.connect();
- const row=(id,name,lon,lat,{cat='dentist',conf=0.9,phone='+16175550100',site=null,street='1 Example St',city='Brighton',zip='02135',status='open'}={})=>
+ const row=(id,name,lon,lat,{cat='dentist',conf=0.9,phone='+16175550100',site=null,street=null,city='Brighton',zip='02135',status='open'}={})=>
   `SELECT '${id}' AS id, {'primary':'${name.replace(/'/g,"''")}'} AS names, {'primary':${cat?`'${cat}'`:'NULL'},'alternate':[]::VARCHAR[]} AS categories,
    ${conf} AS confidence, ${site?`['${site}']`:'[]::VARCHAR[]'} AS websites, ['${phone}'] AS phones,
-   [{'freeform':${street?`'${street}'`:'NULL'},'locality':'${city}','postcode':'${zip}','region':'MA','country':'US'}] AS addresses,
+   [{'freeform':${street===null?`'${id.charCodeAt(0)} Example St'`:street?`'${street}'`:'NULL'},'locality':'${city}','postcode':'${zip}','region':'MA','country':'US'}] AS addresses,
    {'xmin':${lon},'xmax':${lon},'ymin':${lat},'ymax':${lat}} AS bbox, [{'dataset':'meta','record_id':'r${id}','update_time':'2026-07-01'}] AS sources,
    '${status}' AS operating_status`;
  const rows=[
@@ -50,11 +50,20 @@ async function fixture(path){
   row('b','Harbor Dental Studio',-71.1502,42.3501,{site:'https://www.harbordental.example.org/'}),
   // Franchise with the same name across town: name alone must not merge.
   row('c','Harbor Dental',-71.12,42.31,{phone:'+16175559999',city:'Brookline',zip:'02446'}),
-  row('d','Fenway Flow Plumbing',-71.13,42.355,{cat:'plumbing',street:null,city:'Allston',zip:'02134',phone:'+16175550123'}),
+  row('d','Fenway Flow Plumbing',-71.13,42.355,{cat:'plumbing',street:'',city:'Allston',zip:'02134',phone:'+16175550123'}),
   row('e','Closed Cafe',-71.15,42.352,{cat:'cafe',status:'permanently_closed'}),
   row('f','=HYPERLINK("x")',-71.151,42.349,{cat:'restaurant',conf:0.7,phone:'+16175550777'}),
   row('g','Low Confidence Shop',-71.16,42.34,{cat:'retail',conf:0.3}),
-  row('h','Far Away Inc',-70.5,41.9,{cat:'retail'})
+  row('h','Far Away Inc',-70.5,41.9,{cat:'retail'}),
+  // Inside the Allston box but a Cambridge postcode: must not count as Allston.
+  row('i','Harvard Square Cafe',-71.12,42.371,{cat:'cafe',city:'Cambridge',zip:'02138',phone:'+16175550888'}),
+  // Not a prospect even though it is a mapped place.
+  row('j','Ringer Park',-71.14,42.352,{cat:'park',phone:'+16175550999'}),
+  // Leading zero dropped by a source.
+  row('k','Brighton Tailor',-71.155,42.35,{cat:'tailor',zip:'2135',phone:'+16175550444'}),
+  // Same chain, two far-apart branches: a branch, not a duplicate.
+  row('l','Citizens Bank',-71.155,42.348,{cat:'bank',site:'https://www.citizensbank.com/',phone:'+16175551111',street:'414 Washington St'}),
+  row('m','Citizens Bank',-71.125,42.355,{cat:'bank',site:'https://www.citizensbank.com/',phone:'+16175552222',street:'200 Harvard Ave',city:'Allston',zip:'02134'})
  ];
  await c.run(`COPY (${rows.join(' UNION ALL ')}) TO '${path}' (FORMAT parquet)`);
  c.closeSync?.();
@@ -66,7 +75,13 @@ test('end to end against an Overture-shaped parquet: bounded, attributed, flagge
   const file=join(dir,'places.parquet');await fixture(file);
   const result=await runDiscovery({areas:['allston','brighton','brookline'],ring:null,limit:50,minConfidence:0.6,release:'2026-09-17.0',source:file},()=>{});
   const ids=result.candidates.map(c=>c.externalId).sort();
-  assert.deepEqual(ids,['a','b','c','d','f'],'closed, low-confidence and out-of-area records are excluded');
+  assert.deepEqual(ids,['a','b','c','d','f','k','l','m'],'closed, low-confidence, non-prospect and out-of-postcode records are excluded');
+  assert.equal(result.counts.excludedOutsideAreaOrNonProspect>=2,true);
+  assert.equal(result.candidates.find(c=>c.externalId==='k').postcode,'02135');
+  const l=result.candidates.find(c=>c.externalId==='l');
+  assert.deepEqual(l.possibleDuplicateOf,[],'chain branches are not duplicates');
+  assert.ok(l.flags.includes('multi_location_business'));
+  assert.ok(result.candidates.indexOf(l)>result.candidates.findIndex(c=>c.externalId==='a'),'independent businesses are listed before chain branches');
   const a=result.candidates.find(c=>c.externalId==='a');
   assert.ok(a.areas.includes('brighton'));
   assert.equal(a.templateHint,'medical');

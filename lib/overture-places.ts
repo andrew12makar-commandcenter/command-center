@@ -37,6 +37,16 @@ export function placesPath(release:string,base=OVERTURE_S3_BASE):string{
  return `${base}/${release}/theme=places/type=place/*`;
 }
 
+// Places that are not plausible website clients (public spaces, institutions,
+// infrastructure). Found in the first live Allston/Brighton/Brookline run:
+// parks, historic districts, museums, hospitals, ATMs and apartment buildings
+// were consuming a third of the sample. Matched against basic_category.
+export const NON_PROSPECT_CATEGORIES=['park','historic site','museum','college university','place of learning','school',
+ 'elementary school','high school','hospital','atm','apartment','residential building','shopping mall','public service',
+ 'government office','post office','library','religious organization','church','place of worship','cemetery','landmark',
+ 'monument','bus station','train station','transportation','parking','public toilet','playground','sports field',
+ 'structure and geography','road','bridge','neighborhood','city','embassy','police station','fire station','military',
+ 'social or community service','non profit organization','college','university'];
 const sqlString=(s:string)=>"'"+s.replace(/'/g,"''")+"'";
 // Schema varies across releases (e.g. categories → basic_category/taxonomy,
 // operating_status added later). Build the SELECT from columns that exist.
@@ -54,7 +64,11 @@ export function buildPlacesQuery(source:string,box:BBox,columns:readonly string[
  ];
  if(has('confidence'))where.push(`confidence >= ${min}`);
  if(has('operating_status'))where.push(`coalesce(operating_status,'open') <> 'permanently_closed'`);
- return `SELECT ${sel.join(', ')} FROM read_parquet(${sqlString(source)}, hive_partitioning=1) WHERE ${where.join(' AND ')} ORDER BY id LIMIT ${limit}`;
+ if(has('basic_category'))where.push(`coalesce(basic_category,'') NOT IN (${NON_PROSPECT_CATEGORIES.map(c=>sqlString(c.replace(/ /g,'_'))).join(', ')})`);
+ // Highest-confidence records first, so a LIMIT keeps the most reliable ones
+ // instead of an arbitrary slice ordered by opaque id.
+ const order=has('confidence')?'confidence DESC NULLS LAST, id':'id';
+ return `SELECT ${sel.join(', ')} FROM read_parquet(${sqlString(source)}, hive_partitioning=1) WHERE ${where.join(' AND ')} ORDER BY ${order} LIMIT ${limit}`;
 }
 
 export type OvertureRow={
@@ -83,22 +97,35 @@ export function normalizeOvertureRow(row:OvertureRow,release:string,areas:Discov
  const name=text(row.name,180),lat=Number(row.lat),lon=Number(row.lon);
  if(!name||!row.id||!Number.isFinite(lat)||!Number.isFinite(lon))return null;
  const category=text(row.basic_category||row.taxonomy?.primary||row.categories?.primary,120).replace(/_/g,' ');
+ if(NON_PROSPECT_CATEGORIES.includes(category.toLowerCase()))return null;
  const addr=(row.addresses??[]).find(a=>a&&(a.freeform||a.locality))??{};
  const websites=(row.websites??[]).map(http).filter(Boolean);
  const website=websites.find(w=>!social.test(w))??'';
  const socials=[...(row.socials??[]).map(http),...websites.filter(w=>social.test(w))].filter(Boolean).slice(0,5);
  const phone=text((row.phones??[])[0],40);
  const confidence=row.confidence==null||row.confidence===''?null:Number(row.confidence);
- const inAreas=areas.filter(a=>inBBox(a.bbox,lon,lat));
- const city=text(addr.locality,100),postcode=text(addr.postcode,12);
+ const city=text(addr.locality,100);
+ // Some sources drop the leading zero ("2215"); restore 5-digit ZIPs.
+ const rawPostcode=text(addr.postcode,12).replace(/^(\d{4})(?=$|-)/,'0$1');
+ const postcode=rawPostcode;
+ const zip5=postcode.slice(0,5);
+ // The bounding box is only a query envelope. When a postcode is recorded and
+ // an area defines its postcodes, the postcode decides membership: the first
+ // live run put Harvard Square, Watertown and Longwood inside "Allston",
+ // "Brighton" and "Brookline" boxes.
+ const boxed=areas.filter(a=>inBBox(a.bbox,lon,lat));
+ const inAreas=boxed.filter(a=>!a.postcodes?.length||!zip5||a.postcodes.includes(zip5));
+ if(!inAreas.length)return null;
  const flags:string[]=[];
  if(confidence!==null&&confidence<0.6)flags.push('low_source_confidence');
  if(!category)flags.push('no_category');
  if(!phone&&!website)flags.push('no_contact_or_website');
  if(!text(addr.freeform))flags.push('no_street_address_possible_service_area_business');
  if(row.operating_status&&row.operating_status!=='open')flags.push('operating_status_'+row.operating_status);
- const postal=inAreas.flatMap(a=>a.postcodes??[]);
- if(postcode&&postal.length&&!postal.some(p=>postcode.startsWith(p)))flags.push('postcode_outside_named_area');
+ if(!zip5)flags.push('no_postcode_area_from_coordinates_only');
+ if(text(row.brand?.names?.primary))flags.push('national_or_regional_brand');
+ if(/^(?:dr\.?\s)?[A-Z][a-z'’-]+(?:\s[A-Z]\.?)?\s[A-Z][a-z'’-]+(?:,?\s(?:MD|DO|DDS|DMD|PhD|NP|PA|LICSW|LMHC|PsyD))?$/.test(name)&&!website)
+  flags.push('individual_practitioner_listing');
  return {externalId:String(row.id).slice(0,80),name,category,
   templateHint:classifyIndustry(name,category).template??'unclassified',lat,lon,
   street:text(addr.freeform,180),city,postcode,region:text(addr.region,40),phone,website,
@@ -135,15 +162,35 @@ export function dedupeCandidates(list:OvertureCandidate[]):OvertureCandidate[]{
   const sameSite=Boolean(hostOf(a.website))&&hostOf(a.website)===hostOf(b.website);
   const sameName=normalizeBusiness(a.name)===normalizeBusiness(b.name)&&normalizeBusiness(a.name).length>=3;
   const near=metres(a,b)<=60;
-  // Evidence needs two independent signals; a shared name or shared phone
-  // alone also describes franchises, shared offices and call centres.
-  const signals=[samePhone,sameSite,sameName,near].filter(Boolean).length;
-  if(signals>=2){
+  // A possible duplicate is the SAME place: it must be nearby or share a
+  // phone, plus one more signal. Same name + website far apart is a branch of
+  // a multi-location business (Citizens Bank, Western Union), not a duplicate.
+  const duplicate=(near&&(samePhone||sameSite||sameName))||(samePhone&&sameName);
+  if(duplicate){
    const why=[samePhone&&'phone',sameSite&&'website',sameName&&'name',near&&'within 60 m'].filter(Boolean).join('+');
    a.possibleDuplicateOf.push(`${b.externalId} (${why})`);b.possibleDuplicateOf.push(`${a.externalId} (${why})`);
+  }else if(sameName&&sameSite){
+   for(const x of [a,b])if(!x.flags.includes('multi_location_business'))x.flags.push('multi_location_business');
   }
  }
+ // Many listings at one street address are usually departments or clinicians
+ // inside a hospital or large institution, which do not buy their own website.
+ const byAddress=new Map<string,OvertureCandidate[]>();
+ for(const c of out){const k=normalizeBusiness(c.street).slice(0,40);if(k.length>=6)byAddress.set(k,[...(byAddress.get(k)??[]),c]);}
+ for(const group of byAddress.values())if(group.length>=4)for(const c of group){
+  c.flags.push('institutional_address_'+group.length+'_listings');
+  // Duplicate flags inside an institution are noise; the address flag says it.
+  c.possibleDuplicateOf=[];
+ }
  return out;
+}
+
+// Plausible independent local businesses first. A ranking for review order,
+// not a sales score: it uses only recorded attributes, never revenue guesses.
+const deprioritize=/^(?:national_or_regional_brand|multi_location_business|institutional_address|individual_practitioner_listing|no_contact_or_website|no_category)/;
+export function reviewOrder(list:OvertureCandidate[]):OvertureCandidate[]{
+ const score=(c:OvertureCandidate)=>(c.flags.filter(f=>deprioritize.test(f)).length*10)+(c.website?0:2)+(c.templateHint==='unclassified'?1:0);
+ return [...list].sort((a,b)=>score(a)-score(b)||(b.confidence??0)-(a.confidence??0)||a.name.localeCompare(b.name));
 }
 
 // Columns understood by the existing /app/leads/import CSV intake (and by
