@@ -5,9 +5,13 @@ import {requireWorkspace,shortText,validUuid} from '@/lib/workspace';
 import {analyzeWebsite,publicWebsite} from '@/lib/website-intelligence';
 import {classifyWebPresence} from '@/lib/web-presence';
 import {interpretLocalLighthouseJson} from '@/lib/lighthouse-import';
+// Local-only script is intentionally not bundled into exported customer websites.
+// @ts-expect-error: Local ESM runner is intentionally JavaScript-only.
+import {runOneLocalLighthouse} from '../../../scripts/local-lighthouse-once.mjs';
 
 // Only named, already-approved CRM businesses can be inspected.
-// One site per click and a 20-minute per-company cooldown prevents quota abuse.
+// One site per click. Completed measurements have a 20-minute cooldown;
+// an inconclusive remote 429 must not prevent a working local measurement.
 export async function auditBusiness(form:FormData){
  const {supabase,organizationId}=await requireWorkspace(true);
  const id=shortText(form.get('business_id'),64);
@@ -21,14 +25,46 @@ export async function auditBusiness(form:FormData){
  let target:string;
  try{target=publicWebsite(business.website_url);}
  catch{redirect('/app/intelligence?error=invalid-website');}
+ const localMode=process.env.NODE_ENV==='development';
+ // In a deployed environment, never run a Chrome browser on user-provided URLs.
+ // An authenticated user can instead import a real local Lighthouse JSON report.
+ if(!localMode&&!process.env.PAGESPEED_API_KEY?.trim())
+   redirect('/app/intelligence?business='+id+'&error=remote-not-configured#lighthouse-fallback');
  const {data:latest,error:previousError}=await supabase.from('website_assessments')
-   .select('assessed_at').eq('organization_id',organizationId).eq('business_id',id)
+   .select('assessed_at,status').eq('organization_id',organizationId).eq('business_id',id)
    .order('assessed_at',{ascending:false}).limit(1).maybeSingle();
  if(previousError)throw Error('Could not check previous scans. No new audit was requested.');
- if(latest && Date.now()-Date.parse(latest.assessed_at)<20*60*1000){
-   redirect('/app/intelligence?error=cooldown');
+ // Don't lock a prospect out because Google's external service returned HTTP 429.
+ if(latest&&latest.status!=='inconclusive'&&
+    Date.now()-Date.parse(latest.assessed_at)<20*60*1000)
+   redirect('/app/intelligence?business='+id+'&error=cooldown#latest-audits');
+ let result;
+ if(localMode){
+  let raw:string;
+  try{raw=await runOneLocalLighthouse(target);}
+  catch(error){
+   const message=error instanceof Error?error.message:'';
+   const code=/still running/i.test(message)?'local-busy':
+    /not installed/i.test(message)?'local-install':
+    /preflight|unsafe|DNS|denied|HTTP 403|HTTP 429/i.test(message)?'local-preflight':
+    'local-failed';
+   redirect('/app/intelligence?business='+id+'&error='+code+'#local-lighthouse-queue');
+  }
+  try{result=interpretLocalLighthouseJson(raw,target);}
+  catch{redirect('/app/intelligence?business='+id+'&error=local-report#local-lighthouse-queue');}
+  result.findings.source_method='local_lighthouse_execution';
+  result.findings.note=result.findings.note.replace(
+   'Operator-imported Chrome Lighthouse JSON, not independently authenticated by the PageSpeed API.',
+   'Chrome Lighthouse executed on the authenticated local development server. No Google PageSpeed API request was made.'
+  );
+ }else{
+  result=await analyzeWebsite(target,fetch,process.env.PAGESPEED_API_KEY);
+  // API service exhaustion is not a new measurement. Keep historical records,
+  // but don't append a fresh empty card for every unsuccessful button press.
+  if(result.status==='inconclusive'&&
+    /HTTP 429|HTTP 403|HTTP 401/.test(result.findings.error??''))
+   redirect('/app/intelligence?business='+id+'&error=remote-unavailable#lighthouse-fallback');
  }
- const result=await analyzeWebsite(target,fetch,process.env.PAGESPEED_API_KEY);
  const {error:saveError}=await supabase.from('website_assessments').insert({
   organization_id:organizationId,business_id:id,website_url:target,
   status:result.status,findings:result.findings,evidence:result.evidence,
