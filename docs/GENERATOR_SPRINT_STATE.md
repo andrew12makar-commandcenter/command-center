@@ -53,16 +53,26 @@ This is the compact recovery checkpoint for continued development of the **local
 - Tests added: `tests/site-presentation.test.ts`, `tests/source-redesign-reference.test.ts`, `tests/source-site-hints.test.mjs`.
 - **Limitations**: current fixed concept JPEG pool (nine files) remains. No on-demand AI image generation, automatic design cloning, live real-world rights confirmation, browser screenshot QA, or client approval occurred. Research captures HTML metadata/structure, not pixel-accurate visual style or entire CSS. All business imagery from a website remains unapproved until authorization and review. No Supabase migrations or live production deployment were performed.
 
+## Verified checkpoint 7: proposal specificity and subtype-safe imagery
+- **Latest verified code commit:** `7ac4e681b06be7601854646c3cfbc6b9daa10a66`.
+- **Full GitHub Actions evidence:** [run 38224385471](https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38224385471) PASSED tests, TypeScript, main production build and clean standalone exported-site build.
+- `lib/concept-imagery.ts`: `getMatchedConceptSet()` now selects old static AI concepts only for matching business subtype, failing closed for veterinary, primary-care, plumbers, bookstore and unknown categories rather than presenting a dental chair or landscaping as the business's image. Applied in benchmark gallery, authenticated Demo Studio preview and full-screen preview; regression tests added.
+- `lib/business-specific-copy.ts`: untouched generic generated headline/description now adapt from the actual listed service names, business name and recorded city. Human-authored headlines are preserved; unreviewed details carry a confirmation warning. Connected in `lib/site-blueprint.ts`, included in cold standalone exports, regression-tested.
+- `lib/reviewed-business-features.ts`: only operator-reviewed, meaningful, source-linked company website insights can replace the repetitive three-card process section with source-linked business details; candidates, generic labels and unsafe URLs are excluded. Connected through `components/site-industry-sections.tsx` and standalone export.
+- `lib/source-redesign-reference.ts`: business image *briefs* are now specialty-specific for veterinary, dental, primary care, other home services and bookstores. All such visuals remain **not generated** until an actual licensed provider/review pipeline is added.
+- New tests: `tests/business-specific-copy.test.ts`, `tests/reviewed-business-features.test.ts`, subtype coverage in `tests/concept-imagery.test.ts` and `tests/source-redesign-reference.test.ts`. One intermediate test failed due a prompt wording assertion and was corrected before the green CI above.
+- **Not accomplished**: direct Google Business Profile/Places photo ingestion, licensing or attribution clearance; bulk original-site photo imports with commercial rights; on-demand AI image rendering; automated business-specific visual compositions from screenshots; browser-based visual QA. Public availability is not a license. The legacy nine static concept JPEGs remain for matching categories only. Private Supabase, backups and original branches unchanged.
+
 ## Evaluation baseline (not a production claim)
 - Prior documented fictional benchmark: rules+search holdout agreement 0.625; baseline 0.292; cross-validation 0.652; unfamiliar-style interpreter recall 0.167. Source: `docs/feedback-loop.md`.
 - Six generator cases scored 100/100 on permissive *structural preflight*; that is not a measured visual-quality score.
 - External client content, rights, real browsers, and production database state are still unverified in this checkpoint.
 
 ## Current objective
-Next task: obtain a real desktop and mobile screenshot comparison from the user running localhost:3001 after Fetch/Pull in their isolated preview. Refine hero and content proportions from visual QA; then design and implement an authorized on-demand image-generation or licensed-image provider pipeline (currently only queued prompts and a nine-JPEG static concept pool), with storage, provenance, review and per-site asset diversity. Avoid automatic image claiming. Supabase migrations remain unverified.
+Next task: inspect desktop/mobile screenshots of the newly changed benchmark gallery after user safely pulls into isolated preview. Prioritize further layout/typography improvements based on concrete rendered deficiencies; implement an external photo-reference intake for business website and Google listings with provider attribution, permissions, caching restrictions and operator approval (do not scrape/reuse unauthorized Google photos). Then implement opt-in on-demand per-business AI concept image generation, storage and human review. Existing original-site HTML analysis captures selected content metadata, NOT entire design reproduction. Supabase migration status is unverified.
 
 ## Recovery instructions
 1. Inspect this file, check `git status` and branch; do not reset original Mac work.
-2. Read only relevant `app/app/demos/feedback-actions.ts`, `lib/generator-loop/integration.ts`, and `components/site-renderer.tsx`.
-3. Validate browser output before enabling the live feedback adapter; add a small org-scoped integration patch with tests, then run CI.
+2. Read only relevant `lib/concept-imagery.ts`, `lib/business-specific-copy.ts`, `lib/reviewed-business-features.ts`, `components/site-industry-sections.tsx` and `lib/source-redesign-reference.ts`.
+3. Inspect actual browser output on desktop/mobile; avoid speculative template changes. Next checkpoint should implement a defensible provider photo/reference intake with rights and provenance, then run CI.
 4. Update this checkpoint with the latest verified commit and next task.
