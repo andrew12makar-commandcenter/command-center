@@ -12,11 +12,13 @@
     "audit:local": "node scripts/local-lighthouse.mjs",
     "benchmark:generator": "node --experimental-strip-types scripts/run-generator-benchmarks.ts",
     "qa:browser": "node --experimental-strip-types scripts/browser-qa/run.mjs",
-    "qa:browser:lighthouse": "node --experimental-strip-types scripts/browser-qa/run.mjs --lighthouse"
+    "qa:browser:lighthouse": "node --experimental-strip-types scripts/browser-qa/run.mjs --lighthouse",
+    "research:local": "node --experimental-strip-types scripts/local-site-research.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.0",
     "@supabase/supabase-js": "^2.0.0",
+    "cheerio": "^1.2.0",
     "lucide-react": "^0.500.0",
     "next": "^16.1.0",
     "react": "^19.2.0",

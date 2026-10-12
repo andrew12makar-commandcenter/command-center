@@ -39,7 +39,7 @@ export const ROADMAP:RoadmapProject[]=[
    step('seo-audit-live','Prove a real CRM → assessment → saved evidence flow','Complete a live audit against a reviewed business and confirm saved findings.','/app/intelligence'),
    step('seo-opportunity-board','Evidence-aware Opportunity Board','Show supported next actions rather than invented owner budgets.','/app/opportunities','completed','Board code and evidence-gating tests passed.'),
    step('seo-commercial-score','Add transparent commercial opportunity ranking','Combine verified evidence, proximity, category and fit without guessing revenue.','/app/opportunities'),
-   step('seo-intelligence-brief','Business Website Intelligence Brief','Extract services, contact, hours, JSON-LD, navigation and brand cues with Cheerio, each fact traceable to a URL and capture time.','/app/intelligence'),
+   step('seo-intelligence-brief','Business Website Intelligence Brief','Extract services, contact, hours, JSON-LD, navigation and brand cues with Cheerio, each fact traceable to a URL and capture time.','/app/intelligence','in_progress','Checkpoint 13: Cheerio fact extraction and brief wired into npm run research:local; fixture-tested. Not yet run on three real, permitted business sites.'),
   ]},
   {id:'websites',title:'04 · Websites worth selling',summary:'A reusable renderer is only useful when actual prospects want the result.',steps:[
    step('seo-site-foundation','Reusable site blueprint and standalone export','Separate sourced facts, approved assets and presentation; export an isolated Next.js site.','/app/demos','completed','Exporter cold production build and app CI passed.'),
@@ -49,7 +49,7 @@ export const ROADMAP:RoadmapProject[]=[
    step('seo-site-ai-media','Generate per-business concept media behind approval and cost guards','Use industry-correct prompts, explicit AI disclosure, provider opt-in, budget limits, storage provenance, and human approval.','/app/demos','blocked','No provider or paid generation is authorized. Prompt briefs and safe static fallbacks exist; no credits will be spent without approval.'),
    step('seo-site-variance','Prove professionally distinct layouts across business types','Verify that medical, home-service, and professional sites use materially different composition, hierarchy, media treatment, and responsive behavior.','/app/demos/benchmarks'),
    step('seo-site-motion','Validate polished motion and reduced-motion behavior','Review navigation, section, and media transitions in real browsers without harming accessibility or performance.','/app/demos/benchmarks'),
-   step('seo-browser-qa','Automated browser QA for generated sites','Render every benchmark through the client export in Chromium at desktop, tablet and mobile; check overflow, clipping, overlap, images, links, console errors, axe accessibility, reduced motion and animation reveal; save screenshots.','/app/demos/benchmarks','in_progress','Checkpoint 10: Playwright + axe-core + local Lighthouse harness built; 8 benchmarks at 3 widths report 0 blocking technical defects locally after fixes. Awaiting GitHub CI confirmation.'),
+   step('seo-browser-qa','Automated browser QA for generated sites','Render every benchmark through the client export in Chromium at desktop, tablet and mobile; check overflow, clipping, overlap, images, links, console errors, axe accessibility, reduced motion and animation reveal; save screenshots.','/app/demos/benchmarks','completed','Checkpoint 10 (a71611d): 8 benchmarks × 3 widths, 0 blocking technical defects; GitHub CI browser-qa job passed and uploaded screenshots. Technical only: design quality still needs human review.','https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38234734478'),
    step('seo-site-visual-qa','Pass desktop and mobile screenshot review','Capture real browser output at representative breakpoints and record human visual-review evidence for each target vertical.','/app/demos/benchmarks'),
    step('seo-site-quality','Pass a serious client-demo visual review','Require business-specific content, resolved media rights, distinct layouts, motion QA, responsive screenshots, and a human reviewer before calling a proposal client-ready.','/app/demos'),
    step('seo-site-content','Validate real client content and owner approval','Confirm services, contact links, disclosures, and owner-approved wording in a real sample without inferring approval from public sources.','/app/demos'),
@@ -94,9 +94,10 @@ export function findStep(id:string):{project:RoadmapProject;step:RoadmapStep}|nu
  }
  return null;
 }
-// Work order is distinct from the reference stage order: first sell a good site.
+// Work order is distinct from the reference stage order. The Oct 12 program
+// measures quality and understands businesses before adding design complexity.
 const PRIORITY:Record<ProjectKey,string[]>={
- seo:['seo-site-source-media','seo-site-rights','seo-site-ai-media','seo-site-variance','seo-site-motion','seo-site-visual-qa','seo-site-quality','seo-site-content','seo-audit-live','seo-demo-sharing',
+ seo:['seo-browser-qa','seo-intelligence-brief','seo-open-data-discovery','seo-identity-resolution','seo-site-source-media','seo-site-rights','seo-site-ai-media','seo-site-variance','seo-site-motion','seo-site-visual-qa','seo-site-quality','seo-site-content','seo-audit-live','seo-demo-sharing',
  'seo-proposals','seo-sales-routes','seo-billing','seo-launch','seo-first-client',
  'seo-intake','seo-commercial-score','seo-official-sources','seo-recurring-scans','seo-retention'],
  mcat:['mcat-method','mcat-hub','mcat-resources','mcat-students','mcat-planner',

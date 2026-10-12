@@ -82,9 +82,17 @@ This is the compact recovery checkpoint for continued development of the **local
 - Checks: horizontal overflow, text clipped by any container, overlapping text, broken/upscaled images, broken anchors, header-nav click-through (including the mobile menu), H1/brand/action in first screen, console and runtime errors, failed requests, axe WCAG 2.2 AA, reduced-motion (no running animation, nothing transparent), and scroll-reveal content left faded. A layout-repetition signal compares structure and first-screen luminance across sites.
 - Benchmarks now cover 8 cases incl. new plumbing (`holdout-plumbing`) and restaurant (`holdout-restaurant`) fixtures.
 - Defects the first real run found and this checkpoint fixed: (1) **scroll reveals never tracked scrolling**: the `overflow-hidden` site wrapper was the scroll container for CSS `view()` timelines, so text sat at a fixed partial opacity; now `overflow-clip`, and whole sections are no longer view-animated. (2) **Exported sites ignored the subtype image safeguard** (plumber got a landscaping garden photo); exports now use `getMatchedConceptSet`, and blueprints carry the CRM `category`. (3) 15 serious axe colour-contrast failures; muted/eyebrow colours now pass 4.5:1 on all theme surfaces. (4) No navigation below 768px; added a no-JS `<details>` menu. (5) "Practice" nav/label shown to plumbers and restaurants. (6) Mid-sentence title case in generated copy ("explore Leak and fixture repair"). (7) 20px phone/email tap targets.
+- **CI verified:** [GitHub Actions 38234734478](https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38234734478) passed both `typecheck-build` and the new `browser-qa` job (exit 0 = no blocking defects); the `browser-qa` artifact holds every screenshot and report.
 - Local evidence: 0 blocking, 16 warnings (10px uppercase labels on mobile) across 8 sites × 3 widths; Lighthouse lab accessibility 98–100. 180 unit tests, typecheck, build and standalone export build pass.
 - NOT established: design quality. Screenshots show technically clean but visually plain, typographic-heavy pages, and several categories now have no imagery because no rights-cleared, trade-appropriate media exists. Human review per `docs/VISUAL_REVIEW_RUBRIC.md` is still required.
 - Library decisions: `docs/OPEN_SOURCE_INTEGRATION_DECISIONS.md`.
+
+## Checkpoint 13 (in progress): Website Intelligence Brief
+- `scripts/site-facts.mjs` (Cheerio) parses each page that the EXISTING bounded fetcher already retrieved; it never fetches, so robots, same-host, size, redirect and private-network guards are unchanged.
+- Extracts source-stated facts with `{url, capturedAt, method, excerpt}`: JSON-LD business data (name, type, phone, email, address, geo, hours, service area, offers, sameAs, logo, FAQPage), tel/mailto links, `<address>`, booking/estimate/reservation links, text hours (day + time lines only), service candidates under service-like headings, `<details>` FAQs. Design references: theme color, frequent CSS colors, Google Fonts, navigation, logo candidates. Structure: viewport meta, H1s, alt coverage, nav size, JSON-LD presence, and a `needsBrowserRender` flag for script-only shells.
+- `lib/website-brief.ts` merges pages into a brief with separate sections for facts, conflicts (never auto-resolved), missing information (with what the generator must not invent), design references and evidence-tied redesign observations. `npm run research:local` now writes `<id>-<time>.json` (with `brief`) and `-brief.md`. The Demo Studio importer is unchanged and ignores the new key.
+- Tests: `tests/site-facts.test.mjs` (5).
+- **Not yet done:** running it on three real, permitted business sites. This sandbox's egress policy blocks arbitrary websites, so that must run on the Mac (`npm run research:local -- <approved manifest>`). Playwright render fallback for flagged pages is not wired yet. Brief is not yet displayed in Command Center or used by the generator.
 
 ## Evaluation baseline (not a production claim)
 - Prior documented fictional benchmark: rules+search holdout agreement 0.625; baseline 0.292; cross-validation 0.652; unfamiliar-style interpreter recall 0.167. Source: `docs/feedback-loop.md`.
@@ -92,7 +100,7 @@ This is the compact recovery checkpoint for continued development of the **local
 - External client content, rights, real browsers, and production database state are still unverified in this checkpoint.
 
 ## Current objective
-Confirm Checkpoint 10 in GitHub CI (`browser-qa` job + uploaded screenshots), then: Checkpoint 13 (Cheerio-based Website Intelligence Brief inside the existing bounded fetcher), Checkpoint 11 (Overture Places + DuckDB discovery staged outside the CRM). Every generator change from now on must be checked with `npm run qa:browser` and looked at, not only unit-tested.
+Finish Checkpoint 13 (real-site runs on the Mac, selective Playwright fallback, show the brief in Demo Studio), then Checkpoint 11 (Overture Places + DuckDB discovery staged outside the CRM). Every generator change from now on must be checked with `npm run qa:browser` and looked at, not only unit-tested.
 
 ## Recovery instructions
 1. Inspect this file, check `git status` and branch; do not reset original Mac work.
