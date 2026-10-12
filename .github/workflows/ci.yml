@@ -26,3 +26,5 @@ jobs:
         run: npm run typecheck
       - name: Build
         run: npm run build
+      - name: Build a standalone exported client website
+        run: node scripts/smoke-client-export.mjs
