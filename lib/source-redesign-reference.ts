@@ -37,7 +37,7 @@ function conceptBrief(template:Template,services:string[]):string[]{
   ];
   return [
    'Original healthcare editorial AI concept with non-identifiable wellness objects and gentle daylight, no identifiable clinic, clinicians, patients, treatments or clinical outcomes. Clearly label AI concept.',
-   'Abstract healthcare-inspired material still life suitable for an information-focused primary-care site, without implying an actual office or physician. Clearly label AI concept.'
+   'Abstract healthcare-inspired material still life suitable for an information-focused primary-care site, no claimed actual office or physician. Clearly label AI concept.'
   ];
  }
  if(template==='landscaping'){
