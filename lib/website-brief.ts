@@ -82,8 +82,13 @@ export function buildWebsiteBrief(businessName:string,website:string,pages:PageE
   if(s.h1.length===0)o('No main page heading.','Zero <h1> elements.',p.url);
   if(s.h1.length>1)o('Competing main headings.',`${s.h1.length} <h1> elements.`,p.url);
   if(s.navItemCount>9)o('Navigation is crowded.',`${s.navItemCount} distinct navigation links.`,p.url);
-  if(s.imagesMissingAlt>0)o('Images lack text alternatives.',`${s.imagesMissingAlt} of ${s.imageCount} images have no alt attribute.`,p.url);
   if(p.needsBrowserRender)o('Content may only appear after JavaScript runs; a rendered capture is needed before judging it.',`${s.textLength} characters of HTML text, ${s.scriptCount} external scripts.`,p.url);
+ }
+ // Missing alt text is summed across pages into one finding.
+ const altPages=pages.filter(p=>p.structure.imagesMissingAlt>0);
+ if(altPages.length){
+  const missing=altPages.reduce((n,p)=>n+p.structure.imagesMissingAlt,0),total=pages.reduce((n,p)=>n+p.structure.imageCount,0);
+  for(const p of altPages)o('Images lack text alternatives.',`${missing} of ${total} images across the analyzed pages have no alt attribute.`,p.url);
  }
  // Structured data on the homepage covers the business; only flag when no
  // analyzed page has any.

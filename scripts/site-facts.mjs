@@ -109,6 +109,13 @@ export function extractBusinessFacts(html,url,capturedAt=new Date().toISOString(
  });
  $('address').each((_,el)=>{const t=clean($(el).text(),200);if(t.length>8)fact('address',t,'address-element',t);});
 
+ // 1b. Without structured data, the homepage title usually starts with the
+ // business name ("Sudbury Design Group", "Contact : Sudbury Design Group").
+ if(!facts.some(f=>f.field==='name')&&new URL(url).pathname==='/'){
+  const title=clean($('title').first().text(),140).split(/\s+[|:–—-]\s+/)[0];
+  if(title.length>=3&&title.split(/\s+/).length<=7&&!/^(home|welcome|index)$/i.test(title))fact('name',title,'page-title',$('title').first().text());
+ }
+
  // 2b. Street addresses written as plain text (footers, contact blocks).
  // Several offices are kept as several facts; the brief does not pick one.
  const bodyText=clean($('body').text(),400_000);

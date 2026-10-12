@@ -180,3 +180,14 @@ test('live landscaping patterns: menu services, footer addresses, project CTA, b
  assert.ok(b.conflicts.some(c=>c.field==='address'&&/several offices/.test(c.note)));
  assert.ok(!b.missing.some(m=>['address','service','conversionLink'].includes(m.field)));
 });
+
+test('name falls back to the homepage title; alt-text gaps are one finding',()=>{
+ const site='https://land.example.org/';
+ const p1=extractBusinessFacts('<html><head><title>Sudbury Design Group</title></head><body><img src="/a.jpg"><img src="/b.jpg" alt="x"></body></html>',site,at);
+ const p2=extractBusinessFacts('<html><head><title>Contact : Sudbury Design Group</title></head><body><img src="/c.jpg"></body></html>',site+'contact/',at);
+ assert.deepEqual(p1.facts.filter(f=>f.field==='name').map(f=>[f.value,f.source.method]),[['Sudbury Design Group','page-title']]);
+ assert.equal(p2.facts.filter(f=>f.field==='name').length,0,'only the homepage title is used');
+ const b=buildWebsiteBrief('X',site,[p1,p2],new Date(at));
+ const alt=b.observations.filter(o=>o.finding==='Images lack text alternatives.');
+ assert.equal(alt.length,1);assert.match(alt[0].evidence,/2 of 3 images/);assert.equal(alt[0].page,'2 of 2 pages');
+});
