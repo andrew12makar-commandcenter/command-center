@@ -71,6 +71,12 @@ This is the compact recovery checkpoint for continued development of the **local
 - Local verification: 148 TypeScript tests and 15 JavaScript tests passed, TypeScript passed, focused lint passed, the main Next.js production build passed with webpack, and `scripts/smoke-client-export.mjs` completed a clean install and production build of the isolated customer site.
 - Browser limitation: the available localhost benchmark route redirected to the login screen, so no authenticated desktop/mobile screenshot or human visual-quality claim was recorded in this checkpoint. GitHub CI must still verify the pushed branch with its default build path.
 
+## Verified checkpoint 9: zero-spend external media gate
+- `lib/concept-media-generation.ts` defines provider-neutral adapters for future image-generation or licensed-library services, but deliberately performs no network request and stores no asset.
+- A provider must be configured, generation must be enabled, a specific approval reference must be recorded, and image-count and cost ceilings must pass before a plan can become ready. Invalid estimates and estimates above the approved ceiling fail closed.
+- Demo Studio visibly reports the current provider gate as blocked, confirms that no external request was made and `$0` was spent, and selects either the existing disclosed static concepts or a typographic fallback.
+- Verification: 151 TypeScript tests and 15 JavaScript tests passed, TypeScript passed, focused lint passed, and the main Next.js production build passed with webpack. No API, credit, deployment, database migration or production data was used.
+
 ## Evaluation baseline (not a production claim)
 - Prior documented fictional benchmark: rules+search holdout agreement 0.625; baseline 0.292; cross-validation 0.652; unfamiliar-style interpreter recall 0.167. Source: `docs/feedback-loop.md`.
 - Six generator cases scored 100/100 on permissive *structural preflight*; that is not a measured visual-quality score.

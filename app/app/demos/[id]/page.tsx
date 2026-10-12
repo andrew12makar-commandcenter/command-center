@@ -11,6 +11,7 @@ import {getMatchedConceptSet} from '@/lib/concept-imagery';
 import {groupResearchInsights} from '@/lib/research-intelligence';
 import {deriveSiteRedesignReference} from '@/lib/source-redesign-reference';
 import {summarizeAssetRights} from '@/lib/asset-rights';
+import {disabledConceptMediaProvider,planConceptMediaGeneration} from '@/lib/concept-media-generation';
 
 const issueOptions=[
  ['layout','Layout and hierarchy'],['visuals','Visual quality'],['generic_copy','Generic messaging'],
@@ -55,6 +56,11 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
   const researchGroups=groupResearchInsights(site.content.researchInsights);
   const siteReference=deriveSiteRedesignReference(site.content,demo.template as Template,site.services);
   const rights=summarizeAssetRights(site.content);
+  const mediaGeneration=planConceptMediaGeneration({
+   briefs:siteReference.imageBriefs,provider:disabledConceptMediaProvider,
+   policy:{enabled:false,explicitlyApproved:false,approvalReference:'',maxImages:3,maxCostCents:0},
+   staticFallbackAvailable:Boolean(conceptMedia?.hero)
+  });
   return <main className="max-w-[1320px]">
     <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
       <div><Link href="/app/demos" className="muted text-sm">← Demo Studio</Link>
@@ -185,6 +191,10 @@ export default async function DemoPreview({params,searchParams}:{params:Promise<
         {siteReference.warnings.length>0&&<ul className="muted mt-4 list-disc space-y-1 pl-5 text-xs leading-5">{siteReference.warnings.map(w=><li key={w}>{w}</li>)}</ul>}
         {siteReference.imageBriefs.length>0&&<details className="mt-4 border-t border-[#2e5861] pt-4"><summary className="cursor-pointer text-xs font-semibold">AI conceptual image briefs for later generation</summary>
          <ol className="muted mt-3 list-decimal space-y-2 pl-5 text-xs leading-5">{siteReference.imageBriefs.map(x=><li key={x}>{x}</li>)}</ol>
+         <div className="mt-4 rounded-lg border border-amber-800/60 bg-amber-950/20 p-3 text-xs text-amber-100">
+          <p className="font-semibold">Provider gate: {mediaGeneration.status} · no external request made · $0 spent</p>
+          <p className="mt-1 leading-5">Fallback: {mediaGeneration.fallback.replaceAll('_',' ')}. Enabling a provider requires explicit provider, image-count, and cost-ceiling approval.</p>
+         </div>
          <p className="muted mt-3 text-xs">These are NOT generated photos and must not be presented as real business facilities, staff, or completed projects.</p>
         </details>}
        </div>
