@@ -34,6 +34,9 @@ export type SiteContent={
 export type SiteContact={phone:string|null;email:string|null;city:string|null};
 export type SiteBlueprint={
   version:1;template:Template;businessName:string;
+  // Recorded CRM category (unverified hint). Lets exported sites keep the same
+  // subtype-safe imagery decisions as Demo Studio. Optional for old exports.
+  category?:string|null;
   eyebrow:string;headline:string;description:string;
   primaryAction:string;secondaryAction:string;
   services:string[];contact:SiteContact;content:SiteContent;
@@ -47,7 +50,7 @@ export type SiteBlueprint={
    cardStyle:'bordered'|'numbered'|'flat';alignment:'left'|'center'|'offset';sectionOrder:string[]};
   narrative:{servicesHeading:string;servicesIntro:string;aboutHeading:string;contactHeading:string;processHeading:string};
 };
-export type SiteSource={name:string;city?:string|null;phone?:string|null;email?:string|null};
+export type SiteSource={name:string;city?:string|null;phone?:string|null;email?:string|null;category?:string|null};
 
 const asText=(x:unknown,max:number)=>typeof x==='string'?x.trim().slice(0,max):'';
 export function safePublicUrl(raw:unknown):string|null {
@@ -206,6 +209,7 @@ export function buildSiteBlueprint(
  });
  const candidate={
   version:1 as const,template,businessName:asText(copy.brand,140)||asText(business.name,140),
+  category:asText(business.category,100)||null,
   eyebrow:asText(copy.eyebrow,140),
   headline:specific.headline,
   description:specific.description,

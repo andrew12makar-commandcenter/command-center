@@ -85,7 +85,7 @@ export function IndustryNextSteps({site,theme,compact}:Props){
       A closer look at {site.businessName}.
      </h2></div>
     <p className={'self-end max-w-lg text-base leading-8 '+theme.muted}>
-     Details selected from the business's own published information and reviewed for this design concept.
+     Details selected from the business&apos;s own published information and reviewed for this design concept.
      Availability and current terms should be confirmed directly.
     </p>
    </div>
@@ -183,7 +183,7 @@ export function IndustryHero({site,theme,photo,compact,standalone}:{
   {photo.concept?<span className="absolute bottom-4 left-4 max-w-[calc(100%-2rem)] bg-black/75 px-4 py-2 text-xs leading-5 text-white">AI-generated conceptual visual. Not a photo of this business.</span>:
    photo.credit?<span className="absolute bottom-4 left-4 bg-black/70 px-4 py-2 text-xs text-white">{photo.credit}</span>:null}
  </div>:null;
- if(isOutdoor)return <section id="home" data-hero-layout={kind} data-composition={site.design.composition} className={`motion-section relative isolate overflow-hidden ${theme.ink}`}>
+ if(isOutdoor)return <section id="home" data-hero-layout={kind} data-composition={site.design.composition} className={`motion-section relative isolate overflow-clip ${theme.ink}`}>
   {hasPhoto&&photo?<img src={photo.src} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"/>:null}
   {hasPhoto?<div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/65 to-black/30"/>:null}
   <div className={`relative mx-auto flex max-w-[1650px] flex-col justify-end px-7 py-20 sm:px-12 lg:px-[7vw] lg:py-24 ${heroMin}`}>
@@ -198,7 +198,7 @@ export function IndustryHero({site,theme,photo,compact,standalone}:{
    </div>
   </div></section>;
  if(site.template==='medical')return <section id="home" data-hero-layout={kind} data-composition={site.design.composition}
-  className={`motion-section relative overflow-hidden ${theme.paper}`}>
+  className={`motion-section relative overflow-clip ${theme.paper}`}>
   <div className={`mx-auto grid max-w-[1650px] items-stretch ${hasPhoto?'lg:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]':'lg:grid-cols-[minmax(0,1.16fr)_minmax(0,.84fr)]'}`}>
    <div className={`motion-hero-copy flex flex-col justify-center px-7 py-16 sm:px-12 lg:px-[7vw] lg:py-24 ${heroMin}`}>
     <p className={`text-xs font-semibold uppercase tracking-[.24em] ${theme.eyebrow}`}>{label}</p>
@@ -217,7 +217,7 @@ export function IndustryHero({site,theme,photo,compact,standalone}:{
    </aside>}
   </div></section>;
  return <section id="home" data-hero-layout={kind} data-composition={site.design.composition}
-  className={`motion-section relative overflow-hidden ${theme.base}`}>
+  className={`motion-section relative overflow-clip ${theme.base}`}>
   <div className={`mx-auto grid max-w-[1650px] ${centered?'lg:grid-cols-1':'lg:grid-cols-[minmax(0,.94fr)_minmax(0,1.06fr)]'}`}>
    <div className={`motion-hero-copy flex flex-col justify-center px-7 py-16 sm:px-12 lg:px-[7vw] lg:py-24 ${heroMin} ${centered?'mx-auto w-full max-w-[1100px] text-center':''}`}>
     <p className={`text-xs font-semibold uppercase tracking-[.24em] ${theme.eyebrow}`}>{label}</p>

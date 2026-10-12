@@ -24,6 +24,16 @@ const knownGenericDescriptions=[
  /^meet the business and explore its services/i
 ];
 const phrase=(s:string)=>s.trim().replace(/\s+/g,' ').replace(/[.!?]+$/,'');
+// Service labels arrive title-cased ("Water heater service"). Mid-sentence they
+// read as typos ("explore Leak repair and Water heater service"). Only a plain
+// capitalized first word is lowered; acronyms, brands with interior capitals and
+// known proper nouns keep their casing.
+const properNouns=/^(?:invisalign|botox|medicare|medicaid|masshealth|lasik|pilates|zumba|crossfit|boston|cambridge|brookline|newton|somerville)$/i;
+export function midSentence(label:string):string{
+ const word=label.split(/\s+/)[0]||'';
+ if(!/^[A-Z][a-z'’-]+$/.test(word)||properNouns.test(word))return label;
+ return label.charAt(0).toLowerCase()+label.slice(1);
+}
 const limited=(s:string,max:number)=>s.length<=max?s:s.slice(0,max-1).trimEnd()+'…';
 
 export function isGeneratedBoilerplate(text:string,kind:'headline'|'description'):boolean{
@@ -39,12 +49,12 @@ export function buildServiceSpecificCopy(
  if(!services.length)return {headline:input.headline,description:input.description,changed:false};
  const first=services[0],second=services[1];
  // A readable 30-65 character headline based on real named offerings.
- const combined=second&&first.length+second.length<53?first+' & '+second:first;
+ const combined=second&&first.length+second.length<53?first+' & '+midSentence(second):first;
  const headline=isGeneratedBoilerplate(input.headline,'headline')?
   limited(combined.charAt(0).toUpperCase()+combined.slice(1)+'.',72):input.headline;
  // City is a CRM fact, not an invented geographic service-area claim.
  const city=input.city?.trim();
- const lead=services.length>=2?services.slice(0,2).join(' and '):first;
+ const lead=(services.length>=2?services.slice(0,2):[first]).map(midSentence).join(' and ');
  const proposed=city?
   input.businessName+' in '+city+': explore '+lead+'. Contact the business directly for current information.':
   'Explore '+lead+' from '+input.businessName+'. Contact the business directly for current information.';

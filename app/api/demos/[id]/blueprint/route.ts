@@ -17,12 +17,12 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   .eq('organization_id',organizationId).eq('id',id).maybeSingle();
  if(error||!demo)return NextResponse.json({error:'Demo not found.'},{status:404});
  const {data:business}=await supabase.from('businesses')
-  .select('name,city,phone,contact_email')
+  .select('name,city,phone,contact_email,category')
   .eq('organization_id',organizationId).eq('id',demo.business_id).maybeSingle();
  if(!business)return NextResponse.json({error:'Matching business not found.'},{status:404});
  const blueprint=buildSiteBlueprint(demo.template as Template,
   (demo.draft_content??{}) as Partial<DemoCopy>,{
-   name:business.name,city:business.city,phone:business.phone,email:business.contact_email
+   name:business.name,city:business.city,phone:business.phone,email:business.contact_email,category:business.category
   });
  return new NextResponse(JSON.stringify({
   exportType:'command-center-private-site-blueprint/v1',

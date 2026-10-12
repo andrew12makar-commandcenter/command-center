@@ -5,12 +5,12 @@ import {buildBenchmark,generatorBenchmarks} from '../lib/generator-benchmarks.ts
 
 test('real listed services replace lengthy generic generated headlines',()=>{
  const healthcare=buildBenchmark(generatorBenchmarks.find(x=>x.id==='holdout-vet')!);
- assert.equal(healthcare.headline,'Wellness exams & Diagnostic visits.');
+ assert.equal(healthcare.headline,'Wellness exams & diagnostic visits.');
  assert.ok(!/clear information|more confident/.test(healthcare.headline.toLowerCase()));
  assert.ok(!/verified fixture/.test(healthcare.description));
  assert.match(healthcare.description,/Watertown/);
  const professional=buildBenchmark(generatorBenchmarks.find(x=>x.id==='service-core')!);
- assert.equal(professional.headline,'Strategy sessions & Project delivery.');
+ assert.equal(professional.headline,'Strategy sessions & project delivery.');
 });
 
 test('explicitly authored business headline and description remain unchanged',()=>{
@@ -30,7 +30,7 @@ test('generic placeholder is never replaced by an invented company achievement',
   description:'Find the information you need before reaching out. Clinical services and provider details require confirmation.',
   services:['Wellness exams','Senior pet care'],city:'Watertown',businessName:'Test Veterinary Clinic',
   factsReviewed:false});
- assert.equal(text.headline,'Wellness exams & Senior pet care.');
+ assert.equal(text.headline,'Wellness exams & senior pet care.');
  assert.match(text.description,/pending review/);
  assert.doesNotMatch(text.description,/award|best|five-star|trusted by|since 19/i);
 });
@@ -40,4 +40,15 @@ test('unreviewed or missing services cannot invent specific business offerings',
   description:'Meet the business and explore its services. Details require confirmation.',
   services:[],city:'Boston',businessName:'No Services',factsReviewed:false});
  assert.equal(text.changed,false);
+});
+
+test('service labels read naturally mid-sentence without breaking acronyms or brands',()=>{
+ const text=buildServiceSpecificCopy({headline:'Make every first impression count.',
+  description:'Meet the business and explore its services.',
+  services:['Leak and fixture repair','Water heater service'],city:'Allston',businessName:'Fenway Flow Plumbing',factsReviewed:true});
+ assert.equal(text.description,'Fenway Flow Plumbing in Allston: explore leak and fixture repair and water heater service. Contact the business directly for current information.');
+ const kept=buildServiceSpecificCopy({headline:'Care, made clearer.',description:'Find essential information first.',
+  services:['Cleanings','Invisalign consultations','HVAC repair'],city:null,businessName:'X',factsReviewed:true});
+ assert.equal(kept.headline,'Cleanings & Invisalign consultations.');
+ assert.match(kept.description,/Explore cleanings and Invisalign consultations from X/);
 });

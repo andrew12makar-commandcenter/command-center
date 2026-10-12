@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.ts && node --test tests/*.test.mjs",
     "audit:local": "node scripts/local-lighthouse.mjs",
-    "benchmark:generator": "node --experimental-strip-types scripts/run-generator-benchmarks.ts"
+    "benchmark:generator": "node --experimental-strip-types scripts/run-generator-benchmarks.ts",
+    "qa:browser": "node --experimental-strip-types scripts/browser-qa/run.mjs",
+    "qa:browser:lighthouse": "node --experimental-strip-types scripts/browser-qa/run.mjs --lighthouse"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.0",
@@ -22,6 +24,8 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",

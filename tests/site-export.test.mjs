@@ -65,3 +65,20 @@ test('standalone project has no CRM login, removes research notes, and never ove
   await assert.rejects(exportProject(doc,output),/already exists/);
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+
+test('browser QA harness renders only sites that pass the client export gate',async()=>{
+ const {exportReviewHarness}=await import('../scripts/export-client-site.mjs');
+ const base=await mkdtemp(join(tmpdir(),'qa-harness-test-'));
+ try{
+  const bad=valid();bad.blueprint.content.images=[{url:'https://example.org/a.jpg',sourceUrl:'https://example.org',permission:'reference_only',role:'hero'}];
+  await assert.rejects(exportReviewHarness([{id:'ok',raw:valid()},{id:'bad',raw:bad}],join(base,'a')),/research-only/);
+  await assert.rejects(exportReviewHarness([{id:'Bad Id',raw:valid()}],join(base,'b')),/simple id/);
+  const out=await exportReviewHarness([{id:'one',raw:valid()},{id:'two',raw:valid()}],join(base,'c'));
+  const sites=JSON.parse(await readFile(join(out,'qa-sites.json'),'utf8'));
+  assert.deepEqual(Object.keys(sites),['one','two']);
+  assert.deepEqual(sites.one.content.researchPages,[]);
+  const page=await readFile(join(out,'app','[site]','page.tsx'),'utf8');
+  assert.match(page,/getMatchedConceptSet/);
+  assert.doesNotMatch(page,/getGeneratedConceptSet/);
+ }finally{await rm(base,{recursive:true,force:true});}
+});

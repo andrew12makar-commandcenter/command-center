@@ -77,13 +77,22 @@ This is the compact recovery checkpoint for continued development of the **local
 - Demo Studio visibly reports the current provider gate as blocked, confirms that no external request was made and `$0` was spent, and selects either the existing disclosed static concepts or a typographic fallback.
 - Verification: 151 TypeScript tests and 15 JavaScript tests passed, TypeScript passed, focused lint passed, and the main Next.js production build passed with webpack. No API, credit, deployment, database migration or production data was used.
 
+## Checkpoint 10: browser QA infrastructure (Playwright + axe + local Lighthouse)
+- `npm run qa:browser` (add `--lighthouse` for lab scores) exports every benchmark through the SAME client export gate (`exportReviewHarness` in `scripts/export-client-site.mjs`) into one Next.js harness, production-builds it, and drives Chromium at 1440, 834 and 390px. Output: `artifacts/browser-qa/<run>/` with first-screen and full-page screenshots, `report.json`, `report.md`, and an `index.html` contact sheet. Exit 1 on any blocking technical defect.
+- Checks: horizontal overflow, text clipped by any container, overlapping text, broken/upscaled images, broken anchors, header-nav click-through (including the mobile menu), H1/brand/action in first screen, console and runtime errors, failed requests, axe WCAG 2.2 AA, reduced-motion (no running animation, nothing transparent), and scroll-reveal content left faded. A layout-repetition signal compares structure and first-screen luminance across sites.
+- Benchmarks now cover 8 cases incl. new plumbing (`holdout-plumbing`) and restaurant (`holdout-restaurant`) fixtures.
+- Defects the first real run found and this checkpoint fixed: (1) **scroll reveals never tracked scrolling**: the `overflow-hidden` site wrapper was the scroll container for CSS `view()` timelines, so text sat at a fixed partial opacity; now `overflow-clip`, and whole sections are no longer view-animated. (2) **Exported sites ignored the subtype image safeguard** (plumber got a landscaping garden photo); exports now use `getMatchedConceptSet`, and blueprints carry the CRM `category`. (3) 15 serious axe colour-contrast failures; muted/eyebrow colours now pass 4.5:1 on all theme surfaces. (4) No navigation below 768px; added a no-JS `<details>` menu. (5) "Practice" nav/label shown to plumbers and restaurants. (6) Mid-sentence title case in generated copy ("explore Leak and fixture repair"). (7) 20px phone/email tap targets.
+- Local evidence: 0 blocking, 16 warnings (10px uppercase labels on mobile) across 8 sites × 3 widths; Lighthouse lab accessibility 98–100. 180 unit tests, typecheck, build and standalone export build pass.
+- NOT established: design quality. Screenshots show technically clean but visually plain, typographic-heavy pages, and several categories now have no imagery because no rights-cleared, trade-appropriate media exists. Human review per `docs/VISUAL_REVIEW_RUBRIC.md` is still required.
+- Library decisions: `docs/OPEN_SOURCE_INTEGRATION_DECISIONS.md`.
+
 ## Evaluation baseline (not a production claim)
 - Prior documented fictional benchmark: rules+search holdout agreement 0.625; baseline 0.292; cross-validation 0.652; unfamiliar-style interpreter recall 0.167. Source: `docs/feedback-loop.md`.
 - Six generator cases scored 100/100 on permissive *structural preflight*; that is not a measured visual-quality score.
 - External client content, rights, real browsers, and production database state are still unverified in this checkpoint.
 
 ## Current objective
-Next task: push checkpoints 8 and 9 through the existing draft PR and require green GitHub CI. Then inspect authenticated desktop/mobile screenshots after the isolated preview pulls the branch and prioritize layout or typography fixes from concrete rendered deficiencies. Implement external photo-reference intake only with provider attribution, permissions, caching restrictions and operator approval; do not scrape or reuse unauthorized Google photos. On-demand generation remains blocked until explicit provider and budget approval. Existing original-site HTML analysis captures selected content metadata, not entire design reproduction. Supabase migration status is unverified.
+Confirm Checkpoint 10 in GitHub CI (`browser-qa` job + uploaded screenshots), then: Checkpoint 13 (Cheerio-based Website Intelligence Brief inside the existing bounded fetcher), Checkpoint 11 (Overture Places + DuckDB discovery staged outside the CRM). Every generator change from now on must be checked with `npm run qa:browser` and looked at, not only unit-tested.
 
 ## Recovery instructions
 1. Inspect this file, check `git status` and branch; do not reset original Mac work.

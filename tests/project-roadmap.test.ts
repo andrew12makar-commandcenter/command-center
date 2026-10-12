@@ -46,7 +46,9 @@ test('unrecognized database rows never alter the roadmap',()=>{
 test('blockers are visible, excluded from next action, and do not count as completed',()=>{
  const [original]=summarizeRoadmap();
  const [changed]=summarizeRoadmap([{step_id:'seo-site-source-media',status:'blocked',evidence_note:'Waiting for reviewed mockup'}]);
- assert.equal(changed.current?.id,'seo-site-rights');
+ // The next ACTIVE milestone takes over; a blocked item is never current.
+ assert.equal(changed.current?.id,'seo-browser-qa');
+ assert.equal(changed.current?.status,'in_progress');
  assert.ok(changed.blocked.some(item=>item.id==='seo-site-source-media'));
  assert.equal(changed.completed,original.completed);
 });
