@@ -10,7 +10,7 @@ export type SiteImage={
   url:string;alt:string;sourceUrl:string;role:ImageRole;
   permission:ImagePermission;credit?:string;
 };
-export type ResearchPage={url:string;title:string;description:string;headings:string[];excerpts:string[]};
+export type ResearchPage={url:string;title:string;description:string;headings:string[];excerpts:string[];themeColor?:string|null};
 export type ImageAuthorization={
  mode:'generated_only'|'business_site_authorized'|'manual';
  acceptedAt:string|null;
@@ -89,6 +89,8 @@ export function cleanSiteContent(value:unknown):SiteContent{
   return {
    url:safePublicUrl(p.url)||'',
    title:asText(p.title,170),description:asText(p.description,280),
+   // Sanitized HTML theme metadata is a *reference cue*, never an approved brand color.
+   themeColor:typeof p.themeColor==='string'&&/^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(p.themeColor)?p.themeColor.toLowerCase():null,
    headings:Array.isArray(p.headings)?p.headings.slice(0,24).map(x=>asText(x,140)).filter(Boolean):[],
    excerpts:Array.isArray(p.excerpts)?p.excerpts.slice(0,7).map(x=>asText(x,230)).filter(Boolean):[]
   };
