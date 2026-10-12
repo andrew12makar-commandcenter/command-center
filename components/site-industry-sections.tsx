@@ -134,3 +134,74 @@ export function IndustryGallery({site,theme,images}:{site:SiteBlueprint;theme:To
     </figure>)}</div>
   </div></section>;
 }
+
+type HeroImage={src:string;alt:string;credit?:string|null;concept:boolean};
+export function IndustryHero({site,theme,photo,compact,standalone}:{
+ site:SiteBlueprint;theme:Tone&{main:string;accent:string};photo:HeroImage|null;compact:boolean;standalone:boolean
+}){
+ const hasServices=site.services.length>0;
+ const contact=Boolean(site.content.appointmentUrl||site.contact.email||site.contact.phone);
+ const kind=site.template==='landscaping'?'outdoor-showcase':site.template==='medical'?'care-editorial':'studio-brief';
+ const isOutdoor=site.template==='landscaping';
+ const centered=site.design.composition==='centered';
+ const hasPhoto=Boolean(photo);
+ const heroMin=compact?'min-h-[490px]':'min-h-[570px]';
+ const label=site.eyebrow||'LOCAL BUSINESS';
+ const commonCtas=<div className="mt-9 flex flex-wrap items-center gap-5">
+  {contact?<a href="#contact" className={`inline-flex min-h-12 items-center rounded-full px-7 py-3 text-sm font-semibold ${theme.main}`}>{site.primaryAction}<span aria-hidden="true" className="ml-3">↗</span></a>:null}
+  {hasServices?<a href="#services" className={`inline-flex min-h-12 items-center text-sm font-semibold underline underline-offset-8 ${isOutdoor?'decoration-white/50':''}`}>{site.secondaryAction}</a>:null}
+ </div>;
+ const media=photo?<div className="motion-hero-media motion-media relative min-h-[280px] overflow-hidden rounded-[3px] bg-current/5 sm:min-h-[390px] lg:min-h-0">
+  <img src={photo.src} alt={photo.alt} loading="eager" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover"/>
+  {photo.concept?<span className="absolute bottom-4 left-4 max-w-[calc(100%-2rem)] bg-black/75 px-4 py-2 text-xs leading-5 text-white">AI-generated conceptual visual. Not a photo of this business.</span>:
+   photo.credit?<span className="absolute bottom-4 left-4 bg-black/70 px-4 py-2 text-xs text-white">{photo.credit}</span>:null}
+ </div>:null;
+ if(isOutdoor)return <section id="home" data-hero-layout={kind} data-composition={site.design.composition} className={`motion-section relative isolate overflow-hidden ${theme.ink}`}>
+  {hasPhoto&&photo?<img src={photo.src} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"/>:null}
+  {hasPhoto?<div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/65 to-black/30"/>:null}
+  <div className={`relative mx-auto flex max-w-[1650px] flex-col justify-end px-7 py-20 sm:px-12 lg:px-[7vw] lg:py-24 ${heroMin}`}>
+   <p className="max-w-lg text-xs font-semibold uppercase tracking-[.24em] text-white/70">{label}</p>
+   <h1 className="motion-hero-copy mt-7 max-w-[1000px] break-words text-[clamp(2.75rem,6vw,6rem)] font-semibold leading-[1.04] tracking-[-.055em]">{site.headline||site.businessName}</h1>
+   <p className="mt-7 max-w-[660px] text-base leading-8 text-white/85 sm:text-lg">{site.description}</p>
+   {commonCtas}
+   <div className="mt-14 flex flex-wrap gap-5 border-t border-white/25 pt-5 text-xs text-white/70">
+    {site.contact.city?<span>{site.contact.city}</span>:null}
+    {hasServices?<span>{site.services.length} listed services</span>:null}
+    {photo?.concept?<span>Concept imagery, not actual project photography</span>:null}
+   </div>
+  </div></section>;
+ if(site.template==='medical')return <section id="home" data-hero-layout={kind} data-composition={site.design.composition}
+  className={`motion-section relative overflow-hidden ${theme.paper}`}>
+  <div className={`mx-auto grid max-w-[1650px] items-stretch ${hasPhoto?'lg:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]':'lg:grid-cols-[minmax(0,1.16fr)_minmax(0,.84fr)]'}`}>
+   <div className={`motion-hero-copy flex flex-col justify-center px-7 py-16 sm:px-12 lg:px-[7vw] lg:py-24 ${heroMin}`}>
+    <p className={`text-xs font-semibold uppercase tracking-[.24em] ${theme.eyebrow}`}>{label}</p>
+    <h1 className="mt-7 max-w-[850px] break-words text-[clamp(2.65rem,4.8vw,5.15rem)] font-semibold leading-[1.06] tracking-[-.055em]">{site.headline||site.businessName}</h1>
+    <p className={`mt-7 max-w-[640px] text-base leading-8 sm:text-lg ${theme.muted}`}>{site.description}</p>
+    {commonCtas}
+    <div className={`mt-12 flex flex-wrap gap-5 border-t border-current/15 pt-5 text-xs ${theme.muted}`}>
+     {site.contact.city?<span>{site.contact.city}</span>:null}
+     {hasServices?<span>{site.services.length} listed care services</span>:null}
+    </div>
+   </div>
+   {media??<aside className={`hidden flex-col justify-center border-l border-current/10 px-10 py-16 lg:flex ${theme.soft}`}>
+    <p className={`text-xs font-semibold uppercase tracking-[.2em] ${theme.eyebrow}`}>Explore care</p>
+    <ol className="mt-9 divide-y divide-current/15">{site.services.slice(0,4).map((name,i)=><li key={name+i} className="grid grid-cols-[38px_1fr] items-start gap-3 py-5">
+     <span className={`text-xs ${theme.eyebrow}`}>{index(i)}</span><span className="break-words text-lg font-semibold">{name}</span></li>)}</ol>
+   </aside>}
+  </div></section>;
+ return <section id="home" data-hero-layout={kind} data-composition={site.design.composition}
+  className={`motion-section relative overflow-hidden ${theme.base}`}>
+  <div className={`mx-auto grid max-w-[1650px] ${centered?'lg:grid-cols-1':'lg:grid-cols-[minmax(0,.94fr)_minmax(0,1.06fr)]'}`}>
+   <div className={`motion-hero-copy flex flex-col justify-center px-7 py-16 sm:px-12 lg:px-[7vw] lg:py-24 ${heroMin} ${centered?'mx-auto w-full max-w-[1100px] text-center':''}`}>
+    <p className={`text-xs font-semibold uppercase tracking-[.24em] ${theme.eyebrow}`}>{label}</p>
+    <h1 className="mt-7 max-w-[850px] break-words text-[clamp(2.7rem,5vw,5.5rem)] font-semibold leading-[1.05] tracking-[-.055em]">{site.headline||site.businessName}</h1>
+    <p className={`mt-7 max-w-[590px] text-base leading-8 sm:text-lg ${theme.muted} ${centered?'mx-auto':''}`}>{site.description}</p>
+    <div className={centered?'flex justify-center':''}>{commonCtas}</div>
+   </div>
+   {!centered&&(media??<aside className={`flex min-w-0 flex-col justify-end border-t border-current/10 p-7 sm:p-12 lg:border-l lg:border-t-0 ${theme.ink}`}>
+    <p className="text-xs font-semibold uppercase tracking-[.2em] text-white/60">What this business offers</p>
+    <div className="mt-10 divide-y divide-white/20">{site.services.slice(0,3).map((name,i)=><div key={name+i} className="flex min-w-0 gap-5 py-5">
+     <span className="text-xs text-white/50">{index(i)}</span><p className="min-w-0 break-words text-[clamp(1.1rem,2vw,1.65rem)] font-semibold">{name}</p></div>)}</div>
+   </aside>)}
+  </div></section>;
+}
