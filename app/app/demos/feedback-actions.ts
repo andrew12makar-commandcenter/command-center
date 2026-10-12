@@ -130,7 +130,7 @@ export async function applyReviewedResearch(form:FormData){
  if(!validUuid(id)||!Number.isInteger(expectedRevision)||expectedRevision<1)throw new Error('Invalid demo revision.');
  const selected=new Set(form.getAll('insight').map(value=>shortText(value,80)).filter(Boolean));
  if(selected.size<1||selected.size>30)throw new Error('Select between 1 and 30 sourced candidates.');
- const {data:demo}=await supabase.from('demo_sites').select('id,business_id,draft_content,revision_no')
+ const {data:demo}=await supabase.from('demo_sites').select('id,business_id,template,draft_content,revision_no')
   .eq('id',id).eq('organization_id',organizationId).maybeSingle();
  if(!demo||demo.revision_no!==expectedRevision)throw new Error('Reload the current demo revision before applying research.');
  const existing=(demo.draft_content??{}) as DemoCopy,content=cleanSiteContent(existing.siteContent);
