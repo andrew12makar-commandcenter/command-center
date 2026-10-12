@@ -20,6 +20,7 @@ export type PageExtraction={
   imageCount:number;imagesMissingAlt:number;formCount:number;sectionCount:number;navItemCount:number;
   hasJsonLd:boolean;textLength:number;scriptCount:number};
  needsBrowserRender:boolean;
+ navLinks?:string[];
 };
 export type BriefFact={value:unknown;sources:FactSource[]};
 export type WebsiteBrief={
@@ -57,7 +58,8 @@ export function buildWebsiteBrief(businessName:string,website:string,pages:PageE
  for(const field of singleValued){
   const values=facts[field]??[];
   if(values.length>1)conflicts.push({field,values:values.map(v=>v.value),
-   note:`The site states ${values.length} different ${field} values. Confirm the current one with the owner; none was chosen automatically.`});
+   note:field==='address'?`The site lists ${values.length} addresses. This may be several offices or an outdated location. Confirm which ones are current; none was chosen automatically.`:
+    `The site states ${values.length} different ${field} values. Confirm the current one with the owner; none was chosen automatically.`});
  }
  if((facts.phone?.length??0)>1)conflicts.push({field:'phone',values:facts.phone.map(v=>v.value),
   note:'Several phone numbers appear. They may be different departments or an outdated number. Confirm which is primary.'});

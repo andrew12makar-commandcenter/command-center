@@ -10,7 +10,11 @@ import * as cheerio from 'cheerio';
 const clean=(s,max=300)=>String(s??'').replace(/\s+/g,' ').trim().slice(0,max);
 const phoneRe=/(?:\+?1[\s.-]?)?\(?([2-9]\d{2})\)?[\s.-]?(\d{3})[\s.-]?(\d{4})\b/;
 const emailRe=/^[^\s@<>()]{1,64}@[a-z0-9.-]{1,200}\.[a-z]{2,24}$/i;
-const bookingRe=/\b(book|booking|appointment|schedule|request (?:an? )?(?:estimate|quote|consult\w*)|free estimate|get a quote|reserve|reservation|order online)\b/i;
+const bookingRe=/\b(book|booking|appointment|schedule|request (?:an? )?(?:estimate|quote|consult\w*)|free (?:estimate|consultation)|get a quote|reserve|reservation|order online|start a project|start your project|get started)\b/i;
+// Ordinary site pages that are never services, by link text.
+const standardPage=/^(?:home|about(?: us)?|contact(?: us)?|blog|news|portfolio|gallery|projects?|our work|careers?|jobs|team|our team|staff|reviews?|testimonials?|faqs?|privacy(?: policy)?|terms.*|login|log in|sign in|account|shop|store|cart|checkout|sitemap|locations?|directions|patient forms|new patients|insurance|financing|payment.*|resources|events|press|media|community.*|start a project|get started|request.*|book.*|schedule.*|houzz|facebook|instagram|twitter|x|linkedin|youtube|tiktok|pinterest|yelp|google)$/i;
+// A street address written as text: "740 Boston Post Road, Sudbury, MA 01776".
+const streetAddressRe=/\b\d{1,5}\s+(?:[A-Z][a-zA-Z.'’-]*\s+){1,5}(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Way|Place|Pl|Court|Ct|Parkway|Pkwy|Highway|Hwy|Square|Sq|Terrace|Ter|Circle|Cir|Turnpike|Tpke)\.?(?:,?\s+(?:Unit|Suite|Ste|#|Floor|Fl)\.?\s*[\w-]+)?,?\s+[A-Z][a-zA-Z.'’ -]{1,30},?\s+(?:MA|Massachusetts|NH|RI|CT|ME|VT)\.?\s+\d{5}(?:-\d{4})?\b/g;
 const serviceHint=/\b(services?|treatments?|what we do|capabilities|our work|practice areas|menu|specialt(?:y|ies))\b/i;
 const dayRe=/\b(mon|tue|wed|thu|fri|sat|sun)[a-z]*\b/i;
 const timeRe=/\b\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.)/i;
@@ -105,6 +109,11 @@ export function extractBusinessFacts(html,url,capturedAt=new Date().toISOString(
  });
  $('address').each((_,el)=>{const t=clean($(el).text(),200);if(t.length>8)fact('address',t,'address-element',t);});
 
+ // 2b. Street addresses written as plain text (footers, contact blocks).
+ // Several offices are kept as several facts; the brief does not pick one.
+ const bodyText=clean($('body').text(),400_000);
+ for(const m of bodyText.matchAll(streetAddressRe))fact('address',clean(m[0],200),'text-pattern',m[0]);
+
  // 3. Conversion paths: booking, estimate, reservation links.
  $('a[href]').each((_,a)=>{
   const text=clean($(a).text()||$(a).attr('aria-label'),80);
@@ -172,6 +181,12 @@ export function extractBusinessFacts(html,url,capturedAt=new Date().toISOString(
   const t=clean($(el).text(),120);
   if(t.length>=8&&t.length<=120&&claimRe.test(t)&&!$(el).find('h2,h3,h4,li').length)fact('claimCandidate',t,'page-text',t);
  });
+ // Award badges are usually images ("best-of-houzz.png").
+ $('img').each((_,i)=>{
+  const label=(($(i).attr('alt')||'')+' '+($(i).attr('src')||'').split('/').pop()).replace(/[-_]+/g,' ').replace(/\.\w+$/,'');
+  const m=label.match(/\b(best of [a-z]+(?: [a-z]+)?|award\w*[^,]{0,30}|winner[^,]{0,30}|accredited[^,]{0,30})/i);
+  if(m)fact('claimCandidate',clean(m[0],80),'image-badge',$(i).attr('src')||m[0]);
+ });
 
  // 5c. Named clinicians / staff. Only explicit titles count; plain names in
  // headings are too ambiguous to label as staff.
@@ -179,6 +194,17 @@ export function extractBusinessFacts(html,url,capturedAt=new Date().toISOString(
  $('a,h2,h3,h4').each((_,el)=>{
   const t=clean($(el).text(),70);
   if(staffRe.test(t))fact('staffCandidate',t,el.tagName==='a'?'link-text':'heading',t);
+ });
+
+ // 5c-2. Menu items that are not ordinary pages are likely the offerings
+ // themselves ("Landscape Architecture", "Construction", "Estate Care").
+ const host=new URL(url).hostname;
+ $('header nav a, nav a, [class*="menu"] a').each((_,a)=>{
+  const t=clean($(a).text(),60);
+  const href=safeLink($(a).attr('href'),url);
+  if(!href||new URL(href).hostname!==host||new URL(href).pathname==='/')return;
+  if(standardPage.test(t)||notService(t)||staffRe.test(t)||t.length<4)return;
+  fact('serviceCandidate',t,'navigation-item',`${t} → ${href}`);
  });
 
  // 6. FAQ written as <details>.
@@ -239,6 +265,13 @@ export function extractBusinessFacts(html,url,capturedAt=new Date().toISOString(
   textLength:clean($('body').text(),200_000).length,
   scriptCount:$('script[src]').length
  };
- return {kind:'command-center-site-facts/v1',url,capturedAt,facts,design,structure,
+ // Same-site menu links, so the research crawler can follow the pages the
+ // business actually offers (portfolio, service pages) instead of a fixed
+ // keyword list. The crawler still applies its own host, robots and size checks.
+ const navLinks=[...new Set($('header nav a, nav a, header a').map((_,a)=>safeLink($(a).attr('href'),url)).get()
+  .filter(h=>h&&new URL(h).hostname===host&&!/\.(?:pdf|jpe?g|png|gif|webp|zip|docx?)$/i.test(new URL(h).pathname)
+   &&!/\/(?:blog|news|tag|category|author|feed|wp-|cart|checkout|account|login|privacy|terms)\b/i.test(new URL(h).pathname)
+   &&new URL(h).pathname!=='/'))].slice(0,20);
+ return {kind:'command-center-site-facts/v1',url,capturedAt,facts,design,structure,navLinks,
   needsBrowserRender:structure.textLength<400&&structure.scriptCount>=3};
 }

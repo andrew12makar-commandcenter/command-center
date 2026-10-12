@@ -154,3 +154,29 @@ test('live plumbing patterns: slug services, no marketing headings, claims kept 
  assert.equal(b.design.logoCandidates[0],'https://cdn.example.org/logo.jpg','declared logo outranks header guesses');
  assert.match(briefToMarkdown(b),/Claims the site makes \(verify before any reuse\)/);
 });
+
+// Modeled on the third live brief (a WordPress landscape-architecture site,
+// Oct 12 2026): services only as menu items and H1s, address in footer text,
+// two offices, a "Start a Project" call to action and award badge images.
+test('live landscaping patterns: menu services, footer addresses, project CTA, badges, crawl links',()=>{
+ const site='https://land.example.org/';
+ const html=`<html><head><title>Example Design Group</title></head><body>
+ <header><nav><a href="/portfolio/">Portfolio</a><a href="/landscape-architecture/">Landscape Architecture</a><a href="/construction/">Construction</a>
+ <a href="/estate-care/">Estate Care</a><a href="/contact/">Contact</a><a href="/blog/">Blog</a><a href="/start-a-project/">Start a Project</a>
+ <a href="https://www.houzz.com/pro/x">Houzz</a><a href="https://facebook.com/x">Facebook</a></nav></header>
+ <h1>Design</h1><h1>Landscape Architecture</h1><h1>Construction</h1>
+ <img src="/wp-content/uploads/2020/04/best-of-houzz.png"><img src="/wp-content/uploads/2020/04/best-of-boston.png">
+ <footer><p>Example Design Group 740 Boston Post Road, Sudbury, MA 01776 749 Main Street, Unit F, Osterville, MA 02655 office@example.org T 978-443-3638</p></footer>
+ </body></html>`;
+ const r=extractBusinessFacts(html,site,at);
+ const v=f=>r.facts.filter(x=>x.field===f).map(x=>x.value);
+ assert.deepEqual(v('serviceCandidate'),['Landscape Architecture','Construction','Estate Care']);
+ assert.deepEqual(v('address'),['740 Boston Post Road, Sudbury, MA 01776','749 Main Street, Unit F, Osterville, MA 02655']);
+ assert.ok(v('conversionLink').some(l=>l.href==='https://land.example.org/start-a-project/'));
+ assert.deepEqual(v('claimCandidate').map(String).sort(),['best of boston','best of houzz']);
+ assert.deepEqual(r.navLinks,['https://land.example.org/portfolio/','https://land.example.org/landscape-architecture/','https://land.example.org/construction/',
+  'https://land.example.org/estate-care/','https://land.example.org/contact/','https://land.example.org/start-a-project/']);
+ const b=buildWebsiteBrief('Example Design Group',site,[r],new Date(at));
+ assert.ok(b.conflicts.some(c=>c.field==='address'&&/several offices/.test(c.note)));
+ assert.ok(!b.missing.some(m=>['address','service','conversionLink'].includes(m.field)));
+});

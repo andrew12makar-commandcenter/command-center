@@ -77,9 +77,13 @@ async function run(manifestPath){
    const candidates=extractCandidates(html,checked);
    pages.push({...candidates,images:candidates.images.slice(0,30)});
    // Same guarded HTML, parsed again for structured facts with provenance.
-   try{extractions.push(extractBusinessFacts(html,checked,new Date().toISOString()));}
+   let navLinks=[];
+   try{const ex=extractBusinessFacts(html,checked,new Date().toISOString());extractions.push(ex);navLinks=ex.navLinks||[];}
    catch(e){errors.push({url:checked,reason:'Fact extraction failed: '+(e instanceof Error?e.message:String(e))});}
-   for(const link of candidates.links.slice(0,10))
+   // Keyword-matched links first (about/services/contact), then the site's own
+   // menu pages; the first live landscaping run only found "contact" because
+   // its pages are /landscape-architecture/, /construction/, /estate-care/.
+   for(const link of [...candidates.links.slice(0,10),...navLinks])
     if(!visited.has(link)&&!todo.includes(link)&&todo.length<15)todo.push(link);
   }catch(e){errors.push({url:candidate,reason:e instanceof Error?e.message:'Could not inspect this page'});}
   if(todo.length&&pages.length<5)await new Promise(done=>setTimeout(done,1200));
