@@ -55,7 +55,7 @@ export function deriveSiteRedesignReference(
  if(template==='medical')recommendedComposition=services.length>=5?'service-index':reviewedTopics.includes('team')?'asymmetric':'split-editorial';
  else if(template==='landscaping')recommendedComposition=hasVisualSource?'immersive':services.length>=4?'service-index':'asymmetric';
  else recommendedComposition=hasVisualSource?'asymmetric':services.length>=4?'bento':'split-editorial';
- const recommendedImageTreatment:ImageTreatment=approvedImages>=3?'mosaic':approvedImages===1||approvedImages===2?'framed':'minimal';
+ const recommendedImageTreatment:ImageTreatment=approvedImages>=3?'mosaic':approvedImages>0||content.generatedImageryEnabled?'framed':'minimal';
  const mediaPlan=approvedImages?'approved-business-media':content.generatedImageryEnabled?'concept-image-brief-needed':'typographic';
  const warnings:string[]=[];
  if(!content.researchPages.length)warnings.push('No existing company website has been researched; design suggestions use only the supplied brief.');
