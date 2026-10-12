@@ -24,10 +24,12 @@ export default function SiteRenderer({site,standalone=false,conceptMedia}:Render
  const theme=schemes[site.template];
  const composition=site.design.composition||'split-editorial';
  const centered=composition==='centered',immersive=composition==='immersive',bento=composition==='bento',serviceIndex=composition==='service-index';
- const hero=site.content.images.find(x=>x.role==='hero'&&x.permission==='approved');
- const approvedGallery=site.content.images.filter(x=>(x.role==='gallery'||x.role==='team')&&x.permission==='approved').slice(0,8)
+ // Minimal imagery is an actual presentation constraint, not just a label.
+ const allowImages=site.design.imageTreatment!=='minimal';
+ const hero=allowImages?site.content.images.find(x=>x.role==='hero'&&x.permission==='approved'):undefined;
+ const approvedGallery=(allowImages?site.content.images:[]).filter(x=>(x.role==='gallery'||x.role==='team')&&x.permission==='approved').slice(0,8)
   .map(x=>({src:x.url,alt:x.alt,credit:x.credit,concept:false}));
- const generated=site.content.generatedImageryEnabled?conceptMedia:undefined;
+ const generated=allowImages&&site.content.generatedImageryEnabled?conceptMedia:undefined;
  const gallery=[...approvedGallery,...(generated?[generated.editorial,generated.detail].map(x=>({src:x.src,alt:x.alt,credit:x.disclosure,concept:true})):[])].slice(0,8);
  const displayHero=hero?{src:hero.url,alt:hero.alt,credit:hero.credit,concept:false}:generated?{src:generated.hero.src,alt:generated.hero.alt,credit:generated.hero.disclosure,concept:true}:null;
  const photoHero=Boolean(displayHero)&&(Boolean(generated)||site.content.heroTreatment==='photo-led');
