@@ -1,7 +1,7 @@
 // Milestone definitions are kept in source control so engineering progress is reviewable.
 // A code-verified baseline is not evidence of live customer validation.
 export type ProjectKey='seo'|'mcat';
-export type MilestoneStatus='completed'|'pending';
+export type MilestoneStatus='completed'|'pending'|'in_progress'|'blocked';
 export type RoadmapRecord={step_id:string;status:MilestoneStatus;evidence_note?:string|null;updated_at?:string|null};
 export type RoadmapStep={
  id:string;title:string;definition:string;href:string;
@@ -9,12 +9,12 @@ export type RoadmapStep={
 };
 export type RoadmapStage={id:string;title:string;summary:string;steps:RoadmapStep[]};
 export type RoadmapProject={id:ProjectKey;name:string;subtitle:string;goal:string;target:string;stages:RoadmapStage[]};
-export type ActiveStep=RoadmapStep & {stageId:string;stageTitle:string;};
+export type ActiveStep=TrackedStep & {stageId:string;stageTitle:string;};
 export type TrackedStep=RoadmapStep & {status:MilestoneStatus;evidence:string|null;updatedAt:string|null;};
 export type TrackedStage=Omit<RoadmapStage,'steps'> & {steps:TrackedStep[];completed:number;total:number};
 export type TrackedProject=Omit<RoadmapProject,'stages'> & {
  stages:TrackedStage[];completed:number;total:number;percent:number;
- current:ActiveStep|null;
+ current:ActiveStep|null;next:ActiveStep|null;blocked:ActiveStep[];
 };
 const step=(id:string,title:string,definition:string,href:string,
  baseline:MilestoneStatus='pending',baselineEvidence?:string):RoadmapStep=>
@@ -40,7 +40,7 @@ export const ROADMAP:RoadmapProject[]=[
   ]},
   {id:'websites',title:'04 · Websites worth selling',summary:'A reusable renderer is only useful when actual prospects want the result.',steps:[
    step('seo-site-foundation','Reusable site blueprint and standalone export','Separate sourced facts, approved assets and presentation; export an isolated Next.js site.','/app/demos','completed','Exporter cold production build and app CI passed.'),
-   step('seo-site-quality','Pass a serious client-demo visual review','Review responsive medical, home-service and professional examples against polished references.','/app/demos'),
+   step('seo-site-quality','Pass a serious client-demo visual review','Review responsive medical, home-service and professional examples against polished references.','/app/demos','in_progress'),
    step('seo-site-content','Validate real client content and asset rights','Confirm services, contact links, imagery rights and required disclosures in a real sample.','/app/demos'),
    step('seo-demo-sharing','Offer access-controlled customer previews','Use protected, expiring preview links and allow approval without publishing prematurely.','/app/demos'),
    step('seo-launch','Ship one approved real customer website','Deploy, connect a domain, verify mobile/contact/SEO and establish rollback and monitoring.','/app/demos'),
@@ -83,9 +83,17 @@ export function findStep(id:string):{project:RoadmapProject;step:RoadmapStep}|nu
  }
  return null;
 }
+// Work order is distinct from the reference stage order: first sell a good site.
+const PRIORITY:Record<ProjectKey,string[]>={
+ seo:['seo-site-quality','seo-site-content','seo-audit-live','seo-demo-sharing',
+ 'seo-proposals','seo-sales-routes','seo-billing','seo-launch','seo-first-client',
+ 'seo-intake','seo-commercial-score','seo-official-sources','seo-recurring-scans','seo-retention'],
+ mcat:['mcat-method','mcat-hub','mcat-resources','mcat-students','mcat-planner',
+ 'mcat-progress','mcat-sessions','mcat-collab','mcat-ai']
+};
 export function summarizeRoadmap(records:readonly RoadmapRecord[]=[]):TrackedProject[]{
  const overrides=new Map(records.filter(r=>allStepIds.has(r.step_id)&&
-  (r.status==='completed'||r.status==='pending')).map(r=>[r.step_id,r]));
+  (['completed','pending','in_progress','blocked'].includes(r.status))).map(r=>[r.step_id,r]));
  return ROADMAP.map(project=>{
   const stages:TrackedStage[]=project.stages.map(stage=>{
    const steps=stage.steps.map(item=>{
@@ -97,9 +105,17 @@ export function summarizeRoadmap(records:readonly RoadmapRecord[]=[]):TrackedPro
    return {...stage,steps,total:steps.length,completed:steps.filter(t=>t.status==='completed').length};
   });
   const all=stages.flatMap(s=>s.steps.map(t=>({...t,stageId:s.id,stageTitle:s.title})));
-  const current=all.find(t=>t.status==='pending')??null;
+  const order=new Map(PRIORITY[project.id].map((id,i)=>[id,i]));
+  const ranked=[...all].sort((a,b)=>(order.get(a.id)??999)-(order.get(b.id)??999));
+  const active=all.filter(t=>t.status==='in_progress');
+  const confirmed=active.filter(t=>overrides.get(t.id)?.status==='in_progress')
+   .sort((a,b)=>(b.updatedAt??'').localeCompare(a.updatedAt??''));
+  const current=confirmed[0]??ranked.find(t=>t.status==='in_progress')??
+   ranked.find(t=>t.status==='pending')??null;
+  const next=ranked.find(t=>t.status==='pending'&&t.id!==current?.id)??null;
+  const blocked=ranked.filter(t=>t.status==='blocked');
   const completed=all.filter(t=>t.status==='completed').length;
   return {...project,stages,completed,total:all.length,
-   percent:Math.round(100*completed/Math.max(1,all.length)),current};
+   percent:Math.round(100*completed/Math.max(1,all.length)),current,next,blocked};
  });
 }

@@ -11,7 +11,8 @@ test('baseline evidence is explicit and two ventures are not conflated',()=>{
  const [seo,mcat]=summarizeRoadmap();
  assert.equal(seo.id,'seo');assert.equal(mcat.id,'mcat');
  assert.ok(seo.completed>0);assert.equal(mcat.completed,0);
- assert.ok(seo.current);assert.equal(mcat.current?.id,'mcat-method');
+ assert.equal(seo.current?.id,'seo-site-quality');assert.equal(seo.current?.status,'in_progress');
+ assert.equal(seo.next?.id,'seo-site-content');assert.equal(mcat.current?.id,'mcat-method');
  assert.ok(seo.stages.flatMap(s=>s.steps).filter(s=>s.baseline==='completed').every(s=>Boolean(s.baselineEvidence)));
 });
 test('confirmed step immediately advances current work without altering other venture',()=>{
@@ -30,11 +31,24 @@ test('reopening a completed baseline decreases progress and gives it next action
  assert.ok(baseline);
  const [after]=summarizeRoadmap([{step_id:baseline.id,status:'pending',evidence_note:'Needs revalidation'}]);
  assert.equal(after.completed,before.completed-1);
- assert.equal(after.current?.id,baseline.id);
+ assert.equal(after.stages.flatMap(x=>x.steps).find(x=>x.id===baseline.id)?.status,'pending');
 });
 test('unrecognized database rows never alter the roadmap',()=>{
  const original=summarizeRoadmap();
  const changed=summarizeRoadmap([{step_id:'bad-unknown-id',status:'completed'}]);
  assert.deepEqual(changed,original);
  assert.equal(findStep('bad-unknown-id'),null);
+});
+
+test('blockers are visible, excluded from next action, and do not count as completed',()=>{
+ const [original]=summarizeRoadmap();
+ const [changed]=summarizeRoadmap([{step_id:'seo-site-quality',status:'blocked',evidence_note:'Waiting for reviewed mockup'}]);
+ assert.equal(changed.current?.id,'seo-site-content');
+ assert.equal(changed.blocked[0]?.id,'seo-site-quality');
+ assert.equal(changed.completed,original.completed);
+});
+test('explicit in-progress milestone takes priority over code baseline',()=>{
+ const [p]=summarizeRoadmap([{step_id:'seo-audit-live',status:'in_progress',evidence_note:'Testing audits',updated_at:'2026-10-12T00:00:00Z'}]);
+ assert.equal(p.current?.id,'seo-audit-live');
+ assert.equal(p.next?.id,'seo-site-content');
 });
