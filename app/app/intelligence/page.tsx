@@ -40,14 +40,29 @@ export default async function WebsiteIntelligence({
  let businessQuery=supabase.from('businesses').select('id,name,city,category,website_url,verification_status')
    .eq('organization_id',organizationId).order('created_at',{ascending:false});
  if(selectedId)businessQuery=businessQuery.eq('id',selectedId);
+ // A selected CRM business scopes BOTH the action table and its audit history.
+ // Otherwise an old audit for another business appears to belong to the
+ // selected prospect and can misleadingly show a generic "CRM business" label.
+ let assessmentsQuery=supabase.from('website_assessments')
+   .select('id,business_id,website_url,status,findings,evidence,assessed_at')
+   .eq('organization_id',organizationId)
+   .order('assessed_at',{ascending:false});
+ if(selectedId)assessmentsQuery=assessmentsQuery.eq('business_id',selectedId);
  const [{data:businesses,error:bError},{data:assessments,error:aError},{count:pending}]=await Promise.all([
   businessQuery.limit(100),
-  supabase.from('website_assessments').select('id,business_id,website_url,status,findings,evidence,assessed_at')
-    .eq('organization_id',organizationId).order('assessed_at',{ascending:false}).limit(20),
+  assessmentsQuery.limit(20),
   supabase.from('lead_import_rows').select('id',{head:true,count:'exact'})
     .eq('organization_id',organizationId).eq('review_status','pending')
  ]);
- const nameById=new Map((businesses??[]).map(b=>[b.id,b.name]));
+ // The unfiltered audit list can reference businesses older than the
+ // most-recent-100 CRM list. Resolve their names independently, with the
+ // same organization scope, rather than silently calling them "CRM business".
+ const auditBusinessIds=Array.from(new Set((assessments??[]).map(a=>a.business_id).filter(validUuid)));
+ const auditNameQuery=auditBusinessIds.length
+   ?await supabase.from('businesses').select('id,name')
+      .eq('organization_id',organizationId).in('id',auditBusinessIds)
+   :null;
+ const nameById=new Map([...(businesses??[]),...(auditNameQuery?.data??[])].map(b=>[b.id,b.name]));
  const auditable=(businesses??[]).filter(b=>classifyWebPresence(b.website_url).kind==='website');
  const hasApiKey=Boolean(process.env.PAGESPEED_API_KEY?.trim());
  return <main className="max-w-7xl">
@@ -57,7 +72,7 @@ export default async function WebsiteIntelligence({
     <Link className="btn" href="/app/leads/import">Review {pending??0} pending leads <ArrowUpRight size={16}/></Link>
    </div>
    {selectedId&&<div className="mt-5"><Link href="/app/intelligence" className="text-sm text-cyan-300 underline">← Show full Website Intelligence list</Link>
-      <p className="muted mt-2 text-sm">Showing the requested CRM business, even if it is not among the 100 newest records.</p></div>}
+      <p className="muted mt-2 text-sm">Showing the selected CRM business and only its audit history, even if it is not among the 100 newest records.</p></div>}
    {p.error&&<div className="mt-7 rounded-xl border border-amber-700/40 bg-amber-950/15 p-5 text-amber-200" role="alert">
       <ShieldAlert className="mr-2 inline" size={18}/>{errors[p.error]||'Website audit was not completed.'}
       {p.error.startsWith('local-')&&<div className="mt-3 border-t border-amber-800/30 pt-3 text-sm">
