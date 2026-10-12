@@ -10,6 +10,7 @@ const files={
  'components/site-renderer.tsx':'components/site-renderer.tsx',
  'components/site-industry-sections.tsx':'components/site-industry-sections.tsx',
  'lib/site-blueprint.ts':'lib/site-blueprint.ts',
+ 'lib/business-specific-copy.ts':'lib/business-specific-copy.ts',
  'lib/site-section-order.ts':'lib/site-section-order.ts',
  'lib/site-presentation.ts':'lib/site-presentation.ts',
  'lib/site-evaluation.ts':'lib/site-evaluation.ts',
