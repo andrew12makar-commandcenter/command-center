@@ -1,6 +1,6 @@
 import type {SiteBlueprint} from '@/lib/site-blueprint';
 import {Fragment} from 'react';
-import {IndustryServices,IndustryNextSteps,IndustryGallery} from '@/components/site-industry-sections';
+import {IndustryServices,IndustryNextSteps,IndustryGallery,IndustryHero} from '@/components/site-industry-sections';
 import {orderRenderableSections,type SectionKey} from '@/lib/site-section-order';
 import type {GeneratedConceptSet} from '@/lib/concept-imagery';
 import {ArrowRight,ArrowUpRight,CalendarDays,Check,Mail,MapPin,Phone} from 'lucide-react';
@@ -64,25 +64,8 @@ export default function SiteRenderer({site,standalone=false,conceptMedia}:Render
    </nav>{hasContact?<a className={`inline-flex whitespace-nowrap items-center gap-2 rounded-full px-4 py-3 text-[11px] font-semibold sm:px-5 sm:text-xs ${theme.main}`} href="#contact">{site.primaryAction} <ArrowUpRight size={14}/></a>:null}</div>
   </header>
 
-	  <section id="home" className={`motion-section relative isolate overflow-hidden ${immersive&&!photoHero?theme.ink:theme.paper}`} data-composition={composition}>
-   {immersive&&photoHero&&displayHero?<img src={displayHero.src} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"/>:null}
-   {immersive&&photoHero?<div className="absolute inset-0 bg-[#07131c]/60"/>:null}
-   <div className={`relative grid ${heroGrid} ${standalone?(compact?'min-h-[min(700px,calc(100vh-81px))]':'min-h-[min(820px,calc(100vh-81px))]'):(compact?'lg:min-h-[540px]':'lg:min-h-[640px]')}`}>
-    <div className={`motion-hero-copy relative flex flex-col justify-center px-7 sm:px-12 lg:px-[7vw] ${compact?'py-16 lg:py-20':'py-20 lg:py-28'} ${centered?'mx-auto max-w-6xl items-center text-center':''}`}>
-     <SectionLabel className={theme.eyebrow}>{site.eyebrow||'A clearer introduction'}</SectionLabel>
-     <h1 className={`mt-7 max-w-[900px] font-semibold leading-[.96] tracking-[-.055em] ${compact?'text-[clamp(2.8rem,4.8vw,5.4rem)]':'text-[clamp(3rem,5.4vw,6.2rem)]'} ${typeClass}`}>{site.headline||site.businessName}</h1>
-     {site.description?<p className={`mt-8 max-w-[610px] text-base leading-8 sm:text-xl sm:leading-9 ${theme.muted}`}>{site.description}</p>:null}
-     <div className={`mt-10 flex flex-wrap items-center gap-5 ${centered?'justify-center':''}`}>{hasContact?<a className={`inline-flex items-center gap-3 rounded-full px-7 py-4 text-sm font-semibold ${theme.main}`} href="#contact">{site.primaryAction}<ArrowUpRight size={17}/></a>:null}{hasServices?<a href="#services" className="inline-flex items-center gap-3 px-2 py-3 text-sm font-semibold">{site.secondaryAction}<ArrowRight size={16}/></a>:null}</div>
-     <div className={`mt-14 flex flex-wrap gap-x-8 gap-y-3 border-t border-current/15 pt-6 text-xs ${theme.muted} ${centered?'justify-center':''}`}>
-      {site.contact.city?<span className="inline-flex items-center gap-2"><MapPin size={14}/>{site.contact.city}</span>:null}
-      {site.content.appointmentUrl?<span className="inline-flex items-center gap-2"><CalendarDays size={14}/>Online appointment request</span>:null}
-      {hasServices?<span className="inline-flex items-center gap-2"><Check size={14}/>{site.services.length} confirmed service area{site.services.length===1?'':'s'}</span>:null}
-     </div>
-    </div>
-	    {!immersive&&photoHero&&displayHero?<div className={`motion-hero-media motion-media relative min-h-[430px] overflow-hidden ${site.design.imageTreatment==='framed'?'m-5 rounded-[30px] lg:m-10':''}`}><img src={displayHero.src} alt={displayHero.alt} className="absolute inset-0 h-full w-full object-cover" loading="eager" fetchPriority="high"/><div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"/>{displayHero.credit?<span className={`absolute bottom-5 right-6 max-w-[280px] rounded-full px-4 py-2 text-[10px] font-semibold tracking-wide text-white ${displayHero.concept?'bg-[#07131c]/90':'bg-black/60'}`}>{displayHero.credit}</span>:null}</div>
-    :!centered&&!immersive?<aside className={`relative hidden border-l border-black/10 p-10 lg:flex lg:flex-col lg:justify-between ${theme.accent}`} aria-label="Confirmed services at a glance"><div><SectionLabel className="opacity-55">Confirmed focus</SectionLabel><p className="mt-5 max-w-xs text-2xl font-semibold leading-tight tracking-[-.04em]">A faster way to understand the practice before reaching out.</p></div><div>{site.services.slice(0,4).map((service,i)=><div className="grid grid-cols-[40px_1fr] gap-3 border-t border-current/20 py-5" key={service+i}><span className="text-xs opacity-45">{number(i+1)}</span><p className="text-lg font-semibold leading-tight">{service}</p></div>)}</div></aside>:null}
-   </div>
-  </section>
+	  <IndustryHero site={site} theme={theme} photo={displayHero} compact={compact} standalone={standalone}/>
+
 
   {orderedSectionKeys.map(key=><Fragment key={key}>{sections[key]}</Fragment>)}
   <footer className={`flex flex-wrap justify-between gap-4 border-t border-black/10 px-7 py-8 text-xs sm:px-12 lg:px-[7vw] ${theme.paper} ${theme.muted}`}><span>{site.businessName}</span><span>{standalone?`© ${new Date().getFullYear()} ${site.businessName}`:`Private design concept · Blueprint v${site.version}`}</span></footer>
