@@ -8,8 +8,10 @@ import {fileURLToPath} from 'node:url';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const files={
  'components/site-renderer.tsx':'components/site-renderer.tsx',
+ 'components/site-industry-sections.tsx':'components/site-industry-sections.tsx',
  'lib/site-blueprint.ts':'lib/site-blueprint.ts',
  'lib/site-section-order.ts':'lib/site-section-order.ts',
+ 'lib/site-presentation.ts':'lib/site-presentation.ts',
  'lib/site-evaluation.ts':'lib/site-evaluation.ts',
  'lib/demo-engine.ts':'lib/demo-engine.ts',
  'lib/concept-imagery.ts':'lib/concept-imagery.ts',
