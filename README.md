@@ -165,3 +165,11 @@ npm run dev
 ```
 
 The project must still undergo client sign-off, image hosting/optimization, real booking or forms integration, accessibility and performance testing, domain configuration, and deployment. The export is a code scaffold, **not an approved or published client site**. A site cannot be exported when it still contains research-only image references.
+
+## Shared venture roadmap and persistent sidebar tracker
+
+The private sidebar contains two compact venture trackers. Open `/app/roadmap` for the full milestone plan and explicit completion controls. Initial completed checkpoints reflect audited code or a previously confirmed pilot, **not** finished sales outcomes. The sidebar calculates the next unfinished milestone automatically after each saved completion. It does not run autonomous background jobs or interpret commits as customer sign-off.
+
+To enable cross-device saving, execute **`supabase/migrations/0004_project_roadmap.sql` once** in the existing for-profit Supabase SQL Editor, after 0003. Do **not** recreate the project or rerun previous migrations. Before migration, the source-controlled roadmap is safely visible in read-only mode. Authorized owners/admins/editors may confirm a milestone with an evidence note, or reopen it. RLS restricts updates to the same organization.
+
+The roadmap data lives in `lib/project-roadmap.ts`; modify milestones as the product evolves, and include verified proof before changing code-baseline statuses. See `tests/project-roadmap.test.ts` for tracking and auto-advance tests.
