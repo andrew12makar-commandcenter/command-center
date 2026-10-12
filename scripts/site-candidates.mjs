@@ -63,8 +63,8 @@ export function extractCandidates(html,url){
   const alt=tidyText(attr(tag,'alt'),160)||'Image from business website';
   seen.add(imageUrl);
   const context=[alt,attr(tag,'class'),attr(tag,'id')].join(' ').toLowerCase();
-  const role=/\\b(logo|brandmark|wordmark)\\b/.test(context)?'logo':
-   /\\b(hero|banner|masthead|cover-photo)\\b/.test(context)?'hero':'gallery';
+  const role=/\b(logo|brandmark|wordmark)\b/.test(context)?'logo':
+   /\b(hero|banner|masthead|cover-photo)\b/.test(context)?'hero':'gallery';
   images.push({url:imageUrl,alt,sourceUrl:url,role,permission:'reference_only'});
   if(images.length>=35)break;
  }
