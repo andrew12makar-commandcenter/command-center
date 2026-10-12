@@ -55,6 +55,7 @@ export function interpretLocalLighthouseJson(
   result.findings.note='Browser extension activity may have affected these measurements. Do not rank this business from this run.';
  }
  result.findings.source_method='local_lighthouse_upload';
+ result.findings.provider='Local Chrome Lighthouse';
  result.findings.note+=(result.findings.note?' ':'')+
   'Operator-imported Chrome Lighthouse JSON, not independently authenticated by the PageSpeed API.';
  return result;
