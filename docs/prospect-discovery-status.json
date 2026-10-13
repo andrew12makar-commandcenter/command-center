@@ -2,16 +2,16 @@
   "project": "Prospect Discovery MVP",
   "branch": "codex/generator-intelligence-checkpoints-oct12",
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
-  "current_milestone": "M3 Usable research queue",
+  "current_milestone": "M4 CRM, Opportunity Board and demo handoff",
   "overall_status": "in_progress",
-  "last_updated": "2026-10-13T22:34:55Z",
+  "last_updated": "2026-10-13T22:37:38Z",
   "responsible_agent": "Claude",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "e50cf9db2b6dae3045057dca33574896a0925f52",
-    "message": "feat(discovery): campaign-based discovery, migration 0007 and shared project tracker"
+    "sha": "ee5656b9a5246b2a19a9642a8c59f9e626c94992",
+    "message": "feat(qualification): deterministic evidence-only prospect qualification with tests"
   },
-  "next_action": "Claude: rebuild the Prospect Research Queue with qualification columns, filters and triage actions.",
+  "next_action": "Claude: carry qualification into businesses on import, show it on CRM detail and the Opportunity Board, and link to the existing demo generator.",
   "blockers": [],
   "known_limitations": [
     "Pages that read the new campaign/qualification columns require migration 0007 to be applied in Supabase first.",
@@ -55,6 +55,16 @@
       "command": "npx tsc --noEmit + eslint (M2 files)",
       "result": "passed",
       "ran_at": "2026-10-13T22:34:55Z"
+    },
+    {
+      "command": "node --experimental-strip-types --test tests/*.test.ts",
+      "result": "186 passed, 0 failed",
+      "ran_at": "2026-10-13T22:37:38Z"
+    },
+    {
+      "command": "npx tsc --noEmit + eslint app/app/leads",
+      "result": "passed",
+      "ran_at": "2026-10-13T22:37:38Z"
     }
   ],
   "milestones": [
@@ -124,26 +134,33 @@
         "lib/prospect-qualification.ts",
         "tests/prospect-qualification.test.ts"
       ],
-      "commit": null
+      "commit": "ee5656b"
     },
     {
       "id": "M3",
       "title": "Usable research queue",
-      "status": "in_progress",
+      "status": "complete",
       "responsible_agent": "Claude",
       "safe_for_other_agent_to_edit": false,
-      "completed": [],
-      "in_progress": [],
-      "remaining": [
-        "Filters, triage actions, compact rows"
+      "completed": [
+        "Queue rebuilt as compact grouped cards (business | qualification | next action + rationale | actions) with an expandable action panel; no wide table",
+        "Each candidate shows campaign, area, industry, website presence, GBP status, opportunity, strength, confidence, contact readiness, next action, research status, duplicate warning, rationale",
+        "Filters: campaign, opportunity, strength, confidence, readiness, research status tabs, area, industry, website presence, search; sorted strongest-first",
+        "Actions: shortlist, hold, disqualify (evidence reason required), restore, override opportunity/confidence/next action, import to CRM, link duplicate, skip",
+        "Falls back to read-only qualification with a banner if migration 0007 is not yet applied"
       ],
-      "files_changed": [],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "app/app/leads/import/page.tsx",
+        "app/app/leads/actions.ts"
+      ],
       "commit": null
     },
     {
       "id": "M4",
       "title": "CRM, Opportunity Board and demo handoff",
-      "status": "not_started",
+      "status": "in_progress",
       "responsible_agent": "Claude",
       "safe_for_other_agent_to_edit": false,
       "completed": [],

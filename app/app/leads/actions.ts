@@ -9,6 +9,7 @@ import {classifyWebPresence,validateBusinessWebsite,discoveredProfile} from '@/l
 import {collectAllPages,potentialMatches,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '@/lib/lead-identity';
 import {validateCampaignInput} from '@/lib/discovery-campaigns';
 import {resolveCampaign} from '@/lib/discovery-campaigns-server';
+import {OPPORTUNITIES,CONFIDENCES,NEXT_ACTIONS} from '@/lib/prospect-qualification';
 
 const STAGES = ['not_contacted','contacted','visited','proposal_sent','won','lost'];
 const OPERATIONS = ['unknown','operating','opening','closed'];
@@ -354,4 +355,47 @@ export async function linkImportedDuplicate(form:FormData){
  revalidatePath('/app');revalidatePath('/app/leads');revalidatePath('/app/leads/import');
  revalidatePath('/app/leads/'+businessId);
  redirect('/app/leads/'+businessId);
+}
+
+// ---- Prospect Research Queue triage (deliberate, per-row operator decisions) ----
+const TRIAGE_ACTIONS={shortlist:'shortlisted',hold:'held',disqualify:'disqualified',restore:'review_needed'} as const;
+function queueReturn(form:FormData):string{
+ const raw=shortText(form.get('return_to'),600);
+ return raw.startsWith('/app/leads/import')&&!raw.startsWith('//')?raw:'/app/leads/import';
+}
+export async function triageStagedRow(form:FormData){
+ const {supabase,organizationId}=await requireWorkspace(true);
+ const id=shortText(form.get('row_id'),64);
+ const action=shortText(form.get('triage'),20) as keyof typeof TRIAGE_ACTIONS;
+ if(!validUuid(id)||!Object.hasOwn(TRIAGE_ACTIONS,action))throw new Error('Choose a valid staged record and action.');
+ const reason=shortText(form.get('disqualification_reason'),500);
+ if(action==='disqualify'&&reason.length<8)throw new Error('Record the evidence-backed reason for disqualifying (at least 8 characters).');
+ const {data,error}=await supabase.from('lead_import_rows').update({
+  triage_status:TRIAGE_ACTIONS[action],
+  disqualification_reason:action==='disqualify'?reason:null,
+ }).eq('id',id).eq('organization_id',organizationId).eq('review_status','pending').select('id').maybeSingle();
+ if(error)throw new Error('Could not update the research status. Has migration 0007 been applied? '+error.message);
+ if(!data)throw new Error('This staged record is no longer pending review.');
+ revalidatePath('/app/leads/import');
+ redirect(queueReturn(form));
+}
+export async function updateStagedQualification(form:FormData){
+ const {supabase,organizationId}=await requireWorkspace(true);
+ const id=shortText(form.get('row_id'),64);
+ if(!validUuid(id))throw new Error('Invalid staged record.');
+ const pick=<T extends string>(name:string,list:readonly T[]):T|null=>{
+  const v=shortText(form.get(name),40);
+  if(!v)return null;
+  if(!list.includes(v as T))throw new Error('Invalid value for '+name.replaceAll('_',' ')+'.');
+  return v as T;
+ };
+ const {data,error}=await supabase.from('lead_import_rows').update({
+  primary_opportunity_override:pick('primary_opportunity_override',OPPORTUNITIES),
+  evidence_confidence_override:pick('evidence_confidence_override',CONFIDENCES),
+  next_action_override:pick('next_action_override',NEXT_ACTIONS),
+ }).eq('id',id).eq('organization_id',organizationId).eq('review_status','pending').select('id').maybeSingle();
+ if(error)throw new Error('Could not save the qualification. Has migration 0007 been applied? '+error.message);
+ if(!data)throw new Error('This staged record is no longer pending review.');
+ revalidatePath('/app/leads/import');
+ redirect(queueReturn(form));
 }
