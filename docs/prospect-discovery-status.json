@@ -2,16 +2,16 @@
   "project": "Prospect Discovery MVP",
   "branch": "codex/generator-intelligence-checkpoints-oct12",
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
-  "current_milestone": "M2 Deterministic qualification",
+  "current_milestone": "M3 Usable research queue",
   "overall_status": "in_progress",
-  "last_updated": "2026-10-13T22:30:21Z",
+  "last_updated": "2026-10-13T22:34:55Z",
   "responsible_agent": "Claude",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "f85b9189daed119a25015550a685fca97ee17e05",
-    "message": "Checkpoint 13 verified on three real sites; name and alt-text polish (baseline)"
+    "sha": "e50cf9db2b6dae3045057dca33574896a0925f52",
+    "message": "feat(discovery): campaign-based discovery, migration 0007 and shared project tracker"
   },
-  "next_action": "Claude: write lib/prospect-qualification.ts and tests/prospect-qualification.test.ts.",
+  "next_action": "Claude: rebuild the Prospect Research Queue with qualification columns, filters and triage actions.",
   "blockers": [],
   "known_limitations": [
     "Pages that read the new campaign/qualification columns require migration 0007 to be applied in Supabase first.",
@@ -45,6 +45,16 @@
       "command": "npx eslint (changed files)",
       "result": "passed",
       "ran_at": "2026-10-13T22:30:21Z"
+    },
+    {
+      "command": "node --test tests/prospect-qualification.test.ts",
+      "result": "20 passed, 0 failed",
+      "ran_at": "2026-10-13T22:34:55Z"
+    },
+    {
+      "command": "npx tsc --noEmit + eslint (M2 files)",
+      "result": "passed",
+      "ran_at": "2026-10-13T22:34:55Z"
     }
   ],
   "milestones": [
@@ -68,7 +78,7 @@
         "app/app/project-status/page.tsx",
         "app/app/layout.tsx"
       ],
-      "commit": null
+      "commit": "e50cf9d"
     },
     {
       "id": "M1",
@@ -94,26 +104,32 @@
         "app/app/leads/import/page.tsx",
         "tests/discovery-campaigns.test.ts"
       ],
-      "commit": null
+      "commit": "e50cf9d"
     },
     {
       "id": "M2",
       "title": "Deterministic qualification",
-      "status": "in_progress",
+      "status": "complete",
       "responsible_agent": "Claude",
       "safe_for_other_agent_to_edit": false,
-      "completed": [],
-      "in_progress": [],
-      "remaining": [
-        "lib/prospect-qualification.ts pure function + tests"
+      "completed": [
+        "lib/prospect-qualification.ts: pure deterministic qualifyProspect + staged-row and CRM adapters",
+        "Rules: missing website -> find website; missing GBP link -> confirm GBP; social-only = research, not proof; inconclusive audit != problem; geolocation needs real service-area/multi-location evidence (scan area excluded); closed/won/lost/disqualified never priority",
+        "Strength and contact readiness derived, not stored; manual overrides for opportunity, confidence and next action",
+        "20 tests incl. banned-claim check (no budget/revenue/traffic/rankings)"
       ],
-      "files_changed": [],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "lib/prospect-qualification.ts",
+        "tests/prospect-qualification.test.ts"
+      ],
       "commit": null
     },
     {
       "id": "M3",
       "title": "Usable research queue",
-      "status": "not_started",
+      "status": "in_progress",
       "responsible_agent": "Claude",
       "safe_for_other_agent_to_edit": false,
       "completed": [],
