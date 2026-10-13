@@ -1,5 +1,7 @@
 # Prospect Discovery MVP: agent handoff
 
+**Status: `ready_for_review`.** Awaiting independent review by ChatGPT. Migration 0007 has NOT been applied and the live database has not been modified. Do not apply it until the owner authorizes it.
+
 Machine-readable status: `docs/prospect-discovery-status.json` (shown read-only at `/app/project-status`).
 Update both files before and after each milestone, after each commit or test run, before asking the owner a question, and before ending a session. No secrets, credentials, customer data or environment values.
 
@@ -42,4 +44,5 @@ Open the Supabase SQL Editor for the business Command Center project, paste `sup
 
 ## Session log
 - 2026-10-13 (Claude): Tracker, migration 0007 and campaign-based discovery (M0–M1).
+- 2026-10-13 (Claude): Branch pushed to origin; tracker set to ready_for_review for ChatGPT review.
 - 2026-10-13 (Claude): Qualification (M2), queue (M3), CRM/board/demo handoff (M4), pitch brief (M5), full verification. Also fixed 2 pre-existing lint errors (unescaped apostrophes) in app/app/intelligence/page.tsx.
