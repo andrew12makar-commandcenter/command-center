@@ -4,7 +4,7 @@
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
   "current_milestone": "All milestones ready for review (awaiting independent ChatGPT review)",
   "overall_status": "ready_for_review",
-  "last_updated": "2026-10-13T22:50:00Z",
+  "last_updated": "2026-10-13T23:02:58Z",
   "responsible_agent": "ChatGPT",
   "safe_for_other_agent_to_edit": true,
   "latest_commit": {
@@ -12,7 +12,9 @@
     "message": "chore: final verification, tracker and handoff; fix two pre-existing lint errors"
   },
   "next_action": "ChatGPT: independently review the branch, migration 0007, tracker, tests and implementation. Owner authorizes the Supabase migration only after that review. Do NOT apply 0007 or modify the live database before authorization.",
-  "blockers": [],
+  "blockers": [
+    "Push blocked: origin/codex/generator-intelligence-checkpoints-oct12 has 1 newer commit (235f637, Overture discovery cache, 2026-10-12 19:21) that this local clone had not fetched. A plain push would be rejected; no force push will be used. A test merge in a scratch clone was conflict-free (189 + 41 tests pass, typecheck OK). Awaiting owner decision: merge origin into the branch, or rebase."
+  ],
   "known_limitations": [
     "Browser verification not performed: requires Supabase env, a signed-in session and migration 0007.",
     "Pages that use campaigns/triage need migration 0007; the queue and board fall back to read-only qualification without it, and import falls back to the legacy insert.",
