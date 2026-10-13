@@ -2,17 +2,19 @@
   "project": "Prospect Discovery MVP",
   "branch": "codex/generator-intelligence-checkpoints-oct12",
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
-  "current_milestone": "All milestones ready for review (awaiting independent ChatGPT review)",
-  "overall_status": "ready_for_review",
-  "last_updated": "2026-10-13T23:34:40Z",
-  "responsible_agent": "ChatGPT",
-  "safe_for_other_agent_to_edit": true,
+  "current_milestone": "Preview validation: pre-migration check",
+  "overall_status": "blocked",
+  "last_updated": "2026-10-13T23:55:05Z",
+  "responsible_agent": "Claude",
+  "safe_for_other_agent_to_edit": false,
   "latest_commit": {
     "sha": "3e2f75738a016bead7084eefaea96001345bd974",
     "message": "REVIEW CHECKPOINT: merge of origin 235f637 (Overture cache) into Prospect Discovery; all checks run on this commit. Later commits, if any, are tracker-only docs changes."
   },
-  "next_action": "ChatGPT: independently review branch codex/generator-intelligence-checkpoints-oct12 at review checkpoint 3e2f757 (migration 0007, tracker, tests, implementation). Owner authorizes the Supabase migration only after that review. Do NOT apply 0007 or modify the live database before authorization.",
-  "blockers": [],
+  "next_action": "Owner: decide whether to apply 0005 and 0006 first, or authorize 0007 alone (it has no dependency on 0005/0006). Nothing in Supabase was changed.",
+  "blockers": [
+    "Migration 0007 NOT applied. Pre-check failed on Supabase project lxdnoxflwqmsvnoforgl (the project command-center/.env.local points to): migrations 0005_project_roadmap and 0006_roadmap_execution_log are not applied (tables project_roadmap_progress and project_roadmap_activity do not exist). 0001-0004 objects exist; Supabase migration history only records 0004_generator_intelligence (0001-0003 were applied manually). Owner decision needed before proceeding."
+  ],
   "known_limitations": [
     "Browser verification not performed: requires Supabase env, a signed-in session and migration 0007.",
     "Pages that use campaigns/triage need migration 0007; the queue and board fall back to read-only qualification without it, and import falls back to the legacy insert.",
@@ -144,6 +146,11 @@
       "command": "Browser verification",
       "result": "NOT performed (needs Supabase env, sign-in and approved migration 0007)",
       "ran_at": "2026-10-13T23:34:40Z"
+    },
+    {
+      "command": "Supabase pre-check (read-only) on lxdnoxflwqmsvnoforgl",
+      "result": "0001-0004 present; 0005, 0006, 0007 absent; businesses=7, lead_import_rows=25",
+      "ran_at": "2026-10-13T23:55:05Z"
     }
   ],
   "milestones": [
