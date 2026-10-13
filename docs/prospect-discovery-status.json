@@ -4,24 +4,22 @@
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
   "current_milestone": "All milestones ready for review (awaiting independent ChatGPT review)",
   "overall_status": "ready_for_review",
-  "last_updated": "2026-10-13T23:02:58Z",
+  "last_updated": "2026-10-13T23:34:40Z",
   "responsible_agent": "ChatGPT",
   "safe_for_other_agent_to_edit": true,
   "latest_commit": {
-    "sha": "4fb857b5fd48c0a63d38f3bc98b9c9cbf4ed6df9",
-    "message": "chore: final verification, tracker and handoff; fix two pre-existing lint errors"
+    "sha": "3e2f75738a016bead7084eefaea96001345bd974",
+    "message": "REVIEW CHECKPOINT: merge of origin 235f637 (Overture cache) into Prospect Discovery; all checks run on this commit. Later commits, if any, are tracker-only docs changes."
   },
-  "next_action": "ChatGPT: independently review the branch, migration 0007, tracker, tests and implementation. Owner authorizes the Supabase migration only after that review. Do NOT apply 0007 or modify the live database before authorization.",
-  "blockers": [
-    "Push blocked: origin/codex/generator-intelligence-checkpoints-oct12 has 1 newer commit (235f637, Overture discovery cache, 2026-10-12 19:21) that this local clone had not fetched. A plain push would be rejected; no force push will be used. A test merge in a scratch clone was conflict-free (189 + 41 tests pass, typecheck OK). Awaiting owner decision: merge origin into the branch, or rebase."
-  ],
+  "next_action": "ChatGPT: independently review branch codex/generator-intelligence-checkpoints-oct12 at review checkpoint 3e2f757 (migration 0007, tracker, tests, implementation). Owner authorizes the Supabase migration only after that review. Do NOT apply 0007 or modify the live database before authorization.",
+  "blockers": [],
   "known_limitations": [
     "Browser verification not performed: requires Supabase env, a signed-in session and migration 0007.",
     "Pages that use campaigns/triage need migration 0007; the queue and board fall back to read-only qualification without it, and import falls back to the legacy insert.",
     "Stored CRM opportunity/confidence/next action act as overrides; clear them on the CRM record to recompute from new audits or contacts.",
     "GBP status is only recorded/unconfirmed; there is no GBP audit (no Google Maps scraping by design).",
     "Geolocation requires a CSV service_area/locations column or a CRM service_area that is not a discovery scan area.",
-    "tests/*.mjs need native deps for the current OS (DuckDB); they fail in a Linux VM using a macOS node_modules, and pass after npm ci on Linux."
+    "tests/*.mjs need native deps for the current OS (DuckDB); run npm ci on the machine running them."
   ],
   "manual_steps": [
     "Apply supabase/migrations/0007_prospect_discovery.sql once in the business Command Center Supabase project (SQL Editor: paste and run), after 0006."
@@ -116,6 +114,36 @@
       "command": "Browser verification",
       "result": "NOT performed (needs Supabase env, sign-in and migration 0007)",
       "ran_at": "2026-10-13T22:45:21Z"
+    },
+    {
+      "command": "npm test .ts suite @ 3e2f757",
+      "result": "189 passed, 0 failed",
+      "ran_at": "2026-10-13T23:34:40Z"
+    },
+    {
+      "command": "npm test .mjs suite @ 3e2f757",
+      "result": "41 passed, 0 failed",
+      "ran_at": "2026-10-13T23:34:40Z"
+    },
+    {
+      "command": "npx tsc --noEmit @ 3e2f757",
+      "result": "passed",
+      "ran_at": "2026-10-13T23:34:40Z"
+    },
+    {
+      "command": "npx eslint . @ 3e2f757",
+      "result": "0 errors, 14 pre-existing warnings",
+      "ran_at": "2026-10-13T23:34:40Z"
+    },
+    {
+      "command": "npx next build @ 3e2f757",
+      "result": "succeeded",
+      "ran_at": "2026-10-13T23:34:40Z"
+    },
+    {
+      "command": "Browser verification",
+      "result": "NOT performed (needs Supabase env, sign-in and approved migration 0007)",
+      "ran_at": "2026-10-13T23:34:40Z"
     }
   ],
   "milestones": [
@@ -255,5 +283,21 @@
       ],
       "commit": "24ed0d0"
     }
-  ]
+  ],
+  "review_checkpoint": {
+    "sha": "3e2f75738a016bead7084eefaea96001345bd974",
+    "contains": [
+      "e50cf9d",
+      "ee5656b",
+      "37c94bc",
+      "8db2002",
+      "24ed0d0",
+      "4fb857b",
+      "e8c8cfb",
+      "855c8a1",
+      "90dd90b",
+      "235f637"
+    ],
+    "tested_at": "2026-10-13T23:34:40Z"
+  }
 }
