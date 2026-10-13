@@ -40,6 +40,14 @@ export function selectAreas(spec:{areas?:string[];ring?:number}):DiscoveryArea[]
  return chosen;
 }
 
+// One envelope covering several areas, so a run downloads overlapping map
+// data once instead of once per neighbourhood.
+export function unionBBox(list:readonly DiscoveryArea[]):BBox{
+ if(!list.length)throw Error('No areas.');
+ return {west:Math.min(...list.map(a=>a.bbox.west)),south:Math.min(...list.map(a=>a.bbox.south)),
+  east:Math.max(...list.map(a=>a.bbox.east)),north:Math.max(...list.map(a=>a.bbox.north))};
+}
+
 export function inBBox(b:BBox,lon:number,lat:number):boolean{
  return lon>=b.west&&lon<=b.east&&lat>=b.south&&lat<=b.north;
 }

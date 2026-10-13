@@ -100,3 +100,20 @@ test('end to end against an Overture-shaped parquet: bounded, attributed, flagge
   assert.match(csv,/Overture Maps Foundation release 2026-09-17\.0/);
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+
+test('remote runs download the area envelope once into a local cache and reuse it',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'overture-cache-'));
+ try{
+  const file=join(dir,'remote.parquet');await fixture(file);
+  const logs=[];const opts={areas:['allston','brighton','brookline'],ring:null,limit:50,minConfidence:0.6,release:'2026-09-23.1',
+   source:null,remoteOverride:file,cacheDir:join(dir,'cache'),cache:true};
+  const first=await runDiscovery(opts,m=>logs.push(m));
+  assert.ok(logs.some(l=>/Downloading map data/.test(l)));
+  logs.length=0;
+  const second=await runDiscovery(opts,m=>logs.push(m));
+  assert.ok(logs.some(l=>/Using local copy/.test(l)));
+  assert.deepEqual(second.candidates.map(c=>c.externalId).sort(),first.candidates.map(c=>c.externalId).sort());
+  assert.ok(first.candidates.some(c=>c.externalId==='a'));
+  assert.ok(!first.candidates.some(c=>c.externalId==='j'),'non-prospects are also filtered out of the cache');
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
