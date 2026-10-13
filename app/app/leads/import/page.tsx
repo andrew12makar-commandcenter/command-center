@@ -4,6 +4,8 @@ import {approveImportedRow,linkImportedDuplicate,skipImportedRow,stageCsv} from 
 import {collectAllPages,potentialMatches,type BusinessIdentity} from '@/lib/lead-identity';
 import {classifyIndustry,industryLabel,researchPriority} from '@/lib/business-classification';
 import {independentWebsite,discoveredProfile} from '@/lib/web-presence';
+import {listCampaigns} from '@/lib/discovery-campaigns-server';
+import {TARGET_SERVICES,targetServiceLabels} from '@/lib/discovery-campaigns';
 
 function safeExternalUrl(value:string|null|undefined):string|null{
  if(!value)return null;
@@ -21,7 +23,7 @@ const PAGE_SIZE=40;
 export default async function ImportPage({searchParams}:{searchParams:Promise<Params>}){
  const {supabase,organizationId}=await requireWorkspace();
  const p=await searchParams;
- const [all,businesses]=await Promise.all([
+ const [all,businesses,{campaigns}]=await Promise.all([
    collectAllPages<StagedRow>(async (from,to)=>{
      const {data,error}=await supabase.from('lead_import_rows')
       .select('id,name,city,category,source_url,website_url,phone,review_status,matched_business_id,row_number,created_at,raw_data')
@@ -36,7 +38,8 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
        .eq('organization_id',organizationId).order('created_at',{ascending:true})
        .order('id',{ascending:true}).range(from,to);
      return {data,error};
-   })
+   }),
+   listCampaigns(supabase,organizationId)
  ]);
  const count=all.length;
  const industry=['medical','landscaping','universal','unknown'].includes(p.industry||'')?p.industry||'':'';
@@ -82,9 +85,17 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
    <section className="panel mt-8 p-7">
      <h2 className="text-xl font-semibold">Stage a CSV file</h2>
      <p className="muted mt-3 text-sm">Up to 500 business rows, 750 KB per upload. Headers: business_name, city, category, website, phone, source_url, source_type. Extra columns remain in source data.</p>
-     <form action={stageCsv} className="mt-5 flex flex-wrap items-end gap-4">
+     <form action={stageCsv} className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
        <label className="text-sm">CSV file (.csv)<input name="csv_file" type="file" accept=".csv,text/csv" className="mt-2" required /></label>
-       <button className="btn" type="submit">Stage for review</button>
+       <label className="text-sm">Existing campaign (optional)<select name="campaign_id" className="mt-2" defaultValue="">
+         <option value="">None, or create one below</option>
+         {campaigns.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+       <label className="text-sm">New campaign name (optional)<input name="campaign_name" className="mt-2" maxLength={120} placeholder="e.g., Newton contractors CSV"/></label>
+       <label className="text-sm">Target area<input name="target_area" className="mt-2" maxLength={120} placeholder="e.g., Newton"/></label>
+       <label className="text-sm">Target industry<input name="target_industry" className="mt-2" maxLength={60} placeholder="e.g., contractors"/></label>
+       <label className="text-sm">Target service<select name="target_service" className="mt-2" defaultValue="website_design">
+         {TARGET_SERVICES.map(x=><option key={x} value={x}>{targetServiceLabels[x]}</option>)}</select></label>
+       <div className="flex items-end"><button className="btn" type="submit">Stage for review</button></div>
      </form>
      {p.staged&&<p className="mt-3 text-sm text-cyan-200">{p.staged} rows staged. Review them below.</p>}
      {p.error&&<p role="alert" className="mt-3 text-sm text-red-300">{p.error==='file'?'Select a CSV under 750 KB.':p.error==='length'?'Include a header and 1–500 records.':'The CSV could not be parsed; check quoted cells.'}</p>}

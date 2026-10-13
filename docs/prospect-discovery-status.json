@@ -1,0 +1,158 @@
+{
+  "project": "Prospect Discovery MVP",
+  "branch": "codex/generator-intelligence-checkpoints-oct12",
+  "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
+  "current_milestone": "M2 Deterministic qualification",
+  "overall_status": "in_progress",
+  "last_updated": "2026-10-13T22:30:21Z",
+  "responsible_agent": "Claude",
+  "safe_for_other_agent_to_edit": false,
+  "latest_commit": {
+    "sha": "f85b9189daed119a25015550a685fca97ee17e05",
+    "message": "Checkpoint 13 verified on three real sites; name and alt-text polish (baseline)"
+  },
+  "next_action": "Claude: write lib/prospect-qualification.ts and tests/prospect-qualification.test.ts.",
+  "blockers": [],
+  "known_limitations": [
+    "Pages that read the new campaign/qualification columns require migration 0007 to be applied in Supabase first.",
+    "tests/overture-discovery.test.mjs cannot run inside Claude's Linux VM because node_modules holds the macOS DuckDB binary; it is an environment limitation, not a code failure."
+  ],
+  "manual_steps": [
+    "Apply supabase/migrations/0007_prospect_discovery.sql once in the business Command Center Supabase project (SQL Editor: paste and run), after 0006."
+  ],
+  "tests": [
+    {
+      "command": "node --experimental-strip-types --test tests/*.test.ts (baseline)",
+      "result": "163 passed, 0 failed",
+      "ran_at": "2026-10-13T22:30:00Z"
+    },
+    {
+      "command": "npx tsc --noEmit (baseline)",
+      "result": "passed",
+      "ran_at": "2026-10-13T22:30:00Z"
+    },
+    {
+      "command": "node --test discovery, discovery-campaigns, lead-identity, business-classification",
+      "result": "27 passed, 0 failed",
+      "ran_at": "2026-10-13T22:30:21Z"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "result": "passed",
+      "ran_at": "2026-10-13T22:30:21Z"
+    },
+    {
+      "command": "npx eslint (changed files)",
+      "result": "passed",
+      "ran_at": "2026-10-13T22:30:21Z"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M0",
+      "title": "Shared tracker",
+      "status": "complete",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Searched for an existing tracker: /app/roadmap is DB-backed and not readable from the repo, so a JSON tracker was added",
+        "docs/prospect-discovery-status.json + docs/prospect-discovery-handoff.md",
+        "Read-only /app/project-status page, linked in the sidebar and from Prospect Discovery"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "docs/prospect-discovery-status.json",
+        "docs/prospect-discovery-handoff.md",
+        "lib/project-status.ts",
+        "app/app/project-status/page.tsx",
+        "app/app/layout.tsx"
+      ],
+      "commit": null
+    },
+    {
+      "id": "M1",
+      "title": "Campaign-based discovery",
+      "status": "complete",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Migration 0007: discovery_campaigns (RLS, org-scoped), campaign_id on lead_import_rows and businesses, same-org trigger, validated status constraints",
+        "Discovery form: new or existing campaign, target service, target industry + keyword filter, source, area",
+        "Scans and CSV intake attach campaign_id to staged rows; existing OSM/Boston/CSV/dedupe/manual review preserved",
+        "Campaign list on Discovery links to the queue filtered by campaign"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "supabase/migrations/0007_prospect_discovery.sql",
+        "lib/discovery-campaigns.ts",
+        "lib/discovery-campaigns-server.ts",
+        "app/app/discovery/actions.ts",
+        "app/app/discovery/page.tsx",
+        "app/app/leads/actions.ts",
+        "app/app/leads/import/page.tsx",
+        "tests/discovery-campaigns.test.ts"
+      ],
+      "commit": null
+    },
+    {
+      "id": "M2",
+      "title": "Deterministic qualification",
+      "status": "in_progress",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [],
+      "in_progress": [],
+      "remaining": [
+        "lib/prospect-qualification.ts pure function + tests"
+      ],
+      "files_changed": [],
+      "commit": null
+    },
+    {
+      "id": "M3",
+      "title": "Usable research queue",
+      "status": "not_started",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [],
+      "in_progress": [],
+      "remaining": [
+        "Filters, triage actions, compact rows"
+      ],
+      "files_changed": [],
+      "commit": null
+    },
+    {
+      "id": "M4",
+      "title": "CRM, Opportunity Board and demo handoff",
+      "status": "not_started",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [],
+      "in_progress": [],
+      "remaining": [
+        "Preserve qualification on import",
+        "Board columns",
+        "Demo handoff"
+      ],
+      "files_changed": [],
+      "commit": null
+    },
+    {
+      "id": "M5",
+      "title": "Pitch brief",
+      "status": "not_started",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [],
+      "in_progress": [],
+      "remaining": [
+        "Printable, copyable evidence-backed brief"
+      ],
+      "files_changed": [],
+      "commit": null
+    }
+  ]
+}

@@ -7,6 +7,8 @@ import { requireWorkspace, shortText, validUuid, webUrl } from '@/lib/workspace'
 import { parseCsv, normalizedHeader } from '@/lib/csv';
 import {classifyWebPresence,validateBusinessWebsite,discoveredProfile} from '@/lib/web-presence';
 import {collectAllPages,potentialMatches,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '@/lib/lead-identity';
+import {validateCampaignInput} from '@/lib/discovery-campaigns';
+import {resolveCampaign} from '@/lib/discovery-campaigns-server';
 
 const STAGES = ['not_contacted','contacted','visited','proposal_sent','won','lost'];
 const OPERATIONS = ['unknown','operating','opening','closed'];
@@ -208,6 +210,12 @@ export async function stageCsv(form: FormData) {
   if(rows.length<2 || rows.length>501) redirect('/app/leads/import?error=length');
   const headers=rows[0].map(normalizedHeader);
   const pick=(obj:Record<string,string>,keys:string[])=>keys.map(k=>obj[k]??'').find(Boolean)??'';
+  // Campaign attribution is optional for CSV intake; without one, behavior is unchanged.
+  const existingCampaign=shortText(form.get('campaign_id'),64);
+  const newCampaignName=shortText(form.get('campaign_name'),120);
+  const campaign=existingCampaign||newCampaignName?await resolveCampaign(supabase,organizationId,user.id,existingCampaign,
+    existingCampaign?null:validateCampaignInput({name:newCampaignName,target_area:form.get('target_area'),industry:'any',
+      keyword:form.get('target_industry'),target_service:form.get('target_service'),discovery_source:'csv_import'})):null;
   const batchId=randomUUID();
   const entries=rows.slice(1).map((row,i)=>{
     const raw_data:Record<string,string>={};
@@ -224,7 +232,8 @@ export async function stageCsv(form: FormData) {
       name,city,category:pick(raw_data,['category','industry','type']).slice(0,180),
       website_url,phone:pick(raw_data,['phone','phonenumber','telephone']).slice(0,120),
       source_url,source_type:pick(raw_data,['sourcetype','source','registry']).slice(0,120),
-      raw_data,review_status:name.length<2?'invalid':'pending'
+      raw_data,review_status:name.length<2?'invalid':'pending',
+      ...(campaign?{campaign_id:campaign.id}:{})
     };
   });
   const {error}=await supabase.from('lead_import_rows').insert(entries);
