@@ -4,14 +4,14 @@
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
   "current_milestone": "M5 Pitch brief",
   "overall_status": "in_progress",
-  "last_updated": "2026-10-13T22:40:31Z",
+  "last_updated": "2026-10-13T22:42:28Z",
   "responsible_agent": "Claude",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "37c94bc97c1f543b6aee13ebf336425bc64fdf28",
-    "message": "feat(queue): qualification-driven Prospect Research Queue with filters and triage actions"
+    "sha": "8db2002f4645251b07d791a2fdc45a40e9fe5a7b",
+    "message": "feat(crm): carry qualification into CRM, Opportunity Board and demo handoff"
   },
-  "next_action": "Claude: build /app/leads/[id]/pitch (printable, copyable) from lib/pitch-brief.ts, then run the full verification suite.",
+  "next_action": "Claude: run full verification (all tests, typecheck, lint, production build) and update the tracker with results.",
   "blockers": [],
   "known_limitations": [
     "Pages that read the new campaign/qualification columns require migration 0007 to be applied in Supabase first.",
@@ -75,6 +75,11 @@
       "command": "npx tsc --noEmit + eslint (M4 files)",
       "result": "passed",
       "ran_at": "2026-10-13T22:40:31Z"
+    },
+    {
+      "command": "node --test tests/pitch-brief.test.ts",
+      "result": "3 passed, 0 failed",
+      "ran_at": "2026-10-13T22:42:28Z"
     }
   ],
   "milestones": [
@@ -189,20 +194,30 @@
         "app/app/opportunities/page.tsx",
         "lib/business-qualification-server.ts"
       ],
-      "commit": null
+      "commit": "8db2002"
     },
     {
       "id": "M5",
       "title": "Pitch brief",
-      "status": "in_progress",
+      "status": "ready_for_review",
       "responsible_agent": "Claude",
       "safe_for_other_agent_to_edit": false,
-      "completed": [],
-      "in_progress": [],
-      "remaining": [
-        "Printable, copyable evidence-backed brief"
+      "completed": [
+        "lib/pitch-brief.ts: pure, tested brief builder (location + verification state, campaign, opportunity, evidence, confidence, unknowns, opening offer, links, audit summary, next action, demo link, claims that must not be made, sources, Markdown)",
+        "/app/leads/[id]/pitch: printable (print CSS hides navigation) and copyable (Copy as Markdown + raw Markdown block)",
+        "Linked from CRM qualification panel and Opportunity Board"
       ],
-      "files_changed": [],
+      "in_progress": [
+        "Final verification"
+      ],
+      "remaining": [],
+      "files_changed": [
+        "lib/pitch-brief.ts",
+        "tests/pitch-brief.test.ts",
+        "app/app/leads/[id]/pitch/page.tsx",
+        "components/pitch-brief-actions.tsx",
+        "app/globals.css"
+      ],
       "commit": null
     }
   ]
