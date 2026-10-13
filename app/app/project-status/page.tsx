@@ -2,6 +2,7 @@ import Link from 'next/link';
 import raw from '@/docs/prospect-discovery-status.json';
 import {normalizeProjectStatus,statusLabel,type TrackerStatus} from '@/lib/project-status';
 
+export const dynamic='force-dynamic';
 // Read-only view of docs/prospect-discovery-status.json. Edit the file in the repository, not here.
 const tone:Record<TrackerStatus,string>={
  not_started:'text-[#8fa9b5]',in_progress:'text-cyan-200',blocked:'text-amber-200',

@@ -68,7 +68,7 @@ export default async function WebsiteIntelligence({
  return <main className="max-w-7xl">
    <div className="flex flex-wrap items-end justify-between gap-4">
     <div><p className="kicker">Phase 5 / Evidence-first technical audits</p><h1 className="mt-3 text-4xl font-semibold">Website Intelligence</h1>
-    <p className="muted mt-3 max-w-3xl leading-7">Measure real mobile performance and technical SEO. Your Mac development server runs Chrome Lighthouse locally without Google's PageSpeed quota; deployed servers may use an approved API key or imported reports. Unknown data stays unknown.</p></div>
+    <p className="muted mt-3 max-w-3xl leading-7">Measure real mobile performance and technical SEO. Your Mac development server runs Chrome Lighthouse locally without Google&apos;s PageSpeed quota; deployed servers may use an approved API key or imported reports. Unknown data stays unknown.</p></div>
     <Link className="btn" href="/app/leads/import">Review {pending??0} pending leads <ArrowUpRight size={16}/></Link>
    </div>
    {selectedId&&<div className="mt-5"><Link href="/app/intelligence" className="text-sm text-cyan-300 underline">← Show full Website Intelligence list</Link>
@@ -76,7 +76,7 @@ export default async function WebsiteIntelligence({
    {p.error&&<div className="mt-7 rounded-xl border border-amber-700/40 bg-amber-950/15 p-5 text-amber-200" role="alert">
       <ShieldAlert className="mr-2 inline" size={18}/>{errors[p.error]||'Website audit was not completed.'}
       {p.error.startsWith('local-')&&<div className="mt-3 border-t border-amber-800/30 pt-3 text-sm">
-       <strong>Alternative that does not bypass the website's restrictions:</strong>
+       <strong>Alternative that does not bypass the website&apos;s restrictions:</strong>
        {' '}Open the website in Chrome, run DevTools → Lighthouse → Mobile → Analyze page load, then export JSON.
        <a href="#lighthouse-fallback" className="ml-2 font-semibold text-cyan-200 underline underline-offset-4">
         Import that report for this CRM business ↓

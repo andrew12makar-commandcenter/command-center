@@ -2,20 +2,24 @@
   "project": "Prospect Discovery MVP",
   "branch": "codex/generator-intelligence-checkpoints-oct12",
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
-  "current_milestone": "M5 Pitch brief",
-  "overall_status": "in_progress",
-  "last_updated": "2026-10-13T22:42:28Z",
+  "current_milestone": "Complete: awaiting owner migration + browser click-through",
+  "overall_status": "ready_for_review",
+  "last_updated": "2026-10-13T22:45:21Z",
   "responsible_agent": "Claude",
-  "safe_for_other_agent_to_edit": false,
+  "safe_for_other_agent_to_edit": true,
   "latest_commit": {
-    "sha": "8db2002f4645251b07d791a2fdc45a40e9fe5a7b",
-    "message": "feat(crm): carry qualification into CRM, Opportunity Board and demo handoff"
+    "sha": "24ed0d03fb381d47b26c15055f2d7e2fc6c93f29",
+    "message": "feat(pitch): printable, copyable evidence-backed pitch brief"
   },
-  "next_action": "Claude: run full verification (all tests, typecheck, lint, production build) and update the tracker with results.",
+  "next_action": "Owner: apply supabase/migrations/0007_prospect_discovery.sql in the Supabase SQL Editor, then click through Discovery \u2192 Queue \u2192 Import \u2192 CRM \u2192 Opportunity Board \u2192 Demo \u2192 Pitch brief. Any agent may then fix issues found.",
   "blockers": [],
   "known_limitations": [
-    "Pages that read the new campaign/qualification columns require migration 0007 to be applied in Supabase first.",
-    "tests/overture-discovery.test.mjs cannot run inside Claude's Linux VM because node_modules holds the macOS DuckDB binary; it is an environment limitation, not a code failure."
+    "Browser verification not performed: requires Supabase env, a signed-in session and migration 0007.",
+    "Pages that use campaigns/triage need migration 0007; the queue and board fall back to read-only qualification without it, and import falls back to the legacy insert.",
+    "Stored CRM opportunity/confidence/next action act as overrides; clear them on the CRM record to recompute from new audits or contacts.",
+    "GBP status is only recorded/unconfirmed; there is no GBP audit (no Google Maps scraping by design).",
+    "Geolocation requires a CSV service_area/locations column or a CRM service_area that is not a discovery scan area.",
+    "tests/*.mjs need native deps for the current OS (DuckDB); they fail in a Linux VM using a macOS node_modules, and pass after npm ci on Linux."
   ],
   "manual_steps": [
     "Apply supabase/migrations/0007_prospect_discovery.sql once in the business Command Center Supabase project (SQL Editor: paste and run), after 0006."
@@ -80,6 +84,36 @@
       "command": "node --test tests/pitch-brief.test.ts",
       "result": "3 passed, 0 failed",
       "ran_at": "2026-10-13T22:42:28Z"
+    },
+    {
+      "command": "npm test (.ts suite)",
+      "result": "189 passed, 0 failed (incl. 20 qualification, 3 pitch-brief, 3 campaign/tracker tests)",
+      "ran_at": "2026-10-13T22:45:21Z"
+    },
+    {
+      "command": "npm test (.mjs suite, Linux copy after npm ci)",
+      "result": "40 passed, 0 failed",
+      "ran_at": "2026-10-13T22:45:21Z"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "result": "passed",
+      "ran_at": "2026-10-13T22:45:21Z"
+    },
+    {
+      "command": "npx eslint .",
+      "result": "0 errors, 14 pre-existing warnings",
+      "ran_at": "2026-10-13T22:45:21Z"
+    },
+    {
+      "command": "npx next build (Linux copy after npm ci)",
+      "result": "succeeded; /app/project-status and /app/leads/[id]/pitch built",
+      "ran_at": "2026-10-13T22:45:21Z"
+    },
+    {
+      "command": "Browser verification",
+      "result": "NOT performed (needs Supabase env, sign-in and migration 0007)",
+      "ran_at": "2026-10-13T22:45:21Z"
     }
   ],
   "milestones": [
@@ -88,7 +122,7 @@
       "title": "Shared tracker",
       "status": "complete",
       "responsible_agent": "Claude",
-      "safe_for_other_agent_to_edit": false,
+      "safe_for_other_agent_to_edit": true,
       "completed": [
         "Searched for an existing tracker: /app/roadmap is DB-backed and not readable from the repo, so a JSON tracker was added",
         "docs/prospect-discovery-status.json + docs/prospect-discovery-handoff.md",
@@ -110,7 +144,7 @@
       "title": "Campaign-based discovery",
       "status": "complete",
       "responsible_agent": "Claude",
-      "safe_for_other_agent_to_edit": false,
+      "safe_for_other_agent_to_edit": true,
       "completed": [
         "Migration 0007: discovery_campaigns (RLS, org-scoped), campaign_id on lead_import_rows and businesses, same-org trigger, validated status constraints",
         "Discovery form: new or existing campaign, target service, target industry + keyword filter, source, area",
@@ -136,7 +170,7 @@
       "title": "Deterministic qualification",
       "status": "complete",
       "responsible_agent": "Claude",
-      "safe_for_other_agent_to_edit": false,
+      "safe_for_other_agent_to_edit": true,
       "completed": [
         "lib/prospect-qualification.ts: pure deterministic qualifyProspect + staged-row and CRM adapters",
         "Rules: missing website -> find website; missing GBP link -> confirm GBP; social-only = research, not proof; inconclusive audit != problem; geolocation needs real service-area/multi-location evidence (scan area excluded); closed/won/lost/disqualified never priority",
@@ -156,7 +190,7 @@
       "title": "Usable research queue",
       "status": "complete",
       "responsible_agent": "Claude",
-      "safe_for_other_agent_to_edit": false,
+      "safe_for_other_agent_to_edit": true,
       "completed": [
         "Queue rebuilt as compact grouped cards (business | qualification | next action + rationale | actions) with an expandable action panel; no wide table",
         "Each candidate shows campaign, area, industry, website presence, GBP status, opportunity, strength, confidence, contact readiness, next action, research status, duplicate warning, rationale",
@@ -177,7 +211,7 @@
       "title": "CRM, Opportunity Board and demo handoff",
       "status": "complete",
       "responsible_agent": "Claude",
-      "safe_for_other_agent_to_edit": false,
+      "safe_for_other_agent_to_edit": true,
       "completed": [
         "Import carries campaign_id, primary_opportunity, evidence_confidence, next_action and qualification_rationale into businesses; also recorded email/contact/GBP link from CSV evidence; priority_score never set",
         "Disqualified candidates cannot be imported until restored; import falls back to the legacy insert if 0007 is missing",
@@ -199,17 +233,16 @@
     {
       "id": "M5",
       "title": "Pitch brief",
-      "status": "ready_for_review",
+      "status": "complete",
       "responsible_agent": "Claude",
-      "safe_for_other_agent_to_edit": false,
+      "safe_for_other_agent_to_edit": true,
       "completed": [
-        "lib/pitch-brief.ts: pure, tested brief builder (location + verification state, campaign, opportunity, evidence, confidence, unknowns, opening offer, links, audit summary, next action, demo link, claims that must not be made, sources, Markdown)",
-        "/app/leads/[id]/pitch: printable (print CSS hides navigation) and copyable (Copy as Markdown + raw Markdown block)",
-        "Linked from CRM qualification panel and Opportunity Board"
+        "lib/pitch-brief.ts: pure, tested brief builder",
+        "/app/leads/[id]/pitch: printable and copyable",
+        "Linked from CRM qualification panel and Opportunity Board",
+        "Final verification: tests, typecheck, lint, production build"
       ],
-      "in_progress": [
-        "Final verification"
-      ],
+      "in_progress": [],
       "remaining": [],
       "files_changed": [
         "lib/pitch-brief.ts",
@@ -218,7 +251,7 @@
         "components/pitch-brief-actions.tsx",
         "app/globals.css"
       ],
-      "commit": null
+      "commit": "24ed0d0"
     }
   ]
 }
