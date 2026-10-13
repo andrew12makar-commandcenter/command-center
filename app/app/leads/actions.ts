@@ -9,7 +9,8 @@ import {classifyWebPresence,validateBusinessWebsite,discoveredProfile} from '@/l
 import {collectAllPages,potentialMatches,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '@/lib/lead-identity';
 import {validateCampaignInput} from '@/lib/discovery-campaigns';
 import {resolveCampaign} from '@/lib/discovery-campaigns-server';
-import {OPPORTUNITIES,CONFIDENCES,NEXT_ACTIONS} from '@/lib/prospect-qualification';
+import {OPPORTUNITIES,CONFIDENCES,NEXT_ACTIONS,qualifyStagedRow,type Qualification} from '@/lib/prospect-qualification';
+import type {TargetService} from '@/lib/discovery-campaigns';
 
 const STAGES = ['not_contacted','contacted','visited','proposal_sent','won','lost'];
 const OPERATIONS = ['unknown','operating','opening','closed'];
@@ -251,6 +252,7 @@ export async function approveImportedRow(form: FormData) {
     .select('*').eq('id',id).eq('organization_id',organizationId).eq('review_status','pending').maybeSingle();
   if(readError || !row) throw new Error('Staged row is no longer pending.');
   if(!row.name || row.name.length<2) throw new Error('No business name.');
+  if(row.triage_status==='disqualified')throw new Error('This candidate is disqualified. Restore it to review before importing.');
   // Check every CRM page. Comparing only the first 1,000 silently loses duplicates at scale.
   const candidates=await collectAllPages<BusinessIdentity>(async (from,to)=>{
     const {data,error}=await supabase.from('businesses')
@@ -273,12 +275,35 @@ export async function approveImportedRow(form: FormData) {
   const service_area=researchServiceArea(raw);
   const socialUrl=discoveredProfile((row.raw_data??{}) as Record<string,unknown>,row.website_url);
   const officialWebsite=validateBusinessWebsite(website_url&&classifyWebPresence(website_url).kind==='website'?website_url:null);
-  const {data:business,error}=await supabase.from('businesses').insert({
+  // Carry the deterministic qualification (or the operator's overrides) into the CRM.
+  // priority_score is never set here; it stays a manual, evidence-backed CRM field.
+  let campaignService:TargetService|null=null;
+  if(row.campaign_id){
+    const {data:campaign}=await supabase.from('discovery_campaigns').select('target_service')
+      .eq('organization_id',organizationId).eq('id',row.campaign_id).maybeSingle();
+    campaignService=(campaign?.target_service as TargetService|undefined)??null;
+  }
+  const q=qualifyStagedRow(row,{targetService:campaignService,duplicateWarning:false});
+  const carried=qualificationColumns(q,row.campaign_id??null);
+  const rawText=(keys:string[])=>keys.map(k=>raw[k]).find((v):v is string=>typeof v==='string'&&v.trim().length>0)?.trim().slice(0,180)||null;
+  let gbpUrl:string|null=null;
+  try{gbpUrl=webUrl(rawText(['googlebusinessurl','gbpurl','googlebusinessprofile','googlemapsurl']));}catch{gbpUrl=null;}
+  const contact={
+    ...(rawText(['email','contactemail'])?{contact_email:rawText(['email','contactemail'])}:{}),
+    ...(rawText(['contactname','owner','ownername'])?{contact_name:rawText(['contactname','owner','ownername'])}:{}),
+    ...(gbpUrl?{google_business_url:gbpUrl}:{}),
+  };
+  const baseRecord={
     organization_id:organizationId,name:row.name,city:row.city||null,category:row.category,
     phone:row.phone,website_url:officialWebsite,verification_status:source_url?'pending':'unverified',
     ...(street_address?{street_address}:{}),...(postal_code?{postal_code}:{}),
-    ...(service_area?{service_area}:{})
-  }).select('id').single();
+    ...(service_area?{service_area}:{}),...contact
+  };
+  let {data:business,error}=await supabase.from('businesses').insert({...baseRecord,...carried}).select('id').single();
+  if(error&&/column|schema cache/i.test(error.message)){
+    // Migration 0007 not applied yet: keep the existing import path working without the new fields.
+    ({data:business,error}=await supabase.from('businesses').insert(baseRecord).select('id').single());
+  }
   if(error||!business)throw new Error(error?.message??'Failed to insert business');
   const evidence=[];
   if(source_url)evidence.push({
@@ -301,8 +326,8 @@ export async function approveImportedRow(form: FormData) {
     .update({review_status:'imported',matched_business_id:business.id})
     .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending');
   if(updateError)throw new Error('Business created, but staging update failed: '+updateError.message);
-  revalidatePath('/app');revalidatePath('/app/leads');revalidatePath('/app/leads/import');
-  redirect('/app/leads/import');
+  revalidatePath('/app');revalidatePath('/app/leads');revalidatePath('/app/leads/import');revalidatePath('/app/opportunities');
+  redirect(form.get('open_crm')==='yes'?'/app/leads/'+business.id:queueReturn(form));
 }
 
 export async function skipImportedRow(form:FormData){
@@ -313,7 +338,7 @@ export async function skipImportedRow(form:FormData){
     .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending');
   if(error) throw new Error(error.message);
   revalidatePath('/app/leads/import');
-  redirect('/app/leads/import');
+  redirect(queueReturn(form));
 }
 
 // Explicitly link an already-known business instead of manufacturing a second CRM record.
@@ -352,12 +377,23 @@ export async function linkImportedDuplicate(form:FormData){
   review_status:'duplicate',matched_business_id:businessId
  }).eq('organization_id',organizationId).eq('id',id).eq('review_status','pending');
  if(error)throw Error('Could not mark staged record as duplicate: '+error.message);
+ if(row.campaign_id){
+  // Fill gaps only; never overwrite a CRM record's existing campaign or qualification.
+  await supabase.from('businesses').update({campaign_id:row.campaign_id})
+   .eq('organization_id',organizationId).eq('id',businessId).is('campaign_id',null);
+ }
  revalidatePath('/app');revalidatePath('/app/leads');revalidatePath('/app/leads/import');
  revalidatePath('/app/leads/'+businessId);
  redirect('/app/leads/'+businessId);
 }
 
 // ---- Prospect Research Queue triage (deliberate, per-row operator decisions) ----
+function qualificationColumns(q:Qualification,campaignId:string|null){
+ return {
+  campaign_id:campaignId,primary_opportunity:q.primaryOpportunity,evidence_confidence:q.evidenceConfidence,
+  next_action:q.nextAction,qualification_rationale:q.reasons.join(' ').slice(0,1200)||q.rationale,
+ };
+}
 const TRIAGE_ACTIONS={shortlist:'shortlisted',hold:'held',disqualify:'disqualified',restore:'review_needed'} as const;
 function queueReturn(form:FormData):string{
  const raw=shortText(form.get('return_to'),600);
@@ -398,4 +434,28 @@ export async function updateStagedQualification(form:FormData){
  if(!data)throw new Error('This staged record is no longer pending review.');
  revalidatePath('/app/leads/import');
  redirect(queueReturn(form));
+}
+
+// CRM qualification: blank means "derive from recorded evidence". Never touches priority_score.
+export async function updateBusinessQualification(form:FormData){
+ const {supabase,organizationId}=await requireWorkspace(true);
+ const id=shortText(form.get('business_id'),64);
+ if(!validUuid(id))throw new Error('Invalid business.');
+ const pick=<T extends string>(name:string,list:readonly T[]):T|null=>{
+  const v=shortText(form.get(name),40);
+  if(!v)return null;
+  if(!list.includes(v as T))throw new Error('Invalid value for '+name.replaceAll('_',' ')+'.');
+  return v as T;
+ };
+ const note=shortText(form.get('qualification_rationale'),1200);
+ const {error}=await supabase.from('businesses').update({
+  primary_opportunity:pick('primary_opportunity',OPPORTUNITIES),
+  evidence_confidence:pick('evidence_confidence',CONFIDENCES),
+  next_action:pick('next_action',NEXT_ACTIONS),
+  qualification_rationale:note||null,
+  updated_at:new Date().toISOString(),
+ }).eq('id',id).eq('organization_id',organizationId);
+ if(error)throw new Error('Could not save qualification. Has migration 0007 been applied? '+error.message);
+ revalidatePath('/app/leads/'+id);revalidatePath('/app/opportunities');revalidatePath('/app/leads/'+id+'/pitch');
+ redirect('/app/leads/'+id+'#qualification');
 }

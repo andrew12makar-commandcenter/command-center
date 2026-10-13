@@ -2,16 +2,16 @@
   "project": "Prospect Discovery MVP",
   "branch": "codex/generator-intelligence-checkpoints-oct12",
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
-  "current_milestone": "M4 CRM, Opportunity Board and demo handoff",
+  "current_milestone": "M5 Pitch brief",
   "overall_status": "in_progress",
-  "last_updated": "2026-10-13T22:37:38Z",
+  "last_updated": "2026-10-13T22:40:31Z",
   "responsible_agent": "Claude",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "ee5656b9a5246b2a19a9642a8c59f9e626c94992",
-    "message": "feat(qualification): deterministic evidence-only prospect qualification with tests"
+    "sha": "37c94bc97c1f543b6aee13ebf336425bc64fdf28",
+    "message": "feat(queue): qualification-driven Prospect Research Queue with filters and triage actions"
   },
-  "next_action": "Claude: carry qualification into businesses on import, show it on CRM detail and the Opportunity Board, and link to the existing demo generator.",
+  "next_action": "Claude: build /app/leads/[id]/pitch (printable, copyable) from lib/pitch-brief.ts, then run the full verification suite.",
   "blockers": [],
   "known_limitations": [
     "Pages that read the new campaign/qualification columns require migration 0007 to be applied in Supabase first.",
@@ -65,6 +65,16 @@
       "command": "npx tsc --noEmit + eslint app/app/leads",
       "result": "passed",
       "ran_at": "2026-10-13T22:37:38Z"
+    },
+    {
+      "command": "node --experimental-strip-types --test tests/*.test.ts",
+      "result": "186 passed, 0 failed",
+      "ran_at": "2026-10-13T22:40:31Z"
+    },
+    {
+      "command": "npx tsc --noEmit + eslint (M4 files)",
+      "result": "passed",
+      "ran_at": "2026-10-13T22:40:31Z"
     }
   ],
   "milestones": [
@@ -155,28 +165,36 @@
         "app/app/leads/import/page.tsx",
         "app/app/leads/actions.ts"
       ],
-      "commit": null
+      "commit": "37c94bc"
     },
     {
       "id": "M4",
       "title": "CRM, Opportunity Board and demo handoff",
-      "status": "in_progress",
+      "status": "complete",
       "responsible_agent": "Claude",
       "safe_for_other_agent_to_edit": false,
-      "completed": [],
-      "in_progress": [],
-      "remaining": [
-        "Preserve qualification on import",
-        "Board columns",
-        "Demo handoff"
+      "completed": [
+        "Import carries campaign_id, primary_opportunity, evidence_confidence, next_action and qualification_rationale into businesses; also recorded email/contact/GBP link from CSV evidence; priority_score never set",
+        "Disqualified candidates cannot be imported until restored; import falls back to the legacy insert if 0007 is missing",
+        "Linking a duplicate only fills an empty campaign_id; never overwrites CRM data",
+        "CRM detail: qualification panel (campaign, opportunity, strength, confidence, readiness, next action, rationale), editable with blank = recompute from evidence; links to pitch brief, website demo section and board",
+        "Opportunity Board: qualification line per business, campaign and opportunity filters, Pitch brief and Website demo links; same board, same generator (createDemo), no auto-publish"
       ],
-      "files_changed": [],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "app/app/leads/actions.ts",
+        "app/app/leads/[id]/page.tsx",
+        "app/app/leads/import/page.tsx",
+        "app/app/opportunities/page.tsx",
+        "lib/business-qualification-server.ts"
+      ],
       "commit": null
     },
     {
       "id": "M5",
       "title": "Pitch brief",
-      "status": "not_started",
+      "status": "in_progress",
       "responsible_agent": "Claude",
       "safe_for_other_agent_to_edit": false,
       "completed": [],

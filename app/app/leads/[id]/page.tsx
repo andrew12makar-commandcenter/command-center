@@ -1,7 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireWorkspace } from '@/lib/workspace';
-import { addActivity,addSource,confirmSource,markVerified,moveProfileFromWebsite,updateLead } from '../actions';
+import { addActivity,addSource,confirmSource,markVerified,moveProfileFromWebsite,updateLead,updateBusinessQualification } from '../actions';
+import {qualifyCrmBusiness,readCampaign} from '@/lib/business-qualification-server';
+import type {AuditRecord} from '@/lib/opportunity-board';
+import {targetServiceLabels} from '@/lib/discovery-campaigns';
+import {OPPORTUNITIES,CONFIDENCES,NEXT_ACTIONS,opportunityLabels,strengthLabels,confidenceLabels,readinessLabels,nextActionLabels,websitePresenceLabels} from '@/lib/prospect-qualification';
 import {classifyWebPresence} from '@/lib/web-presence';
 import { createDemo } from '@/app/app/demos/actions';
 import {classifyIndustry,industryLabel} from '@/lib/business-classification';
@@ -17,11 +21,15 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
   const industry=classifyIndustry(b.name,b.category);
   const presence=classifyWebPresence(b.website_url);
   const profileOnly=presence.kind==='social'||presence.kind==='listing';
-  const [{data:sources},{data:activities},{data:demos}]=await Promise.all([
+  const [{data:sources},{data:activities},{data:demos},{data:audits},campaign]=await Promise.all([
     supabase.from('business_sources').select('*').eq('organization_id',organizationId).eq('business_id',id).order('recorded_at',{ascending:false}),
     supabase.from('business_activities').select('*').eq('organization_id',organizationId).eq('business_id',id).order('occurred_at',{ascending:false}).limit(30),
     supabase.from('demo_sites').select('id,template,status,created_at').eq('organization_id',organizationId).eq('business_id',id).order('created_at',{ascending:false}),
+    supabase.from('website_assessments').select('business_id,website_url,status,assessed_at,findings').eq('organization_id',organizationId).eq('business_id',id).order('assessed_at',{ascending:false}).limit(25),
+    readCampaign(supabase,organizationId,b.campaign_id),
   ]);
+  const {q}=qualifyCrmBusiness(b,(audits??[]) as AuditRecord[],sources??[],campaign);
+  const hasStoredQualification=Boolean(b.primary_opportunity||b.evidence_confidence||b.next_action);
   return <main className="max-w-6xl">
     <Link href="/app/leads" className="muted text-sm">← All prospects</Link>
     <div className="mt-7 flex flex-wrap items-start justify-between gap-4">
@@ -31,6 +39,38 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
       <div className="flex gap-3">{presence.url && <a className="btn" target="_blank" rel="noopener noreferrer" href={presence.url}>{profileOnly?'Visit '+presence.provider+' profile ↗':'Visit website ↗'}</a>}
         {b.google_business_url && <a className="btn" target="_blank" rel="noreferrer" href={b.google_business_url}>Google profile ↗</a>}</div>
     </div>
+    <section id="qualification" className="panel mt-7 scroll-mt-6 p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div><p className="kicker">Prospect qualification{campaign?' · '+campaign.name:''}</p>
+          <h2 className="mt-2 text-lg font-semibold">{opportunityLabels[q.primaryOpportunity]} · {strengthLabels[q.opportunityStrength]}</h2>
+          <p className="muted mt-1 text-xs">{campaign?targetServiceLabels[campaign.target_service]+' campaign · '+(campaign.target_area||'any area'):'No discovery campaign recorded'}</p></div>
+        <div className="flex flex-wrap gap-3">
+          <Link href={'/app/leads/'+id+'/pitch'} className="btn">Pitch brief →</Link>
+          <a href="#website-demo" className="btn">Website demo ↓</a>
+          <Link href="/app/opportunities" className="btn">Opportunity Board</Link>
+        </div>
+      </div>
+      <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-5">
+        <div><dt className="muted text-xs">Evidence confidence</dt><dd className="mt-1 font-semibold">{confidenceLabels[q.evidenceConfidence]}</dd></div>
+        <div><dt className="muted text-xs">Contact readiness</dt><dd className="mt-1 font-semibold">{readinessLabels[q.contactReadiness]}</dd></div>
+        <div><dt className="muted text-xs">Next action</dt><dd className="mt-1 font-semibold">{nextActionLabels[q.nextAction]}</dd></div>
+        <div><dt className="muted text-xs">Website</dt><dd className="mt-1 font-semibold">{websitePresenceLabels[q.websitePresence]}</dd></div>
+        <div><dt className="muted text-xs">GBP</dt><dd className="mt-1 font-semibold">{q.gbpStatus==='recorded'?'Recorded':'Not confirmed'}</dd></div>
+      </dl>
+      <p className="mt-4 text-sm leading-6 text-[#c4d6dd]">{b.qualification_rationale||q.reasons.join(' ')}</p>
+      {hasStoredQualification&&<p className="muted mt-1 text-xs">Opportunity, confidence and next action were recorded at import or set manually. Clear them below to recompute from current evidence.</p>}
+      <details className="mt-4 border-t border-[#243745] pt-3">
+        <summary className="cursor-pointer text-xs font-semibold text-cyan-200">Update qualification</summary>
+        <form action={updateBusinessQualification} className="mt-3 grid gap-3 text-sm md:grid-cols-3">
+          <input type="hidden" name="business_id" value={id}/>
+          <label className="text-xs">Primary opportunity<select name="primary_opportunity" className="mt-1" defaultValue={b.primary_opportunity??''}><option value="">Automatic from evidence</option>{OPPORTUNITIES.map(x=><option key={x} value={x}>{opportunityLabels[x]}</option>)}</select></label>
+          <label className="text-xs">Evidence confidence<select name="evidence_confidence" className="mt-1" defaultValue={b.evidence_confidence??''}><option value="">Automatic from evidence</option>{CONFIDENCES.map(x=><option key={x} value={x}>{confidenceLabels[x]}</option>)}</select></label>
+          <label className="text-xs">Next action<select name="next_action" className="mt-1" defaultValue={b.next_action??''}><option value="">Automatic from evidence</option>{NEXT_ACTIONS.map(x=><option key={x} value={x}>{nextActionLabels[x]}</option>)}</select></label>
+          <label className="text-xs md:col-span-3">Rationale (evidence you checked)<textarea name="qualification_rationale" rows={2} maxLength={1200} className="mt-1" defaultValue={b.qualification_rationale??''}/></label>
+          <div className="md:col-span-3"><button className="btn text-sm" type="submit">Save qualification</button><span className="muted ml-3 text-xs">Does not change the CRM priority score.</span></div>
+        </form>
+      </details>
+    </section>
     <section className="panel mt-7 flex flex-wrap items-center justify-between gap-4 p-5">
       <div><p className="kicker">Sales opportunity brief</p><h2 className="mt-2 text-lg font-semibold">Evidence-led website refresh</h2>
       <p className="muted mt-2 text-sm">Trace measured speed issues, prioritize demo work and keep the before/after comparison unclaimed until benchmarked.</p></div>
@@ -111,7 +151,8 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
             <p className="muted mt-2 text-xs">Requires a manually matched source and confirmed operating status.</p>
           </form>}
         </section>
-        <section className="panel p-7"><p className="kicker">Proposal accelerator</p><h2 className="mt-2 text-xl font-semibold">Website demo drafts</h2>
+        <section id="website-demo" className="panel scroll-mt-6 p-7"><p className="kicker">Proposal accelerator</p><h2 className="mt-2 text-xl font-semibold">Website demo drafts</h2>
+          <p className="muted mt-2 text-xs">Drafts are internal. Nothing is published or shared automatically.</p>
           <p className="muted mt-3 text-sm">Industry suggestion: <strong>{industryLabel(industry)}</strong>. {industry.explanation}. Check or correct the industry category above before creating a draft. Old mismatched drafts are not silently overwritten.</p>
           <form action={createDemo} className="mt-5 grid gap-3"><input type="hidden" name="business_id" value={id}/>
           <div className="flex flex-wrap gap-3">

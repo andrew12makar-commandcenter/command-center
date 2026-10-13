@@ -201,6 +201,7 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
         <form action={approveImportedRow} className="space-y-2">
          <input type="hidden" name="row_id" value={row.id}/><input type="hidden" name="return_to" value={here}/>
          {matches.length>0&&<label className="flex items-start gap-2 text-amber-100"><input type="checkbox" name="confirm_distinct" value="yes" required/>I checked the possible matches; this is a separate business.</label>}
+         <label className="flex items-center gap-2"><input type="checkbox" name="open_crm" value="yes"/>Open the CRM record after import</label>
          <button className="btn !px-3 !py-1.5 text-xs" type="submit">{matches.length?'Import as separate business':'Import to CRM'}</button>
          <p className="muted">Carries campaign, opportunity, rationale, confidence and next action. Never sets a priority score.</p>
         </form>
@@ -219,7 +220,7 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
          <textarea name="disqualification_reason" rows={2} minLength={8} maxLength={500} required className="!py-1.5 text-xs" placeholder="e.g., City license shows closed in 2025; existing client; outside service area" defaultValue={row.disqualification_reason||''}/>
          <button className="justify-self-start text-amber-200 underline" name="triage" value="disqualify">Disqualify</button>
         </form>
-        <form action={skipImportedRow}><input type="hidden" name="row_id" value={row.id}/><button className="text-[#8fa9b5] underline" type="submit">Skip (remove from queue)</button></form>
+        <form action={skipImportedRow}><input type="hidden" name="row_id" value={row.id}/><input type="hidden" name="return_to" value={here}/><button className="text-[#8fa9b5] underline" type="submit">Skip (remove from queue)</button></form>
        </div>
       </div>
      </details>}
