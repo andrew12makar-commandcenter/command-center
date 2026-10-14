@@ -15,7 +15,7 @@ const links=[
   {href:'/app/opportunities',icon:Target,label:'Opportunity Board'},
   {href:'/app/leads/import',icon:Upload,label:'Lead intake'},
   {href:'/app/demos',icon:PanelsTopLeft,label:'Demo studio'},
-  {href:'/app/project-status',icon:ClipboardList,label:'Project Status'},
+  {href:'/app/project-status',icon:ClipboardList,label:'Agent Checkpoints'},
 ];
 
 export default async function PrivateLayout({children}:{children:React.ReactNode}){
