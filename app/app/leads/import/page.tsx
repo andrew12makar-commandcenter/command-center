@@ -51,7 +51,8 @@ function CandidateCard({x,here,err,compact=false}:{x:Scored;here:string;err:stri
     <p className="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
      <ProgressChip progress={q.progress}/>
      <span className="muted">{campaign?campaign.name:'No campaign'}{campaign&&isTestCampaign(campaign)?' (test)':''}</span>
-     {matches.length>0&&<span className="rounded-full border border-amber-700/60 px-2 text-amber-200">Possible duplicate</span>}
+     {pending&&row.matched_business_id&&<span className="rounded-full border border-amber-700/60 px-2 text-amber-200">Import needs completion</span>}
+     {matches.length>0&&!row.matched_business_id&&<span className="rounded-full border border-amber-700/60 px-2 text-amber-200">Possible duplicate</span>}
      {q.researchStatus!=='review_needed'&&<span className="rounded-full border border-[#34505c] px-2 text-[#b8cbd3]">{researchStatusLabels[q.researchStatus]}</span>}
     </p>
    </div>
@@ -64,16 +65,24 @@ function CandidateCard({x,here,err,compact=false}:{x:Scored;here:string;err:stri
   {!compact&&q.tasks.length>0&&<div className="mt-2 text-xs"><span className="muted">Still to verify: </span>{q.tasks.slice(0,4).join(' · ')}</div>}
   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
    <span className="mr-1"><span className="muted">Next:</span> <strong>{nextActionLabels[q.nextAction]}</strong></span>
-   {pending&&site&&<form action={checkCandidateWebsite}>{hidden}<button className="btn !px-3 !py-1.5 text-xs" type="submit">{c?'Re-check website':'Check website (free)'}</button></form>}
-   {pending&&q.researchStatus!=='shortlisted'&&q.researchStatus!=='disqualified'&&<form action={triageStagedRow}>{hidden}<button className="btn !px-3 !py-1.5 text-xs" name="triage" value="shortlist">Shortlist</button></form>}
-   {pending&&q.researchStatus!=='review_needed'&&<form action={triageStagedRow}>{hidden}<button className="text-cyan-300 underline" name="triage" value="restore">Restore to review</button></form>}
-   {pending&&q.researchStatus!=='held'&&q.researchStatus!=='disqualified'&&<form action={triageStagedRow}>{hidden}<button className="text-[#a8bfcb] underline" name="triage" value="hold">Hold</button></form>}
+   {pending&&!row.matched_business_id&&site&&<form action={checkCandidateWebsite}>{hidden}<button className="btn !px-3 !py-1.5 text-xs" type="submit">{c?'Re-check website':'Check website (free)'}</button></form>}
+   {pending&&!row.matched_business_id&&q.researchStatus!=='shortlisted'&&q.researchStatus!=='disqualified'&&<form action={triageStagedRow}>{hidden}<button className="btn !px-3 !py-1.5 text-xs" name="triage" value="shortlist">Shortlist</button></form>}
+   {pending&&!row.matched_business_id&&q.researchStatus!=='review_needed'&&<form action={triageStagedRow}>{hidden}<button className="text-cyan-300 underline" name="triage" value="restore">Restore to review</button></form>}
+   {pending&&!row.matched_business_id&&q.researchStatus!=='held'&&q.researchStatus!=='disqualified'&&<form action={triageStagedRow}>{hidden}<button className="text-[#a8bfcb] underline" name="triage" value="hold">Hold</button></form>}
    {source&&<a className="text-cyan-300 underline" href={source} target="_blank" rel="noopener noreferrer">Source ↗</a>}
    {site&&<a className="text-cyan-300 underline" href={site} target="_blank" rel="noopener noreferrer">Website ↗</a>}
    {profile&&<a className="text-amber-200 underline" href={profile} target="_blank" rel="noopener noreferrer">Profile ↗</a>}
    {!pending&&<span className="muted">{row.review_status==='duplicate'?'Linked to an existing record':'Imported'}{row.matched_business_id&&<> · <Link className="text-cyan-300 underline" href={'/app/leads/'+row.matched_business_id}>CRM ↗</Link></>}</span>}
   </div>
-  {pending&&<div className="mt-3 space-y-1">
+  {pending&&row.matched_business_id&&<div className="mt-4 rounded-lg border border-amber-700/50 bg-amber-950/20 p-3 text-sm">
+   <p className="font-semibold text-amber-100">Incomplete CRM import linked to an existing business</p>
+   <p className="mt-1 text-amber-100/90">The business was created, but source evidence or the queue update may not have finished. Resume to check missing evidence and complete the staging row. This will not intentionally create another business.</p>
+   <div className="mt-3 flex flex-wrap items-center gap-4">
+    <form action={approveImportedRow}>{hidden}<button className="btn text-xs" type="submit">Resume incomplete import</button></form>
+    <Link className="text-cyan-300 underline" href={'/app/leads/'+row.matched_business_id}>Inspect linked CRM record ↗</Link>
+   </div>
+  </div>}
+  {pending&&!row.matched_business_id&&<div className="mt-3 space-y-1">
    <Fold title="Record review evidence">
     <form action={saveCandidateReview} className="grid gap-2 text-xs sm:grid-cols-2 lg:grid-cols-3">{hidden}
      <label>Website<select name="website" className="mt-1 !py-1.5 text-xs" defaultValue={m?.website??''}><option value="">Not reviewed</option>{EVIDENCE_STATES.map(s=><option key={s} value={s}>{evidenceStateLabels[s]}</option>)}</select></label>
