@@ -35,3 +35,13 @@ export function selectSiteMedia(site:Pick<SiteBlueprint,'design'|'content'>,conc
  }).slice(0,8);
  return {displayHero,gallery};
 }
+
+/** Accurate copy for gallery sections, even when only one media source exists. */
+export function galleryMediaDescription(images:ReadonlyArray<Pick<RenderMedia,'concept'>>):string{
+ if(images.length===0)return '';
+ if(images.every(image=>image.concept))
+  return 'Illustrative AI-generated concepts, not photographs of this business.';
+ if(images.every(image=>!image.concept))
+  return 'Approved business photography presented as visual reference.';
+ return 'Approved business photography alongside clearly marked AI-generated concepts.';
+}
