@@ -4,14 +4,14 @@
   "worktree": "GitHub connector branch; no local workstation checkout (Mac worktrees untouched)",
   "current_milestone": "M7 in progress: shared agent ledger and accurate Opportunity Board counts (tests pending)",
   "overall_status": "in_progress",
-  "last_updated": "2026-10-14T09:20:43.806Z",
+  "last_updated": "2026-10-14T09:28:56.150Z",
   "responsible_agent": "ChatGPT",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "3ef4e0d2221dc6a9f561ef979d5147bb58849a97",
-    "message": "Added Opportunity Board regression tests; tracker-only commit follows"
+    "sha": "00fd19089a59f1213b8c6ea0936dce694c4db125",
+    "message": "Board visibility regression: filtered hidden-test counter"
   },
-  "next_action": "Check out codex/agent-ledger-board-counts-oct14 in an isolated worktree, run npm test / typecheck / lint / build and signed-in nonmutating Board QA; post results on GitHub issue #3. No merge, PR, deploy, live data writes or outreach.",
+  "next_action": "Run npm test, typecheck, lint, build and nonmutating browser QA on codex/agent-ledger-board-counts-oct14; check GitHub Actions directly. Verify separate GBP guardrails branch before cross-branch integration. No merge or deploy authorized.",
   "blockers": [],
   "known_limitations": [
     "Local dev server on the owner Mac against the single live Supabase project; no separate preview database.",
@@ -23,7 +23,8 @@
     "Operator review evidence is stored under lead_import_rows.raw_data.review (no new migration); source keys are untouched.",
     "Migration 0008 (privilege hardening) prepared, not applied.",
     "M7 source changes were committed remotely; runtime checks, browser validation and production effects are not verified. Existing CI workflow does not trigger on the M7 branch.",
-    "Test exclusion identifies campaigns whose name starts with 'Test'; untagged historical test data may still affect totals until explicitly classified."
+    "Test exclusion identifies campaigns whose name starts with 'Test'; untagged historical test data may still affect totals until explicitly classified.",
+    "Push-triggered CI branch was added, but the GitHub connector did not return workflow-run results. No checks are marked passed on this branch."
   ],
   "manual_steps": [
     "Check GitHub issue #3 for cross-agent claims and exact branch checkpoints before touching related files.",
@@ -373,7 +374,8 @@
         "Opened canonical cross-branch GitHub issue #3 with task claims and checkpoint protocol",
         "Added docs/agent-coordination.md and issue links to Project Status and Roadmap",
         "Aligned Opportunity Board tile totals and filtered list using a shared visibility helper; navigation preserves test record toggle",
-        "Added four source-level regression tests for stage totals, filters and test visibility"
+        "Added four source-level regression tests for stage totals, filters and test visibility",
+        "Filtered test-count indicator now reflects search/opportunity/campaign; fifth regression case added."
       ],
       "in_progress": [
         "Run npm test, typecheck, lint, build and nonmutating signed-in browser QA from an isolated checkout"
@@ -390,9 +392,10 @@
         "app/app/project-status/page.tsx",
         "app/app/roadmap/page.tsx",
         "app/app/layout.tsx",
-        "docs/prospect-discovery-status.json"
+        "docs/prospect-discovery-status.json",
+        ".github/workflows/ci.yml"
       ],
-      "commit": "3ef4e0d2221dc6a9f561ef979d5147bb58849a97"
+      "commit": "00fd19089a59f1213b8c6ea0936dce694c4db125"
     }
   ],
   "review_checkpoint": {
