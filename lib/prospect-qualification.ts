@@ -58,7 +58,7 @@ export type ManualReview={
  location_type?:'storefront'|'office'|'home_based'|'service_area'|'unknown';
  service_area?:string|null;note?:string|null;reviewed_at?:string;reviewed_by?:string;
  // Public contact routes found during review (business phone/email only; never personal data).
- phone?:string|null;email?:string|null;contact_name?:string|null;
+ phone?:string|null;email?:string|null;contact_name?:string|null;address?:string|null;
 };
 export type ReviewEvidence={manual?:ManualReview;website_check?:WebsiteCheck};
 export function readReview(raw:Record<string,unknown>|null|undefined):ReviewEvidence{
@@ -153,7 +153,9 @@ function gbpStateOf(i:QualificationInput):{state:EvidenceState;why:string}{
 export function qualifyProspect(input:QualificationInput):Qualification{
  const m=input.review?.manual;
  // Reviewed public contact routes fill gaps; they never overwrite source values.
- const i:QualificationInput={...input,phone:input.phone||m?.phone||null,email:input.email||m?.email||null,contactName:input.contactName||m?.contact_name||null};
+ const reviewedPostcode=(m?.address||'').match(/\b(\d{5})(?:-\d{4})?\b/)?.[1]||null;
+ const i:QualificationInput={...input,phone:input.phone||m?.phone||null,email:input.email||m?.email||null,contactName:input.contactName||m?.contact_name||null,
+  street:input.street||m?.address||null,postcode:input.postcode||reviewedPostcode};
  const recordedSite=classifyWebPresence(i.websiteUrl);
  const operatorSite=classifyWebPresence(m?.website_url||null);
  const site=recordedSite.kind==='website'||operatorSite.kind==='website';

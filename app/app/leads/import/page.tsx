@@ -41,7 +41,7 @@ function CandidateCard({x,here,err,compact=false}:{x:Scored;here:string;err:stri
  const profile=discoveredProfile(row.raw_data,row.website_url),source=safeExternalUrl(row.source_url);
  const pending=row.review_status==='pending';
  const hidden=(<><input type="hidden" name="row_id" value={row.id}/><input type="hidden" name="return_to" value={here}/></>);
- const location=formatLocation(stagedStreet(raw),row.city,null,typeof raw.postcode==='string'?raw.postcode:null);
+ const location=formatLocation(stagedStreet(raw)||m?.address||null,row.city,null,typeof raw.postcode==='string'&&raw.postcode?raw.postcode:null);
  return <article id={'row-'+row.id} className="panel scroll-mt-6 p-4">
   {err&&<p role="alert" className="mb-3 rounded-lg border border-rose-700/60 bg-rose-950/30 p-2 text-sm text-rose-100">{err}</p>}
   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -84,6 +84,7 @@ function CandidateCard({x,here,err,compact=false}:{x:Scored;here:string;err:stri
      <label>Currently operating<select name="active" className="mt-1 !py-1.5 text-xs" defaultValue={m?.active??''}><option value="">Not reviewed</option><option value="confirmed">Confirmed</option><option value="possibly_inactive">Possibly inactive</option><option value="unknown">Unknown</option></select></label>
      <label>Location type<select name="location_type" className="mt-1 !py-1.5 text-xs" defaultValue={m?.location_type??''}><option value="">Not reviewed</option><option value="storefront">Storefront</option><option value="office">Office</option><option value="home_based">Home-based (confirmed)</option><option value="service_area">Service-area business</option><option value="unknown">Unknown</option></select></label>
      <label>Service area (if published)<input name="service_area" className="mt-1 !py-1.5 text-xs" maxLength={200} defaultValue={m?.service_area??''}/></label>
+     <label>Verified address (if missing)<input name="address" className="mt-1 !py-1.5 text-xs" maxLength={200} defaultValue={m?.address??''}/></label>
      <label>Business phone found<input name="phone" className="mt-1 !py-1.5 text-xs" maxLength={40} defaultValue={m?.phone??''}/></label>
      <label>Business email found<input name="email" type="email" className="mt-1 !py-1.5 text-xs" maxLength={160} defaultValue={m?.email??''}/></label>
      <label>Decision maker (if published)<input name="contact_name" className="mt-1 !py-1.5 text-xs" maxLength={120} defaultValue={m?.contact_name??''}/></label>

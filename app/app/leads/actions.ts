@@ -273,7 +273,8 @@ async function approveImportedRowImpl(form: FormData) {
   try {website_url=webUrl(row.website_url);source_url=webUrl(row.source_url);}
   catch {throw new Error('The staged website/source URL is invalid. Correct the CSV and re-import.');}
   const raw=(row.raw_data??{}) as Record<string,unknown>;
-  const street_address=streetFromRaw(raw),postal_code=postcodeFromRaw(raw);
+  const reviewedAddress=readReview(raw).manual?.address||'';
+  const street_address=streetFromRaw(raw)||reviewedAddress,postal_code=postcodeFromRaw(raw)||(reviewedAddress.match(/\b(\d{5})\b/)?.[1]??'');
   const service_area=researchServiceArea(raw);
   const socialUrl=discoveredProfile((row.raw_data??{}) as Record<string,unknown>,row.website_url);
   const review=readReview(raw);
@@ -530,6 +531,7 @@ async function saveCandidateReviewImpl(form:FormData){
   location_type:one('location_type',['storefront','office','home_based','service_area','unknown'] as const),
   service_area:shortText(form.get('service_area'),200)||null,note:shortText(form.get('note'),600)||null,
   phone:shortText(form.get('phone'),40)||null,email:shortText(form.get('email'),160)||null,contact_name:shortText(form.get('contact_name'),120)||null,
+  address:shortText(form.get('address'),200)||null,
   reviewed_at:new Date().toISOString(),reviewed_by:ctx.user.id,
  };
  if(manual.gbp==='verified_present'&&!gbp_url)throw new Error('Add the GBP link you verified, or choose a different GBP state.');
