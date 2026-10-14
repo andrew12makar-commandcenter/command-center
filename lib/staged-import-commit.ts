@@ -25,6 +25,29 @@ export async function commitStagedImport({
  supabase,organizationId,row,baseRecord,qualifiedRecord={},evidence,onPhase
 }:ImportCommitInput):Promise<{businessId:string;resumed:boolean}>{
  if(row.review_status!=='pending')throw Error('Staged row is not pending.');
+ // Prefer a real single-transaction PostgreSQL RPC when it is installed.
+ // ONLY the missing-function PostgREST error permits the legacy compatible
+ // recovery path. SQL permission/constraint errors must never be retried as
+ // separate writes, otherwise an atomic rejection could be bypassed.
+ // Fault hooks intentionally exercise the older staged fallback in CI.
+ if(!onPhase){
+  const atomicEvidence=evidence.map(x=>({
+   ...x,id:deterministicSourceId(row.id,x.source_type,x.source_url)
+  }));
+  const {data:atomic,error:atomicError}=await supabase.rpc('commit_staged_import_atomic',{
+   p_row_id:row.id,p_organization_id:organizationId,
+   p_business:baseRecord,p_qualification:qualifiedRecord,
+   p_sources:atomicEvidence
+  });
+  if(!atomicError){
+   const first=Array.isArray(atomic)?atomic[0]:atomic;
+   if(!first?.business_id)throw Error('Atomic import returned no CRM business ID');
+   return {businessId:first.business_id as string,resumed:Boolean(first.resumed)};
+  }
+  if(atomicError.code!=='PGRST202'){
+   throw Error('Atomic staged import rejected: '+atomicError.message);
+  }
+ }
  const recoveryId=row.matched_business_id||row.id;
  const {data:linkedBusiness,error:linkError}=await supabase.from('businesses')
   .select('id,name').eq('organization_id',organizationId).eq('id',recoveryId).maybeSingle();
