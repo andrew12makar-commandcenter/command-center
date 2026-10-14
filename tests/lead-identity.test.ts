@@ -29,11 +29,13 @@ test('same name and city but different street is not a strong match',()=>{
   [lead('1','Brighton','10 Main Street')]);
  assert.equal(matched[0].strength,'possible');
 });
-test('OSM address and search-area are imported as different fields',()=>{
+test('OSM address and scan area are not confused with an actual service area',()=>{
  const data={street:'Beacon St',housenumber:'101',postcode:'02135',search_area:'Brighton'};
  assert.equal(streetFromRaw(data),'101 Beacon St');
  assert.equal(postcodeFromRaw(data),'02135');
- assert.equal(researchServiceArea(data),'Brighton');
+ assert.equal(researchServiceArea(data),'','search geography is not a business claim');
+ assert.equal(researchServiceArea({...data,service_area:'Allston and Brighton'}),'Allston and Brighton');
+ assert.equal(researchServiceArea({...data,servicearea:'Brighton'}),'','matching scan area alone is not proof');
 });
 test('automatic discovery dedupe requires street-level location identity',()=>{
  assert.equal(strongLocationKey('Dr Smith Clinic','', 'Brighton','02135'),null);
