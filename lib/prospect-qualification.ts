@@ -98,6 +98,7 @@ export type Qualification={
  score:number;parts:ScorePart[];penalties:Penalty[];lanes:LaneScore[];secondary:Lane[];
  // The campaign lane drives the score; the recommendation may point to a better-supported lane, flagged as outside the campaign focus.
  recommended:Lane;recommendedOutsideCampaign:boolean;
+ identityConfirmed:boolean;activeConfirmed:boolean;reviewNote:string|null;reviewedAt:string|null;websiteIssues:string[];
  tasks:string[];qualified:boolean;unmet:string[];progress:Progress;industry:string;legalStructure:string|null;
  isPriorityLead:boolean;excludedReason:string|null;overridden:('primaryOpportunity'|'evidenceConfidence'|'nextAction')[];
 };
@@ -328,6 +329,8 @@ export function qualifyProspect(input:QualificationInput):Qualification{
  return {researchStatus,websitePresence,gbpStatus,websiteState:web.state,gbpState:gbp.state,
   primaryOpportunity:primary,opportunityStrength:strength,evidenceConfidence:confidence,contactReadiness:readiness,
   nextAction:next,rationale,reasons,summary,score,parts,penalties,lanes,secondary,recommended,recommendedOutsideCampaign:recommended!==primaryLane,tasks,qualified,unmet,progress,
+  identityConfirmed:identityOk,activeConfirmed:m?.active==='confirmed'||(i.verificationStatus==='verified'&&i.operationalStatus==='operating'),
+  reviewNote:m?.note??null,reviewedAt:m?.reviewed_at??null,websiteIssues:web.check?.status==='reachable'?web.check.issues.map(x=>websiteIssueLabels[x]):[],
   industry,legalStructure,isPriorityLead:!excludedReason&&i.triageStatus!=='held'&&(strength==='strong'||strength==='moderate'),
   excludedReason,overridden};
 }
