@@ -1,5 +1,6 @@
 import {classifyIndustry,isLegalStructure} from './business-classification.ts';
 import {classifyWebPresence} from './web-presence.ts';
+import {classifyGoogleListingLink} from './google-listing-link.ts';
 import {DISCOVERY_AREAS} from './discovery-regions.ts';
 import type {TargetService} from './discovery-campaigns.ts';
 import {isWebsiteCheck,websiteWeaknessCount,seoGapCount,websiteIssueLabels,type WebsiteCheck} from './website-evidence.ts';
@@ -149,7 +150,10 @@ function websiteStateOf(i:QualificationInput,site:boolean):{state:EvidenceState;
 function gbpStateOf(i:QualificationInput):{state:EvidenceState;why:string}{
  const m=i.review?.manual;
  if(m?.gbp&&m.gbp!=='unknown')return {state:m.gbp,why:'GBP manually reviewed: '+evidenceStateLabels[m.gbp].toLowerCase()+'.'};
- if(has(i.gbpUrl)||has(m?.gbp_url))return {state:'unknown',why:'A GBP link is recorded but the listing has not been reviewed.'};
+ const link=classifyGoogleListingLink(m?.gbp_url||i.gbpUrl);
+ if(link.kind==='search')return {state:'unknown',why:'Only a Google Maps search link is recorded. This is not a confirmed GBP listing.'};
+ if(link.kind==='specific_id')return {state:'unknown',why:'A listing-specific Google Maps ID link is recorded; business identity and ownership remain unreviewed.'};
+ if(link.kind==='unverified_link')return {state:'unknown',why:'A Google Maps link is recorded but it has no confirmed listing identifier.'};
  return {state:'unknown',why:'GBP not yet checked. A missing link is not proof there is no profile.'};
 }
 
@@ -165,8 +169,8 @@ export function qualifyProspect(input:QualificationInput):Qualification{
  const profileKind=classifyWebPresence(i.profileUrl).kind;
  const profile=['social','listing'].includes(recordedSite.kind)||profileKind==='social'||profileKind==='listing';
  const websitePresence:WebsitePresence=site?'official_site_recorded':profile?'social_only':'none_recorded';
- const gbpKind=classifyWebPresence(i.gbpUrl||m?.gbp_url||null).kind;
- const gbpStatus:GbpStatus=gbpKind==='listing'||gbpKind==='website'?'recorded':'unconfirmed';
+ const gbpLink=classifyGoogleListingLink(m?.gbp_url||i.gbpUrl);
+ const gbpStatus:GbpStatus=gbpLink.kind==='specific_id'?'recorded':'unconfirmed';
  const researchStatus:ResearchStatus=i.imported?'imported':i.triageStatus;
  const excludedReason=i.triageStatus==='disqualified'?'Disqualified'+(has(i.disqualificationReason)?': '+i.disqualificationReason!.trim():'')+'.':
   i.operationalStatus==='closed'?'Marked closed; not a new lead.':
