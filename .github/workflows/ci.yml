@@ -13,6 +13,7 @@ on:
       - codex/generator-media-context-oct14
       - integration/prospect-intake-generator-oct14
       - codex/intake-recovery-guard-oct14
+      - codex/intake-auth-isolated-qa-oct14
   pull_request:
     branches:
       - main
