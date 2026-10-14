@@ -49,8 +49,16 @@ Reuse: `lead_import_rows` (staging), `businesses` (CRM), `/app/opportunities` (b
 ## Preview validation (2026-10-14, Claude)
 Local dev server on port 3107 (owner's Mac), signed in by the owner, against Supabase lxdnoxflwqmsvnoforgl with migrations 0005-0007 applied. All seven browser stages passed; see docs/prospect-discovery-status.json tests. Records created by the test: 1 campaign ("Test: Brighton website design"), 16 staged candidates, 1 CRM business imported from a clear-identity candidate, 1 internal demo draft. Nothing published, shared or sent. Observations for follow-up are listed under known limitations.
 
+## M6: campaign-aligned scoring and first real batch (2026-10-14, Claude)
+- Scoring: `lib/prospect-qualification.ts` 100-point model (need 30 for the campaign lane, fit 20, observable value 20, reachability 15, evidence confidence 15, minus documented penalties). Independent lane needs for website design, GBP, local SEO, geolocation. Evidence states: verified present / verified missing / likely weak / unknown / conflicting. Unknown is never treated as missing.
+- Legal structure (LLC, Corporation...) is not an industry (`isLegalStructure`); Boston certified rows keep it as `legal_structure`.
+- Evidence: free website check (`lib/website-evidence*.ts`) and the review form store under `lead_import_rows.raw_data.review`.
+- Queue: "Your next 10 prospects" (test campaigns excluded), progress states, inline action errors; filters and details collapsed.
+- Real batch: campaign "Brighton local businesses: website design (Oct 15 meetings)". 5 qualified prospects imported with pitch briefs; 3 internal draft demos. Prospect names are in the CRM and the owner report, not in this file.
+
 ## Session log
 - 2026-10-13 (Claude): Tracker, migration 0007 and campaign-based discovery (M0–M1).
 - 2026-10-13 (Claude): Merged origin 235f637 with a normal merge commit (3e2f757, no rebase, no force push); checks passed on it; pushed; tracker set to ready_for_review.
 - 2026-10-13 (Claude): Qualification (M2), queue (M3), CRM/board/demo handoff (M4), pitch brief (M5), full verification. Also fixed 2 pre-existing lint errors (unescaped apostrophes) in app/app/intelligence/page.tsx.
 - 2026-10-14 (ChatGPT): Applied and verified migrations 0006 and 0007 through the Supabase SQL Editor, reconciled migration history, confirmed 7 businesses and 25 staged leads remained, and handed controlled browser validation back to Claude.
+- 2026-10-14 (Claude): M6 scoring refactor, source semantics, daily workflow, inline errors, free website checks; first real Brighton batch prepared. Ready for review.

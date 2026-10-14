@@ -2,81 +2,32 @@
   "project": "Prospect Discovery MVP",
   "branch": "codex/generator-intelligence-checkpoints-oct12",
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
-  "current_milestone": "M6 Campaign-aligned scoring and first real Brighton batch",
-  "overall_status": "in_progress",
-  "last_updated": "2026-10-14T08:39:31Z",
+  "current_milestone": "M6 complete: campaign-aligned scoring and first real Brighton batch (awaiting owner review)",
+  "overall_status": "ready_for_review",
+  "last_updated": "2026-10-14T09:06:33Z",
   "responsible_agent": "Claude",
-  "safe_for_other_agent_to_edit": false,
+  "safe_for_other_agent_to_edit": true,
   "latest_commit": {
-    "sha": "3e2f75738a016bead7084eefaea96001345bd974",
-    "message": "REVIEW CHECKPOINT: merge of origin 235f637 (Overture cache) into Prospect Discovery; all checks run on this commit. Later commits, if any, are tracker-only docs changes."
+    "sha": "e9d01f7",
+    "message": "Code checkpoint for M6 (tracker-only commits may follow)"
   },
-  "next_action": "Claude: re-run the signed-in browser flow on localhost:3107, then build the first real Brighton batch (10 reviewed, 5 qualified, 3 demos, 5 pitch briefs).",
+  "next_action": "Owner: review the 5 imported prospects, 3 draft demos and pitch briefs for Oct 15; decide who to approach. No PR, merge, deploy, publish, share or outreach without separate approval. Migration 0008 remains unapplied.",
   "blockers": [],
   "known_limitations": [
-    "Browser validation ran on a local dev server against the single live Supabase project; there is no separate preview database.",
-    "Qualification ranks GBP Moderate whenever a street address exists and no GBP link is recorded, so website-design campaigns from the Boston certified directory currently show GBP as the primary opportunity; home-office addresses are not distinguished from storefronts.",
-    "Boston certified-directory category maps to legal entity type (businesstype), so industry hints read Other business; pre-existing mapping in lib/discovery.ts.",
-    "Pitch brief location repeats city/postcode when the recorded street field already holds a full address.",
-    "Server action validation errors show the Next.js error page/overlay rather than an inline message (existing app pattern).",
-    "Print layout verified by loaded print CSS only; the native print dialog was not opened.",
-    "Migration 0008 (privilege hardening) prepared, reviewed by no one yet, NOT applied."
+    "Local dev server on the owner Mac against the single live Supabase project; no separate preview database.",
+    "GBP evidence comes from manual Google search/Maps panel checks; stored GBP links are Maps search URLs, not listing IDs. \"Own this business?\" appears on every listing for a signed-out viewer and is not used as claim evidence.",
+    "Decision makers were not identified for any prospect; contact readiness is Partial (phone only).",
+    "The existing demo generator produced generic shells; demo copy was filled from business-published facts and must be confirmed with each owner (fact status left unreviewed).",
+    "Free website check reads one page, robots.txt and sitemap.xml only; no Lighthouse run for the batch, so no speed claims.",
+    "Opportunity Board stage tiles still count test records; the list hides them by default.",
+    "Operator review evidence is stored under lead_import_rows.raw_data.review (no new migration); source keys are untouched.",
+    "Migration 0008 (privilege hardening) prepared, not applied."
   ],
   "manual_steps": [
     "Run the controlled signed-in browser test. Do not publish, share a demo, contact a prospect or deploy production during validation.",
     "Review prepared but unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql separately after the Prospect Discovery validation."
   ],
   "tests": [
-    {
-      "command": "npm test (.mjs suite, Linux copy after npm ci)",
-      "result": "40 passed, 0 failed",
-      "ran_at": "2026-10-13T22:45:21Z"
-    },
-    {
-      "command": "npx tsc --noEmit",
-      "result": "passed",
-      "ran_at": "2026-10-13T22:45:21Z"
-    },
-    {
-      "command": "npx eslint .",
-      "result": "0 errors, 14 pre-existing warnings",
-      "ran_at": "2026-10-13T22:45:21Z"
-    },
-    {
-      "command": "npx next build (Linux copy after npm ci)",
-      "result": "succeeded; /app/project-status and /app/leads/[id]/pitch built",
-      "ran_at": "2026-10-13T22:45:21Z"
-    },
-    {
-      "command": "Browser verification",
-      "result": "NOT performed (needs Supabase env, sign-in and migration 0007)",
-      "ran_at": "2026-10-13T22:45:21Z"
-    },
-    {
-      "command": "npm test .ts suite @ 3e2f757",
-      "result": "189 passed, 0 failed",
-      "ran_at": "2026-10-13T23:34:40Z"
-    },
-    {
-      "command": "npm test .mjs suite @ 3e2f757",
-      "result": "41 passed, 0 failed",
-      "ran_at": "2026-10-13T23:34:40Z"
-    },
-    {
-      "command": "npx tsc --noEmit @ 3e2f757",
-      "result": "passed",
-      "ran_at": "2026-10-13T23:34:40Z"
-    },
-    {
-      "command": "npx eslint . @ 3e2f757",
-      "result": "0 errors, 14 pre-existing warnings",
-      "ran_at": "2026-10-13T23:34:40Z"
-    },
-    {
-      "command": "npx next build @ 3e2f757",
-      "result": "succeeded",
-      "ran_at": "2026-10-13T23:34:40Z"
-    },
     {
       "command": "Browser verification",
       "result": "NOT performed (needs Supabase env, sign-in and approved migration 0007)",
@@ -176,6 +127,56 @@
       "command": "npx next build",
       "result": "succeeded",
       "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npm test (.ts) at e9d01f7",
+      "result": "199 passed, 0 failed",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npm test (.mjs) at e9d01f7",
+      "result": "41 passed, 0 failed",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "result": "passed",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npx eslint .",
+      "result": "0 errors, 14 pre-existing warnings",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npx next build",
+      "result": "succeeded",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: queue next-10, filters, campaign-lane scoring, test records excluded",
+      "result": "PASS (localhost:3107, signed in)",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: inline disqualification error",
+      "result": "PASS: short reason returned inline card error; record unchanged; no error overlay",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: campaign dedupe on real campaign",
+      "result": "PASS: 14 staged, 19 known skipped",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: free website check x8, review saves x10, triage, 5 imports, 3 demos, 5 pitch briefs, board",
+      "result": "PASS",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "DB integrity after batch",
+      "result": "Original 7 businesses and 25 staged rows fingerprints unchanged; test campaign rows and Welland record untouched; 0 activities; all demos draft",
+      "ran_at": "2026-10-14T09:06:33Z"
     }
   ],
   "milestones": [
@@ -318,7 +319,7 @@
     {
       "id": "M6",
       "title": "Campaign-aligned scoring, source semantics, daily workflow",
-      "status": "in_progress",
+      "status": "ready_for_review",
       "responsible_agent": "Claude",
       "safe_for_other_agent_to_edit": false,
       "completed": [
@@ -328,35 +329,36 @@
         "Legal structure (LLC, Corporation...) no longer treated as industry; Boston mapping stores it as legal_structure; 'Industry not yet verified' shown",
         "Free website check (one page + robots.txt + sitemap.xml, DNS-guarded) and manual review form stored under raw_data.review (source keys untouched)",
         "Queue: 'Your next 10 prospects' with score, service, strength, confidence, one-sentence reason, tasks, next action and progress; filters, score breakdown, source record and advanced controls collapsed; test campaigns excluded by default",
-        "Inline server-action errors; pitch-brief location no longer repeats; pitch brief adds score breakdown and verify-before-contact list"
+        "Inline server-action errors; pitch-brief location no longer repeats; pitch brief adds score breakdown and verify-before-contact list",
+        "Recommendation flag: when the campaign lane is unsupported, a better-supported lane is shown as \"Better fit\" without changing the campaign-lane score",
+        "Reviewed public contact routes and verified address fill gaps without overwriting source values",
+        "Pitch brief: review-confirmed identity/operation, observed website issues, review notes, accurate GBP/SEO claim limits",
+        "First real Brighton batch: campaign c049ce1e (OpenStreetMap, website design, max 25): 14 staged, 19 skipped as known; 10 manually reviewed with free website checks and Google panel checks; 3 brand/franchise stores disqualified with reasons; 1 held; 5 qualified, shortlisted and imported; 3 internal draft demos (generated imagery only, business images not authorized) with sourced copy; 5 pitch briefs"
       ],
-      "in_progress": [
-        "Browser re-validation on localhost:3107",
-        "First real Brighton prospect batch"
-      ],
+      "in_progress": [],
       "remaining": [],
       "files_changed": [
-        "lib/prospect-qualification.ts",
-        "lib/website-evidence.ts",
-        "lib/website-evidence-server.ts",
-        "lib/action-errors.ts",
-        "lib/business-classification.ts",
-        "lib/discovery.ts",
-        "lib/discovery-campaigns.ts",
-        "lib/business-qualification-server.ts",
-        "lib/pitch-brief.ts",
-        "components/prospect-ui.tsx",
-        "app/app/leads/import/page.tsx",
-        "app/app/leads/actions.ts",
         "app/app/leads/[id]/page.tsx",
         "app/app/leads/[id]/pitch/page.tsx",
+        "app/app/leads/actions.ts",
+        "app/app/leads/import/page.tsx",
         "app/app/opportunities/page.tsx",
-        "tests/prospect-qualification.test.ts",
-        "tests/website-evidence.test.ts",
+        "components/prospect-ui.tsx",
+        "lib/action-errors.ts",
+        "lib/business-classification.ts",
+        "lib/business-qualification-server.ts",
+        "lib/discovery-campaigns.ts",
+        "lib/discovery.ts",
+        "lib/pitch-brief.ts",
+        "lib/prospect-qualification.ts",
+        "lib/website-evidence-server.ts",
+        "lib/website-evidence.ts",
         "tests/action-errors.test.ts",
-        "tests/pitch-brief.test.ts"
+        "tests/pitch-brief.test.ts",
+        "tests/prospect-qualification.test.ts",
+        "tests/website-evidence.test.ts"
       ],
-      "commit": null
+      "commit": "e9d01f7"
     }
   ],
   "review_checkpoint": {
