@@ -51,3 +51,12 @@ th {color:var(--muted);font-weight:500;}
 .opportunity-filter-card[aria-current="true"]:hover {
   border-color: #b0f4fa;
 }
+
+/* Pitch brief printing: drop navigation and dark surfaces so the brief prints cleanly. */
+@media print{
+ aside,.no-print{display:none!important;}
+ html,body,.shell,.panel{background:#fff!important;color:#000!important;box-shadow:none!important;}
+ .pitch-brief *{color:#000!important;border-color:#bbb!important;}
+ .pitch-brief a{text-decoration:underline;}
+ .break-inside-avoid{break-inside:avoid;}
+}

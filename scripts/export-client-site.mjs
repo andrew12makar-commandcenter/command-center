@@ -8,7 +8,12 @@ import {fileURLToPath} from 'node:url';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const files={
  'components/site-renderer.tsx':'components/site-renderer.tsx',
+ 'components/site-industry-sections.tsx':'components/site-industry-sections.tsx',
  'lib/site-blueprint.ts':'lib/site-blueprint.ts',
+ 'lib/business-specific-copy.ts':'lib/business-specific-copy.ts',
+ 'lib/site-section-order.ts':'lib/site-section-order.ts',
+ 'lib/site-presentation.ts':'lib/site-presentation.ts',
+ 'lib/reviewed-business-features.ts':'lib/reviewed-business-features.ts',
  'lib/site-evaluation.ts':'lib/site-evaluation.ts',
  'lib/demo-engine.ts':'lib/demo-engine.ts',
  'lib/concept-imagery.ts':'lib/concept-imagery.ts',
@@ -72,6 +77,51 @@ export function validateExport(raw){
 const asJson=(v)=>JSON.stringify(v,null,2)+'\n';
 export async function exportProject(raw,output){
  const bp=validateExport(raw);
+ return writeProject(bp,output,async target=>{
+  await writeFile(join(target,'site-blueprint.json'),asJson(bp));
+  await writeFile(join(target,'app','page.tsx'),`import SiteRenderer from '@/components/site-renderer';
+import data from '@/site-blueprint.json';
+import type {SiteBlueprint} from '@/lib/site-blueprint';
+import {getMatchedConceptSet} from '@/lib/concept-imagery';
+export default function Home(){const site=data as unknown as SiteBlueprint;return <SiteRenderer site={site} standalone conceptMedia={getMatchedConceptSet(site.template,site.category,site.services,site.businessName)}/>;}
+`);
+ });
+}
+
+// Browser QA renders several approved fixtures through the exact customer
+// renderer and scaffold in ONE project. Every site passes the same export gate.
+export async function exportReviewHarness(raws,output){
+ if(!Array.isArray(raws)||raws.length===0)throw Error('At least one blueprint is required.');
+ const sites={};
+ for(const item of raws){
+  if(!item||typeof item.id!=='string'||!/^[a-z0-9-]{1,60}$/.test(item.id))throw Error('Each QA site needs a simple id.');
+  if(sites[item.id])throw Error('Duplicate QA site id: '+item.id);
+  sites[item.id]=validateExport(item.raw);
+ }
+ const first=Object.values(sites)[0];
+ return writeProject(first,output,async target=>{
+  await writeFile(join(target,'site-blueprint.json'),asJson(first));
+  await writeFile(join(target,'qa-sites.json'),asJson(sites));
+  await mkdir(join(target,'app','[site]'),{recursive:true});
+  await writeFile(join(target,'app','[site]','page.tsx'),`import SiteRenderer from '@/components/site-renderer';
+import sites from '@/qa-sites.json';
+import type {SiteBlueprint} from '@/lib/site-blueprint';
+import {getMatchedConceptSet} from '@/lib/concept-imagery';
+import {notFound} from 'next/navigation';
+import type {Metadata} from 'next';
+const all=sites as unknown as Record<string,SiteBlueprint>;
+export const dynamicParams=false;
+export function generateStaticParams(){return Object.keys(all).map(site=>({site}));}
+export async function generateMetadata({params}:{params:Promise<{site:string}>}):Promise<Metadata>{const site=all[(await params).site];return site?{title:site.businessName,description:site.description||site.businessName}:{};}
+export default async function Page({params}:{params:Promise<{site:string}>}){const site=all[(await params).site];if(!site)notFound();return <SiteRenderer site={site} standalone conceptMedia={getMatchedConceptSet(site.template,site.category,site.services,site.businessName)}/>;}
+`);
+  await writeFile(join(target,'app','page.tsx'),`import sites from '@/qa-sites.json';
+export default function Index(){return <main style={{padding:32,fontFamily:'system-ui'}}><h1>Browser QA harness</h1><ul>{Object.entries(sites as Record<string,{businessName:string}>).map(([id,s])=><li key={id}><a href={'/'+id}>{s.businessName}</a></li>)}</ul></main>;}
+`);
+ });
+}
+
+async function writeProject(bp,output,writePages){
  const target=resolve(output);
  // Never overwrite an existing project, even if it looks empty.
  try{await access(target);throw Error('The destination already exists; choose a new empty path.');}
@@ -85,13 +135,7 @@ export async function exportProject(raw,output){
   await mkdir(join(target,'public','concepts'),{recursive:true});
   for(const asset of conceptAssets)await copyFile(join(root,'public','concepts',asset),join(target,'public','concepts',asset));
   await mkdir(join(target,'app'),{recursive:true});
-  await writeFile(join(target,'site-blueprint.json'),asJson(bp));
-  await writeFile(join(target,'app','page.tsx'),`import SiteRenderer from '@/components/site-renderer';
-import data from '@/site-blueprint.json';
-import type {SiteBlueprint} from '@/lib/site-blueprint';
-import {getGeneratedConceptSet} from '@/lib/concept-imagery';
-export default function Home(){const site=data as unknown as SiteBlueprint;return <SiteRenderer site={site} standalone conceptMedia={getGeneratedConceptSet(site.template)}/>;}
-`);
+  await writePages(target);
   await writeFile(join(target,'app','layout.tsx'),`import type {Metadata} from 'next';
 import content from '@/site-blueprint.json';
 import './globals.css';

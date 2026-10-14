@@ -2,15 +2,16 @@
 // customer-approved site. No network scraping, invented facts, or asset licensing.
 import type {DemoCopy,Template,MotionPlan} from './demo-engine.ts';
 import {evaluateSiteBlueprint,type QualityEvaluation} from './site-evaluation.ts';
+import {buildServiceSpecificCopy} from './business-specific-copy.ts';
 import type {ResearchInsight,ResearchInsightKind} from './research-intelligence.ts';
 
 export type ImageRole='hero'|'gallery'|'team'|'logo';
-export type ImagePermission='reference_only'|'approved';
+export type ImagePermission='reference_only'|'approved'|'rejected';
 export type SiteImage={
   url:string;alt:string;sourceUrl:string;role:ImageRole;
-  permission:ImagePermission;credit?:string;
+  permission:ImagePermission;credit?:string;rightsNote?:string;rightsReviewedAt?:string;
 };
-export type ResearchPage={url:string;title:string;description:string;headings:string[];excerpts:string[]};
+export type ResearchPage={url:string;title:string;description:string;headings:string[];excerpts:string[];themeColor?:string|null};
 export type ImageAuthorization={
  mode:'generated_only'|'business_site_authorized'|'manual';
  acceptedAt:string|null;
@@ -33,6 +34,9 @@ export type SiteContent={
 export type SiteContact={phone:string|null;email:string|null;city:string|null};
 export type SiteBlueprint={
   version:1;template:Template;businessName:string;
+  // Recorded CRM category (unverified hint). Lets exported sites keep the same
+  // subtype-safe imagery decisions as Demo Studio. Optional for old exports.
+  category?:string|null;
   eyebrow:string;headline:string;description:string;
   primaryAction:string;secondaryAction:string;
   services:string[];contact:SiteContact;content:SiteContent;
@@ -46,7 +50,7 @@ export type SiteBlueprint={
    cardStyle:'bordered'|'numbered'|'flat';alignment:'left'|'center'|'offset';sectionOrder:string[]};
   narrative:{servicesHeading:string;servicesIntro:string;aboutHeading:string;contactHeading:string;processHeading:string};
 };
-export type SiteSource={name:string;city?:string|null;phone?:string|null;email?:string|null};
+export type SiteSource={name:string;city?:string|null;phone?:string|null;email?:string|null;category?:string|null};
 
 const asText=(x:unknown,max:number)=>typeof x==='string'?x.trim().slice(0,max):'';
 export function safePublicUrl(raw:unknown):string|null {
@@ -75,8 +79,10 @@ export function safeImage(raw:Partial<SiteImage>):SiteImage|null{
   raw.role as ImageRole:'gallery';
  if(!url||!sourceUrl)return null;
  return {url,sourceUrl,role,alt:asText(raw.alt,180)||'Business imagery',
-  permission:raw.permission==='approved'?'approved':'reference_only',
-  credit:asText(raw.credit,140)||undefined};
+  permission:raw.permission==='approved'?'approved':raw.permission==='rejected'?'rejected':'reference_only',
+  credit:asText(raw.credit,140)||undefined,
+  rightsNote:asText(raw.rightsNote,500)||undefined,
+  rightsReviewedAt:typeof raw.rightsReviewedAt==='string'&&Number.isFinite(Date.parse(raw.rightsReviewedAt))?raw.rightsReviewedAt:undefined};
 }
 export function cleanSiteContent(value:unknown):SiteContent{
  const o=value&&typeof value==='object'?value as Record<string,unknown>:{};
@@ -89,6 +95,8 @@ export function cleanSiteContent(value:unknown):SiteContent{
   return {
    url:safePublicUrl(p.url)||'',
    title:asText(p.title,170),description:asText(p.description,280),
+   // Sanitized HTML theme metadata is a *reference cue*, never an approved brand color.
+   themeColor:typeof p.themeColor==='string'&&/^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(p.themeColor)?p.themeColor.toLowerCase():null,
    headings:Array.isArray(p.headings)?p.headings.slice(0,24).map(x=>asText(x,140)).filter(Boolean):[],
    excerpts:Array.isArray(p.excerpts)?p.excerpts.slice(0,7).map(x=>asText(x,230)).filter(Boolean):[]
   };
@@ -192,11 +200,19 @@ export function buildSiteBlueprint(
    contactHeading:'Talk directly with the team.',
    processHeading:'A direct path from interest to action.'
   };
+ const businessName=asText(copy.brand,140)||asText(business.name,140);
+ // An untouched generated headline can be rewritten from reviewed service
+ // information. Custom owner/user-authored headlines are preserved.
+ const specific=buildServiceSpecificCopy({
+  headline:asText(copy.headline,200),description:asText(copy.description,800),
+  services,city:contact.city,businessName,factsReviewed:content.factStatus!=='unreviewed'
+ });
  const candidate={
   version:1 as const,template,businessName:asText(copy.brand,140)||asText(business.name,140),
+  category:asText(business.category,100)||null,
   eyebrow:asText(copy.eyebrow,140),
-  headline:asText(copy.headline,200),
-  description:asText(copy.description,800),
+  headline:specific.headline,
+  description:specific.description,
   primaryAction:asText(copy.primaryAction,80)||'Get in touch',
   secondaryAction:asText(copy.secondaryAction,80)||'Explore services',
   services,contact,content,

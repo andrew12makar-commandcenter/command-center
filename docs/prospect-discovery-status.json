@@ -1,0 +1,380 @@
+{
+  "project": "Prospect Discovery MVP",
+  "branch": "codex/generator-intelligence-checkpoints-oct12",
+  "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
+  "current_milestone": "M6 complete: campaign-aligned scoring and first real Brighton batch (awaiting owner review)",
+  "overall_status": "ready_for_review",
+  "last_updated": "2026-10-14T09:06:33Z",
+  "responsible_agent": "Claude",
+  "safe_for_other_agent_to_edit": true,
+  "latest_commit": {
+    "sha": "e9d01f7",
+    "message": "Code checkpoint for M6 (tracker-only commits may follow)"
+  },
+  "next_action": "Owner: review the 5 imported prospects, 3 draft demos and pitch briefs for Oct 15; decide who to approach. No PR, merge, deploy, publish, share or outreach without separate approval. Migration 0008 remains unapplied.",
+  "blockers": [],
+  "known_limitations": [
+    "Local dev server on the owner Mac against the single live Supabase project; no separate preview database.",
+    "GBP evidence comes from manual Google search/Maps panel checks; stored GBP links are Maps search URLs, not listing IDs. \"Own this business?\" appears on every listing for a signed-out viewer and is not used as claim evidence.",
+    "Decision makers were not identified for any prospect; contact readiness is Partial (phone only).",
+    "The existing demo generator produced generic shells; demo copy was filled from business-published facts and must be confirmed with each owner (fact status left unreviewed).",
+    "Free website check reads one page, robots.txt and sitemap.xml only; no Lighthouse run for the batch, so no speed claims.",
+    "Opportunity Board stage tiles still count test records; the list hides them by default.",
+    "Operator review evidence is stored under lead_import_rows.raw_data.review (no new migration); source keys are untouched.",
+    "Migration 0008 (privilege hardening) prepared, not applied."
+  ],
+  "manual_steps": [
+    "Run the controlled signed-in browser test. Do not publish, share a demo, contact a prospect or deploy production during validation.",
+    "Review prepared but unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql separately after the Prospect Discovery validation."
+  ],
+  "tests": [
+    {
+      "command": "Browser verification",
+      "result": "NOT performed (needs Supabase env, sign-in and approved migration 0007)",
+      "ran_at": "2026-10-13T23:34:40Z"
+    },
+    {
+      "command": "Supabase pre-check (read-only) on lxdnoxflwqmsvnoforgl",
+      "result": "0001-0004 present; 0005, 0006, 0007 absent; businesses=7, lead_import_rows=25",
+      "ran_at": "2026-10-13T23:55:05Z"
+    },
+    {
+      "command": "apply 0005_project_roadmap (Supabase apply_migration)",
+      "result": "success; table, 3 checks, PK, 2 FKs, index, RLS + 3 policies, grants verified; row counts unchanged",
+      "ran_at": "2026-10-14T04:51:57Z"
+    },
+    {
+      "command": "apply 0006_roadmap_execution_log",
+      "result": "cancelled before execution; verified nothing applied",
+      "ran_at": "2026-10-14T04:51:57Z"
+    },
+    {
+      "command": "apply 0006_roadmap_execution_log (retry)",
+      "result": "cancelled again before execution; verified nothing applied; fingerprints unchanged",
+      "ran_at": "2026-10-14T05:47:24Z"
+    },
+    {
+      "command": "SQL Editor: apply 0006_roadmap_execution_log and 0007_prospect_discovery; reconcile Supabase migration history",
+      "result": "passed; both migrations applied and recorded as 0006_roadmap_execution_log and 0007_prospect_discovery",
+      "ran_at": "2026-10-14T05:50:59Z"
+    },
+    {
+      "command": "Post-migration database verification",
+      "result": "passed; roadmap/discovery tables, policies, triggers and constraints present; businesses=7; lead_import_rows=25; all 25 triage_status=review_needed; all new business qualification fields remain null",
+      "ran_at": "2026-10-14T05:50:59Z"
+    },
+    {
+      "command": "Browser 1: /app/project-status and /app/roadmap (signed in, localhost:3107)",
+      "result": "PASS: tracker page renders status/milestones/tests; roadmap renders (9/31 checkpoints); sidebar sync shows ready (0005/0006 live); Project Status nav link present",
+      "ran_at": "2026-10-14T07:00:12Z"
+    },
+    {
+      "command": "Browser 2: campaign Test: Brighton website design (Website design, Any industry, Boston certified, Brighton, max 25)",
+      "result": "PASS: staged 16 new (dataset has 16 Brighton matches), 0 skipped; campaign e81054d6 recorded; 16 rows carry campaign_id",
+      "ran_at": "2026-10-14T07:00:12Z"
+    },
+    {
+      "command": "Browser 3: repeat scan into same campaign",
+      "result": "PASS: added 0, skipped 16; DB shows 0 duplicate source/external_id pairs; lead_import_rows 25 -> 41",
+      "ran_at": "2026-10-14T07:00:12Z"
+    },
+    {
+      "command": "Browser 4: queue cards and filters (campaign view)",
+      "result": "PASS: 16 cards show campaign, area, industry, website presence, GBP status, opportunity/strength, confidence, readiness, next action, status, rationale; filter counts: website official=1, none=15, opp gbp=16, website_design=0, strength moderate=16, readiness ready=16, confidence medium=16, area Brighton=3, industry other=16, name search=1, no-campaign=24. Observation: all 16 rank GBP Moderate (street address, no GBP link) even in a website-design campaign; Boston certified category maps to legal entity type, so industry hint is Other business",
+      "ran_at": "2026-10-14T07:02:32Z"
+    },
+    {
+      "command": "Browser 5: shortlist, hold, restore, disqualify validation, restore",
+      "result": "PASS: candidate A shortlisted; candidate B held then restored; candidate C: empty reason blocked client-side, 5-char reason rejected server-side (row unchanged), valid reason disqualified, then restored with reason cleared. Observation: server validation errors surface as the Next.js error overlay (dev) / error page, not an inline message",
+      "ran_at": "2026-10-14T07:02:32Z"
+    },
+    {
+      "command": "Browser 6: import one clear-identity candidate (candidate A: city-certified record, official site domain matches name, no duplicate warning)",
+      "result": "PASS: CRM record created; campaign_id, primary_opportunity=gbp, evidence_confidence=medium, next_action=confirm_gbp, rationale carried; priority_score null; contact name/email from source; 1 source row; staged row review_status=imported",
+      "ran_at": "2026-10-14T07:04:41Z"
+    },
+    {
+      "command": "Browser 7: CRM, Opportunity Board, internal demo, pitch brief",
+      "result": "PASS: CRM qualification panel with pitch/demo/board links; board campaign filter shows 1 business with qualification line and Pitch brief/Website demo links (board total 8); demo generated via existing createDemo as status=draft (generated imagery ack only, business-image reuse NOT authorized, no external API); pitch brief shows all sections, links the draft demo, Copy as Markdown works (Copied), print CSS loaded",
+      "ran_at": "2026-10-14T07:04:41Z"
+    },
+    {
+      "command": "Post-test DB integrity",
+      "result": "Original 7 businesses and 25 staged rows: fingerprints identical to pre-migration baseline (new columns excluded); totals now 8 businesses, 41 staged rows, 1 campaign, 1 new demo draft by this test; no activities, no outreach",
+      "ran_at": "2026-10-14T07:04:41Z"
+    },
+    {
+      "command": "npm test (.ts) after M6 refactor",
+      "result": "196 passed, 0 failed",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npm test (.mjs)",
+      "result": "41 passed, 0 failed",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "result": "passed",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npx eslint .",
+      "result": "0 errors, 14 pre-existing warnings",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npx next build",
+      "result": "succeeded",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npm test (.ts) at e9d01f7",
+      "result": "199 passed, 0 failed",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npm test (.mjs) at e9d01f7",
+      "result": "41 passed, 0 failed",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "result": "passed",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npx eslint .",
+      "result": "0 errors, 14 pre-existing warnings",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npx next build",
+      "result": "succeeded",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: queue next-10, filters, campaign-lane scoring, test records excluded",
+      "result": "PASS (localhost:3107, signed in)",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: inline disqualification error",
+      "result": "PASS: short reason returned inline card error; record unchanged; no error overlay",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: campaign dedupe on real campaign",
+      "result": "PASS: 14 staged, 19 known skipped",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: free website check x8, review saves x10, triage, 5 imports, 3 demos, 5 pitch briefs, board",
+      "result": "PASS",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "DB integrity after batch",
+      "result": "Original 7 businesses and 25 staged rows fingerprints unchanged; test campaign rows and Welland record untouched; 0 activities; all demos draft",
+      "ran_at": "2026-10-14T09:06:33Z"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M0",
+      "title": "Shared tracker",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "Searched for an existing tracker: /app/roadmap is DB-backed and not readable from the repo, so a JSON tracker was added",
+        "docs/prospect-discovery-status.json + docs/prospect-discovery-handoff.md",
+        "Read-only /app/project-status page, linked in the sidebar and from Prospect Discovery"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "docs/prospect-discovery-status.json",
+        "docs/prospect-discovery-handoff.md",
+        "lib/project-status.ts",
+        "app/app/project-status/page.tsx",
+        "app/app/layout.tsx"
+      ],
+      "commit": "e50cf9d"
+    },
+    {
+      "id": "M1",
+      "title": "Campaign-based discovery",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "Migration 0007: discovery_campaigns (RLS, org-scoped), campaign_id on lead_import_rows and businesses, same-org trigger, validated status constraints",
+        "Discovery form: new or existing campaign, target service, target industry + keyword filter, source, area",
+        "Scans and CSV intake attach campaign_id to staged rows; existing OSM/Boston/CSV/dedupe/manual review preserved",
+        "Campaign list on Discovery links to the queue filtered by campaign"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "supabase/migrations/0007_prospect_discovery.sql",
+        "lib/discovery-campaigns.ts",
+        "lib/discovery-campaigns-server.ts",
+        "app/app/discovery/actions.ts",
+        "app/app/discovery/page.tsx",
+        "app/app/leads/actions.ts",
+        "app/app/leads/import/page.tsx",
+        "tests/discovery-campaigns.test.ts"
+      ],
+      "commit": "e50cf9d"
+    },
+    {
+      "id": "M2",
+      "title": "Deterministic qualification",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "lib/prospect-qualification.ts: pure deterministic qualifyProspect + staged-row and CRM adapters",
+        "Rules: missing website -> find website; missing GBP link -> confirm GBP; social-only = research, not proof; inconclusive audit != problem; geolocation needs real service-area/multi-location evidence (scan area excluded); closed/won/lost/disqualified never priority",
+        "Strength and contact readiness derived, not stored; manual overrides for opportunity, confidence and next action",
+        "20 tests incl. banned-claim check (no budget/revenue/traffic/rankings)"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "lib/prospect-qualification.ts",
+        "tests/prospect-qualification.test.ts"
+      ],
+      "commit": "ee5656b"
+    },
+    {
+      "id": "M3",
+      "title": "Usable research queue",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "Queue rebuilt as compact grouped cards (business | qualification | next action + rationale | actions) with an expandable action panel; no wide table",
+        "Each candidate shows campaign, area, industry, website presence, GBP status, opportunity, strength, confidence, contact readiness, next action, research status, duplicate warning, rationale",
+        "Filters: campaign, opportunity, strength, confidence, readiness, research status tabs, area, industry, website presence, search; sorted strongest-first",
+        "Actions: shortlist, hold, disqualify (evidence reason required), restore, override opportunity/confidence/next action, import to CRM, link duplicate, skip",
+        "Falls back to read-only qualification with a banner if migration 0007 is not yet applied"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "app/app/leads/import/page.tsx",
+        "app/app/leads/actions.ts"
+      ],
+      "commit": "37c94bc"
+    },
+    {
+      "id": "M4",
+      "title": "CRM, Opportunity Board and demo handoff",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "Import carries campaign_id, primary_opportunity, evidence_confidence, next_action and qualification_rationale into businesses; also recorded email/contact/GBP link from CSV evidence; priority_score never set",
+        "Disqualified candidates cannot be imported until restored; import falls back to the legacy insert if 0007 is missing",
+        "Linking a duplicate only fills an empty campaign_id; never overwrites CRM data",
+        "CRM detail: qualification panel (campaign, opportunity, strength, confidence, readiness, next action, rationale), editable with blank = recompute from evidence; links to pitch brief, website demo section and board",
+        "Opportunity Board: qualification line per business, campaign and opportunity filters, Pitch brief and Website demo links; same board, same generator (createDemo), no auto-publish"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "app/app/leads/actions.ts",
+        "app/app/leads/[id]/page.tsx",
+        "app/app/leads/import/page.tsx",
+        "app/app/opportunities/page.tsx",
+        "lib/business-qualification-server.ts"
+      ],
+      "commit": "8db2002"
+    },
+    {
+      "id": "M5",
+      "title": "Pitch brief",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "lib/pitch-brief.ts: pure, tested brief builder",
+        "/app/leads/[id]/pitch: printable and copyable",
+        "Linked from CRM qualification panel and Opportunity Board",
+        "Final verification: tests, typecheck, lint, production build"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "lib/pitch-brief.ts",
+        "tests/pitch-brief.test.ts",
+        "app/app/leads/[id]/pitch/page.tsx",
+        "components/pitch-brief-actions.tsx",
+        "app/globals.css"
+      ],
+      "commit": "24ed0d0"
+    },
+    {
+      "id": "M6",
+      "title": "Campaign-aligned scoring, source semantics, daily workflow",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Campaign service is always the primary lane; website design, GBP, local SEO and geolocation scored independently (0-30 need each)",
+        "Transparent 100-point model: need 30, fit 20, observable value 20, reachability 15, evidence confidence 15, with documented penalties (identity, inactivity, unit-number ambiguity, no contact, duplicate, conflict)",
+        "Evidence states: verified present / verified missing / likely weak / unknown / conflicting; missing GBP or website stays unknown",
+        "Legal structure (LLC, Corporation...) no longer treated as industry; Boston mapping stores it as legal_structure; 'Industry not yet verified' shown",
+        "Free website check (one page + robots.txt + sitemap.xml, DNS-guarded) and manual review form stored under raw_data.review (source keys untouched)",
+        "Queue: 'Your next 10 prospects' with score, service, strength, confidence, one-sentence reason, tasks, next action and progress; filters, score breakdown, source record and advanced controls collapsed; test campaigns excluded by default",
+        "Inline server-action errors; pitch-brief location no longer repeats; pitch brief adds score breakdown and verify-before-contact list",
+        "Recommendation flag: when the campaign lane is unsupported, a better-supported lane is shown as \"Better fit\" without changing the campaign-lane score",
+        "Reviewed public contact routes and verified address fill gaps without overwriting source values",
+        "Pitch brief: review-confirmed identity/operation, observed website issues, review notes, accurate GBP/SEO claim limits",
+        "First real Brighton batch: campaign c049ce1e (OpenStreetMap, website design, max 25): 14 staged, 19 skipped as known; 10 manually reviewed with free website checks and Google panel checks; 3 brand/franchise stores disqualified with reasons; 1 held; 5 qualified, shortlisted and imported; 3 internal draft demos (generated imagery only, business images not authorized) with sourced copy; 5 pitch briefs"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "app/app/leads/[id]/page.tsx",
+        "app/app/leads/[id]/pitch/page.tsx",
+        "app/app/leads/actions.ts",
+        "app/app/leads/import/page.tsx",
+        "app/app/opportunities/page.tsx",
+        "components/prospect-ui.tsx",
+        "lib/action-errors.ts",
+        "lib/business-classification.ts",
+        "lib/business-qualification-server.ts",
+        "lib/discovery-campaigns.ts",
+        "lib/discovery.ts",
+        "lib/pitch-brief.ts",
+        "lib/prospect-qualification.ts",
+        "lib/website-evidence-server.ts",
+        "lib/website-evidence.ts",
+        "tests/action-errors.test.ts",
+        "tests/pitch-brief.test.ts",
+        "tests/prospect-qualification.test.ts",
+        "tests/website-evidence.test.ts"
+      ],
+      "commit": "e9d01f7"
+    }
+  ],
+  "review_checkpoint": {
+    "sha": "3e2f75738a016bead7084eefaea96001345bd974",
+    "contains": [
+      "e50cf9d",
+      "ee5656b",
+      "37c94bc",
+      "8db2002",
+      "24ed0d0",
+      "4fb857b",
+      "e8c8cfb",
+      "855c8a1",
+      "90dd90b",
+      "235f637"
+    ],
+    "tested_at": "2026-10-13T23:34:40Z"
+  }
+}

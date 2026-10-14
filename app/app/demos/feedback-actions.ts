@@ -5,6 +5,8 @@ import { requireWorkspace, shortText, validUuid } from '@/lib/workspace';
 import { derivePreferences, planGeneration, type DemoCopy, type FeedbackSample, type Template } from '@/lib/demo-engine';
 import {businessImageAuthorization,canAutoUseBusinessImage,cleanSiteContent,safeImage,safePublicUrl,type SiteImage,type ImagePermission} from '@/lib/site-blueprint';
 import {deriveResearchInsights} from '@/lib/research-intelligence';
+import {deriveSiteRedesignReference} from '@/lib/source-redesign-reference';
+import {applyImageRightsDecision} from '@/lib/asset-rights';
 // These dependency-free guards are shared with the local research runner.
 // @ts-expect-error JavaScript module intentionally has no generated declarations.
 import {preflightPublicWebsite} from '../../../scripts/local-audit-guard.mjs';
@@ -99,6 +101,7 @@ export async function researchBusinessWebsite(form:FormData){
    if(!response.ok||response.status>=300||!/text\/html/i.test(response.headers.get('content-type')||''))continue;
    const found=extractCandidates(await boundedHtml(response),checked);
    const normalized={url:checked,title:String(found.title||''),description:String(found.description||''),
+    themeColor:typeof found.themeColor==='string'?found.themeColor:null,
     headings:(Array.isArray(found.headings)?found.headings:[]).map((h:unknown)=>typeof h==='object'&&h?String((h as {text?:unknown}).text||''):String(h)).filter(Boolean).slice(0,24),
     excerpts:(Array.isArray(found.excerpts)?found.excerpts:[]).map(String).slice(0,8)};
    pages.push(normalized);
@@ -128,7 +131,7 @@ export async function applyReviewedResearch(form:FormData){
  if(!validUuid(id)||!Number.isInteger(expectedRevision)||expectedRevision<1)throw new Error('Invalid demo revision.');
  const selected=new Set(form.getAll('insight').map(value=>shortText(value,80)).filter(Boolean));
  if(selected.size<1||selected.size>30)throw new Error('Select between 1 and 30 sourced candidates.');
- const {data:demo}=await supabase.from('demo_sites').select('id,business_id,draft_content,revision_no')
+ const {data:demo}=await supabase.from('demo_sites').select('id,business_id,template,draft_content,revision_no')
   .eq('id',id).eq('organization_id',organizationId).maybeSingle();
  if(!demo||demo.revision_no!==expectedRevision)throw new Error('Reload the current demo revision before applying research.');
  const existing=(demo.draft_content??{}) as DemoCopy,content=cleanSiteContent(existing.siteContent);
@@ -142,12 +145,51 @@ export async function applyReviewedResearch(form:FormData){
  const baseOrder=existing.generationSpec?.sectionOrder??['hero','services','about','contact'];
  const sectionOrder=[...baseOrder];
  for(const kind of moduleKinds)if(!sectionOrder.includes(kind))sectionOrder.splice(Math.max(2,sectionOrder.length-1),0,kind);
- const updated:DemoCopy={...existing,services,siteContent:cleanSiteContent({...content,researchInsights}),
-  generationSpec:existing.generationSpec?{...existing.generationSpec,sectionOrder}:existing.generationSpec};
+ const reviewedContent=cleanSiteContent({...content,researchInsights});
+ // Use the company's existing site and *reviewed* source candidates as design
+ // references. Previously accepted feedback always wins over source heuristics.
+ const reference=deriveSiteRedesignReference(reviewedContent,demo.template as Template,services);
+ const canReplan=(existing.design?.feedbackCount??0)===0;
+ const updatedSpec=existing.generationSpec?{
+  ...existing.generationSpec,sectionOrder,
+  composition:canReplan?reference.recommendedComposition:existing.generationSpec.composition,
+  imageTreatment:canReplan?reference.recommendedImageTreatment:existing.generationSpec.imageTreatment,
+  rationale:[...existing.generationSpec.rationale.slice(0,10),
+   canReplan?`Reviewed source-backed design direction: ${reference.recommendedComposition} (${reference.approvedImages} approved images; ${reference.unapprovedImageReferences} awaiting permission)`:
+    'Preserved explicit design feedback over source-site suggestions'].slice(0,12)
+ }:existing.generationSpec;
+ const updated:DemoCopy={...existing,services,siteContent:reviewedContent,generationSpec:updatedSpec};
  const {error}=await supabase.rpc('save_demo_revision',{p_demo_id:id,p_expected_revision:expectedRevision,p_content:updated});
  if(error)throw new Error('Could not apply reviewed research: '+error.message);
  revalidatePath('/app/demos/'+id);
  redirect('/app/demos/'+id+'?saved=research-applied');
+}
+
+/** Record a human rights decision for one sourced asset. Revisions preserve
+ * the prior reference and no image is approved from public visibility alone. */
+export async function reviewImageRights(form:FormData){
+ const {supabase,organizationId}=await requireWorkspace(true);
+ const id=shortText(form.get('demo_id'),64),expectedRevision=Number(form.get('revision_no'));
+ const assetUrl=checkedUrl(form.get('asset_url'),'Image URL');
+ const decision=shortText(form.get('decision'),20);
+ const evidence=shortText(form.get('rights_evidence'),500);
+ if(!validUuid(id)||!Number.isInteger(expectedRevision)||expectedRevision<1||!assetUrl)
+  throw new Error('Invalid image-rights review.');
+ if(!['approved','rejected'].includes(decision))throw new Error('Choose an asset-rights decision.');
+ const {data:demo}=await supabase.from('demo_sites').select('id,draft_content,revision_no')
+  .eq('id',id).eq('organization_id',organizationId).maybeSingle();
+ if(!demo||demo.revision_no!==expectedRevision)throw new Error('Reload the current demo revision before reviewing assets.');
+ const existing=(demo.draft_content??{}) as DemoCopy;
+ const siteContent=applyImageRightsDecision(cleanSiteContent(existing.siteContent),{
+  url:assetUrl,decision:decision as 'approved'|'rejected',evidence,
+  confirmed:form.get('rights_confirmed')==='on',reviewedAt:new Date().toISOString()
+ });
+ const {error}=await supabase.rpc('save_demo_revision',{
+  p_demo_id:id,p_expected_revision:expectedRevision,p_content:{...existing,siteContent}
+ });
+ if(error)throw new Error('Could not save the asset-rights decision: '+error.message);
+ revalidatePath('/app/demos/'+id);revalidatePath('/app/demos');
+ redirect('/app/demos/'+id+'?saved=rights');
 }
 
 // Import explicit public-site research as references ONLY. Owner permission
@@ -193,6 +235,7 @@ export async function importSiteResearch(form:FormData){
    url:source,
    title:typeof p.title==='string'?p.title.slice(0,170):'',
    description:typeof p.description==='string'?p.description.slice(0,280):'',
+   themeColor:typeof p.themeColor==='string'?p.themeColor:null,
    headings:Array.isArray(p.headings)?p.headings.slice(0,24).map((h:unknown)=>{
     const label=h&&typeof h==='object'?(h as Record<string,unknown>).text:h;
     return typeof label==='string'?label.slice(0,140):'';

@@ -12,8 +12,15 @@ const home=/\b(?:landscap\w*|hardscap\w*|lawn\w*|outdoor service\w*|garden\w*|ar
 const generic=/^(?:services?|business|unknown|general|uncategorized|unclassified|certified business|local business|other|office|shop|organization|n\/a|none)$/i;
 const professional=/\b(?:legal|lawyer|attorney|account\w*|finance|architect\w*|consult\w*|insurance|real estate|broker|salon|restaurant|cafe|retail|bakery)\b/i;
 
+// A legal structure (LLC, Corporation, Sole Proprietorship...) describes how a company is
+// registered, not what it does. It must never become an industry conclusion.
+const legal=/^(?:[\w.&'-]+\s+)?(?:limited liability company|limited liability partnership|l\.?l\.?c\.?|l\.?l\.?p\.?|p\.?l\.?l\.?c\.?|corporation|corp\.?|incorporated|inc\.?|sole proprietorship|sole proprietor|partnership|general partnership|limited partnership|non-?profit(?: corporation)?|professional corporation|s[- ]corp(?:oration)?|c[- ]corp(?:oration)?|trust|cooperative)(?:\s*\([^)]*\))?\.?$/i;
+export function isLegalStructure(value:string|null|undefined):boolean{
+ const v=(value||'').trim();
+ return v.length>0&&v.length<=80&&legal.test(v);
+}
 export function classifyIndustry(name:string, category:string|null|undefined):IndustryDecision{
- const cat=(category||'').trim();
+ const cat=isLegalStructure(category)?'':(category||'').trim();
  if(cat && !generic.test(cat)){
    if(medical.test(cat))return {template:'medical',confidence:'category',explanation:'Medical/clinical category recorded in the CRM'};
    if(home.test(cat))return {template:'landscaping',confidence:'category',explanation:'Home/field-services category recorded in the CRM'};
@@ -54,5 +61,5 @@ export function researchPriority(name:string,category:string|null|undefined,webs
 export function industryLabel(decision:IndustryDecision):string{
  return decision.template==='medical'?'Medical / dental':
   decision.template==='landscaping'?'Home & field services':
-  decision.template==='universal'?'Other business':'Needs classification';
+  decision.template==='universal'?'Other business':'Industry not yet verified';
 }

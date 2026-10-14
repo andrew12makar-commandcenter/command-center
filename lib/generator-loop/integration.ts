@@ -82,9 +82,18 @@ const imageTreatment:Record<DesignCandidate['imageryDensity'],DesignPreferences[
  *  needs the documented patch before these reach the production page. */
 export const unmappedDecisions=['hierarchy','palette','motionSystem','ctaStructure (only sticky-bar maps, to prominentNav)','typography (5 values -> 3 tones)'] as const;
 
+// Map hierarchy decisions to real sections present in the customer renderer.
+// 'proof-first' remains unsupported until verified proof has a real module;
+// do not claim an invented trust section was rendered.
+const hierarchySectionOrder:Partial<Record<DesignCandidate['hierarchy'],string[]>>={
+ 'offer-first':['hero','services','about','process','gallery','contact'],
+ 'story-first':['hero','about','services','process','gallery','contact'],
+ 'action-first':['hero','contact','services','about','process','gallery']
+};
 export function candidateToPreferences(c:DesignCandidate,base:DesignPreferences,learnedFrom:string[]):DesignPreferences{
  return {...base,
-  composition:c.composition,typography:typographyTone[c.typography],imageTreatment:imageTreatment[c.imageryDensity],
+  composition:c.composition,sectionOrder:hierarchySectionOrder[c.hierarchy],
+  typography:typographyTone[c.typography],imageTreatment:imageTreatment[c.imageryDensity],
   compact:c.spacing==='compact',conciseCopy:c.copyDepth==='brief',prominentNav:c.ctaStructure==='sticky-bar',
   needsRealAssets:c.imageryDensity==='balanced'||c.imageryDensity==='immersive',
   cardStyle:c.composition==='bento'?'bordered':'flat',alignment:c.composition==='centered'?'center':c.composition==='asymmetric'?'offset':'left',
@@ -102,7 +111,7 @@ export function candidateFromProduction(spec:SpecLike|null|undefined,prefs:Parti
  const second=spec?.sectionOrder?.[1];
  return {
   composition:pick('composition',spec?.composition??prefs?.composition),
-  hierarchy:pick('hierarchy',second==='services'?'offer-first':second==='trust'||second==='proof'?'proof-first':second==='about'?'story-first':undefined),
+  hierarchy:pick('hierarchy',second==='services'?'offer-first':second==='trust'||second==='proof'?'proof-first':second==='about'?'story-first':second==='contact'?'action-first':undefined),
   typography:pick('typography',tone==='editorial'?'editorial-serif':tone==='humanist'?'humanist-sans':tone==='geometric'?'geometric-sans':undefined),
   palette:fallback.palette,
   imageryDensity:pick('imageryDensity',{minimal:'none',framed:'accent',mosaic:'balanced','full-bleed':'immersive'}[String(spec?.imageTreatment??prefs?.imageTreatment)]),

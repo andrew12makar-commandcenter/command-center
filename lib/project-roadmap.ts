@@ -5,7 +5,7 @@ export type MilestoneStatus='completed'|'pending'|'in_progress'|'blocked';
 export type RoadmapRecord={step_id:string;status:MilestoneStatus;evidence_note?:string|null;updated_at?:string|null};
 export type RoadmapStep={
  id:string;title:string;definition:string;href:string;
- baseline:MilestoneStatus;baselineEvidence?:string;
+ baseline:MilestoneStatus;baselineEvidence?:string;evidenceHref?:string;
 };
 export type RoadmapStage={id:string;title:string;summary:string;steps:RoadmapStep[]};
 export type RoadmapProject={id:ProjectKey;name:string;subtitle:string;goal:string;target:string;stages:RoadmapStage[]};
@@ -17,8 +17,8 @@ export type TrackedProject=Omit<RoadmapProject,'stages'> & {
  current:ActiveStep|null;next:ActiveStep|null;blocked:ActiveStep[];
 };
 const step=(id:string,title:string,definition:string,href:string,
- baseline:MilestoneStatus='pending',baselineEvidence?:string):RoadmapStep=>
- ({id,title,definition,href,baseline,baselineEvidence});
+ baseline:MilestoneStatus='pending',baselineEvidence?:string,evidenceHref?:string):RoadmapStep=>
+ ({id,title,definition,href,baseline,baselineEvidence,evidenceHref});
 
 export const ROADMAP:RoadmapProject[]=[
  {id:'seo',name:'Local Business',subtitle:'Websites · SEO · Sales',goal:'A repeatable path from verified prospect to paying client',
@@ -31,17 +31,28 @@ export const ROADMAP:RoadmapProject[]=[
    step('seo-collector','Manual Brighton / Allston / Brookline discovery','Public-source collection stages candidates without claiming they are operating businesses.','/app/discovery','completed','Collectors tested; Brighton pilot previously staged 25 candidates.'),
    step('seo-intake','Review and verify discovery candidates','Independently review the pilot candidates, resolve duplicates and verify businesses.','/app/leads/import'),
    step('seo-official-sources','Broaden official Massachusetts and municipal sources','Add reliable filings, licenses and service-area business coverage, preserving provenance.','/app/discovery'),
+   step('seo-open-data-discovery','Greater Boston open-data discovery (Overture Maps + DuckDB)','Query the latest Overture Places release for configurable geographic rings, keep source attribution, and stage candidates without writing unverified records to the CRM.','/app/discovery','in_progress','Checkpoint 11: live run on the Mac against Overture release 2026-09-23.1 (Allston/Brighton/Brookline). First run exposed out-of-area, non-business and chain records; fixed (387 -> 231 in-area, 147 independent with websites on replay). Re-run with fixes and human review of the CSV still pending; nothing imported to the CRM.'),
+   step('seo-identity-resolution','Conservative identity resolution and verification states','Match records across sources by domain, phone, address and coordinates; never merge on similar names alone; keep conflicting evidence.','/app/leads/import'),
   ]},
   {id:'intelligence',title:'03 · Evidence into opportunities',summary:'Technical website findings must stay separate from commercial assumptions.',steps:[
-   step('seo-audit-engine','Website Intelligence and local Lighthouse fallback','Record technical findings with timestamps, warnings and inconclusive states.','/app/intelligence','completed','Assessment code and tests passed; live end-to-end integration still needs validation.'),
+   step('seo-audit-engine','Website Intelligence and local Lighthouse fallback','Run a browser Lighthouse audit from local Command Center without PageSpeed API quota, and record source-linked measurements.','/app/intelligence','completed','Local first-party Chrome runner and quota-safe CRM action pass tests and production/export builds; actual Mac measurement still needs verification.','https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38306595713'),
    step('seo-audit-live','Prove a real CRM → assessment → saved evidence flow','Complete a live audit against a reviewed business and confirm saved findings.','/app/intelligence'),
    step('seo-opportunity-board','Evidence-aware Opportunity Board','Show supported next actions rather than invented owner budgets.','/app/opportunities','completed','Board code and evidence-gating tests passed.'),
    step('seo-commercial-score','Add transparent commercial opportunity ranking','Combine verified evidence, proximity, category and fit without guessing revenue.','/app/opportunities'),
+   step('seo-intelligence-brief','Business Website Intelligence Brief','Extract services, contact, hours, JSON-LD, navigation and brand cues with Cheerio, each fact traceable to a URL and capture time.','/app/intelligence','completed','Checkpoint 13: live briefs produced on the Mac for 3 real, permitted sites (dental, plumbing, landscaping), 5 pages each; services, contact, address, hours, CTAs, staff and claims extracted with provenance; conflicts (qualified hours, two phones, two offices) surfaced, not resolved. Booksmith refused automated access and was skipped. Not yet shown in Demo Studio.'),
   ]},
   {id:'websites',title:'04 · Websites worth selling',summary:'A reusable renderer is only useful when actual prospects want the result.',steps:[
    step('seo-site-foundation','Reusable site blueprint and standalone export','Separate sourced facts, approved assets and presentation; export an isolated Next.js site.','/app/demos','completed','Exporter cold production build and app CI passed.'),
-   step('seo-site-quality','Pass a serious client-demo visual review','Review responsive medical, home-service and professional examples against polished references.','/app/demos','in_progress'),
-   step('seo-site-content','Validate real client content and asset rights','Confirm services, contact links, imagery rights and required disclosures in a real sample.','/app/demos'),
+   step('seo-site-facts','Business-specific facts and service content','Use operator-reviewed, source-linked facts and listed services instead of generic fallback claims.','/app/demos','completed','Reviewed facts can replace generic copy and process cards; this verifies the code path, not any real company claims.','https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38224385471'),
+   step('seo-site-source-media','Collect source-photo references with provenance','Inventory candidate media from the recorded company website and future provider adapters without treating public visibility as a license.','/app/demos','in_progress','Existing-site references retain source URLs and remain reference-only; Google Business and other provider adapters are not implemented.','/app/demos'),
+   step('seo-site-rights','Resolve the asset-rights review queue','Approve, reject, or retain each source image as reference-only with attribution and operator evidence before display.','/app/demos'),
+   step('seo-site-ai-media','Generate per-business concept media behind approval and cost guards','Use industry-correct prompts, explicit AI disclosure, provider opt-in, budget limits, storage provenance, and human approval.','/app/demos','blocked','No provider or paid generation is authorized. Prompt briefs and safe static fallbacks exist; no credits will be spent without approval.'),
+   step('seo-site-variance','Prove professionally distinct layouts across business types','Verify that medical, home-service, and professional sites use materially different composition, hierarchy, media treatment, and responsive behavior.','/app/demos/benchmarks'),
+   step('seo-site-motion','Validate polished motion and reduced-motion behavior','Review navigation, section, and media transitions in real browsers without harming accessibility or performance.','/app/demos/benchmarks'),
+   step('seo-browser-qa','Automated browser QA for generated sites','Render every benchmark through the client export in Chromium at desktop, tablet and mobile; check overflow, clipping, overlap, images, links, console errors, axe accessibility, reduced motion and animation reveal; save screenshots.','/app/demos/benchmarks','completed','Checkpoint 10 (a71611d): 8 benchmarks × 3 widths, 0 blocking technical defects; GitHub CI browser-qa job passed and uploaded screenshots. Technical only: design quality still needs human review.','https://github.com/andrew12makar-commandcenter/command-center/actions/runs/38234734478'),
+   step('seo-site-visual-qa','Pass desktop and mobile screenshot review','Capture real browser output at representative breakpoints and record human visual-review evidence for each target vertical.','/app/demos/benchmarks'),
+   step('seo-site-quality','Pass a serious client-demo visual review','Require business-specific content, resolved media rights, distinct layouts, motion QA, responsive screenshots, and a human reviewer before calling a proposal client-ready.','/app/demos'),
+   step('seo-site-content','Validate real client content and owner approval','Confirm services, contact links, disclosures, and owner-approved wording in a real sample without inferring approval from public sources.','/app/demos'),
    step('seo-demo-sharing','Offer access-controlled customer previews','Use protected, expiring preview links and allow approval without publishing prematurely.','/app/demos'),
    step('seo-launch','Ship one approved real customer website','Deploy, connect a domain, verify mobile/contact/SEO and establish rollback and monitoring.','/app/demos'),
   ]},
@@ -83,9 +94,10 @@ export function findStep(id:string):{project:RoadmapProject;step:RoadmapStep}|nu
  }
  return null;
 }
-// Work order is distinct from the reference stage order: first sell a good site.
+// Work order is distinct from the reference stage order. The Oct 12 program
+// measures quality and understands businesses before adding design complexity.
 const PRIORITY:Record<ProjectKey,string[]>={
- seo:['seo-site-quality','seo-site-content','seo-audit-live','seo-demo-sharing',
+ seo:['seo-browser-qa','seo-intelligence-brief','seo-open-data-discovery','seo-identity-resolution','seo-site-source-media','seo-site-rights','seo-site-ai-media','seo-site-variance','seo-site-motion','seo-site-visual-qa','seo-site-quality','seo-site-content','seo-audit-live','seo-demo-sharing',
  'seo-proposals','seo-sales-routes','seo-billing','seo-launch','seo-first-client',
  'seo-intake','seo-commercial-score','seo-official-sources','seo-recurring-scans','seo-retention'],
  mcat:['mcat-method','mcat-hub','mcat-resources','mcat-students','mcat-planner',

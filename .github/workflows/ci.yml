@@ -4,6 +4,7 @@ on:
     branches:
       - feature/nextjs-foundation
       - integration/claude-roadmap-oct12
+      - codex/generator-intelligence-checkpoints-oct12
   pull_request:
     branches:
       - main
@@ -29,3 +30,30 @@ jobs:
         run: npm run build
       - name: Build a standalone exported client website
         run: node scripts/smoke-client-export.mjs
+  browser-qa:
+    # Renders every benchmark through the real client export in Chromium at
+    # desktop, tablet and mobile widths. Technical defects fail the job; the
+    # screenshots are uploaded for the separate human design review.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Browser QA with local Lighthouse
+        run: node scripts/browser-qa/run.mjs --lighthouse --out artifacts/browser-qa/ci
+      - name: Upload screenshots and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-qa
+          path: artifacts/browser-qa/ci
+          retention-days: 14

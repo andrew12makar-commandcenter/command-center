@@ -1,3 +1,4 @@
+.site-mobile-nav summary::-webkit-details-marker{display:none}
 @keyframes site-rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes site-soft-in{from{opacity:0;transform:scale(1.025)}to{opacity:1;transform:scale(1)}}
 @keyframes site-header-in{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)}}
@@ -27,17 +28,19 @@
  .site-motion.composition-asymmetric .motion-section:nth-of-type(even) .motion-copy{transform-origin:left center}
  .site-motion.composition-centered .motion-copy{text-align:center}
  @supports (animation-timeline:view()){
-  .site-motion .motion-reveal,.site-motion .motion-card,.site-motion .motion-copy,.site-motion .motion-media{
+  /* Whole sections are NOT view-timeline animated: a cover-% range scales with
+     section height, so tall sections on phones stayed partly transparent while
+     being read. Reveal the smaller blocks inside them instead. */
+  .site-motion .motion-card,.site-motion .motion-copy,.site-motion .motion-media{
    animation:site-cascade linear both;
    animation-timeline:view();
    animation-range:entry 4% cover 28%;
   }
-  .site-motion[data-motion-reveal="layered-wipe"] .motion-reveal,
   .site-motion[data-motion-reveal="layered-wipe"] .motion-media{animation-name:site-wipe-in;animation-range:entry 0% cover 38%}
   .site-motion[data-motion-reveal="indexed-rise"] .motion-card{animation-name:site-precision-in;animation-range:entry 10% cover 25%}
   .site-motion[data-motion-media="depth-shift"] .motion-media{animation-name:site-depth-in;animation-range:entry 0% cover 35%}
-  .site-motion.motion-cinematic .motion-reveal{animation-range:entry 0% cover 36%}
-  .site-motion.motion-precise .motion-reveal{animation-range:entry 12% cover 26%}
+  .site-motion.motion-cinematic .motion-copy{animation-range:entry 0% cover 36%}
+  .site-motion.motion-precise .motion-copy{animation-range:entry 12% cover 26%}
  }
  /* Conversion details and proof must remain fully readable even when the page
     ends before a view-timeline animation can reach its final keyframe. */

@@ -63,8 +63,9 @@ const concepts:Concept[]=[
  {dimension:'palette',pattern:/\b(orange|vibrant|bright colou?rs?|punchy)\b/,value:'orchard'},
  {dimension:'palette',pattern:/\b(monochrome|black and white|neutral)\b/,value:'ink-paper'},
  {dimension:'palette',pattern:/\b(colou?rs?|palette|colou?r scheme)\b/},
+ {dimension:'imageryDensity',pattern:/\b(?:no|without|zero)\s+(?:photos?|photographs?|images?|imagery|pictures?|galler(?:y|ies))\b/,value:'none'},
  {dimension:'imageryDensity',pattern:/\b(photos?|photograph\w*|images?|imagery|pictures?|visuals?|gallery)\b|\bshould be the hero\b|\bshow (a lot )?more of\b/},
- {dimension:'spacing',pattern:/\b(spacing|white ?space|padding|breathing room|airy|cramped|crowded|squeezed|gaps?|empty space)\b/},
+ {dimension:'spacing',pattern:/\b(spacing|white ?space|padding|breathing room|room to breathe|space to breathe|airy|cramped|crowded|squeezed|jammed|gaps?|empty space)\b/},
  {dimension:'copyDepth',pattern:/\b(copy|text|words|wordy|writing|paragraphs?|walls? of text|details?|information|info)\b/},
  {dimension:'ctaStructure',pattern:/\b(los(e|ing) the|gets lost|hard to find|can'?t find)\b[^.]*\b(buttons?|cta|call|book|order|quote)\b|\b(buttons?|call option|cta)\b[^.]*\b(disappears?|gets lost)\b/,value:'sticky-bar'},
  {dimension:'ctaStructure',pattern:/\b(sticky|floating|pinned)\b|\b(always|stays?|remain\w*) (be )?(visible|on screen)\b/,value:'sticky-bar'},
@@ -75,15 +76,18 @@ const concepts:Concept[]=[
  {dimension:'hierarchy',pattern:/\b(how to (book|call|order|reach)|booking|hours|location|address|phone number)\b/,value:'action-first'},
 ];
 // Hierarchy concepts only count when the statement talks about position.
-const positional=/\b(first|up top|at the top|top of the page|lead with|earlier|higher|buried|lower down|further down|too far down|before|above the fold)\b/;
+const positional=/\b(first|up top|at the top|top of the page|lead with|earlier|higher|buried|lower down|further down|too far down|sooner|before|above the fold)\b/;
+// A buried section should move up. A section the reviewer explicitly rejects
+// as first should not be recommended again merely because it was mentioned.
+const buriedContent=/\b(buried|hard to find|hidden|missing|too far down|needs? to be higher|should be higher)\b/;
 
 const negative=/\b(template|cookie[- ]cutter|everywhere|too|overly|hate|dislike|don'?t like|do not like|not a fan|ugly|cluttered|busy|distracting|overwhelming|boring|bland|plain|generic|weak|confusing|hard to|cheap|dated|cramped|crowded|squeezed|messy|awkward|lacks?|lacking|missing|not enough|can'?t find|buried|feels? like a template|template-y|sterile|lifeless|static|flat|cold|harsh|noisy|wrong|disappears?|losing|lost)\b/;
 const positive=/\b(love|loved|like|liked|great|works|working|nice|good|perfect|strong|beautiful|clean|keep|more of this|exactly|spot on|elegant|clear|lovely|gorgeous|excellent|fantastic|right|fits|suits|appropriate)\b/;
 // Hedged approval ("not bad") is weak praise, not a complaint.
 const mildPraise=/\b(not bad|isn'?t bad|not too)\b/;
 const directional:Partial<Record<Dimension,{up:RegExp;down:RegExp}>>={
- spacing:{up:/\b(cramped|crowded|squeezed|tight|dense|cluttered|busy|more (white ?space|breathing room|padding|space)|room to breathe|airier|needs? room)\b/,
-  down:/\b(too much (white ?space|space|padding)|empty|sparse|gaps?|too airy|tighten|compact|less (space|padding))\b/},
+ spacing:{up:/\b(cramped|crowded|squeezed|jammed|tight|dense|cluttered|busy|not enough (white ?space|space|padding|room)|too little (white ?space|space|padding|room)|more (white ?space|breathing room|padding|space)|room to breathe|space to breathe|airier|needs? room)\b/,
+  down:/\b(too much (white ?space|space|padding)|empty|sparse|gaps?|too airy|tighten|tighter|compact|less (space|padding))\b/},
  imageryDensity:{up:/\b(more|bigger|larger|not enough|too few|lacks?|missing|plain|bland|text[- ]heavy|add|needs?|show)\b/,
   down:/\b(less|fewer|too many|too much|overwhelming|distracting|busy|cluttered|dominat\w*|reduce|cut|drop|remove|smaller)\b/},
  motionSystem:{up:/\b(more|static|lifeless|flat|boring|not enough|bolder|livelier|add|movement)\b/,
@@ -92,7 +96,7 @@ const directional:Partial<Record<Dimension,{up:RegExp;down:RegExp}>>={
   down:/\b(wordy|too long|too much|walls? of text|shorter|less|trim|cut|tighten|concise|essay)\b/},
 };
 const request=/\b(try|use|go with|want|wants|should|would|could we|please|switch to|make|needs? (a|an|to be)|lead with|put|move|show|keep it|break)\b/;
-const prohibit=/\b(never|avoid|stop using|no more|don'?t (ever )?use|do not (ever )?use|don'?t make|do not make)\b/;
+const prohibit=/\b(never|avoid|stop using|stop (?:putting|placing|leading with)|no more|don'?t (?:ever )?(?:use|put|lead with|start with)|do not (?:ever )?(?:use|put|lead with|start with)|don'?t make|do not make)\b/;
 const hardCue=/\b(always|never|must|every time|do not ever|don'?t ever|under no circumstances)\b/;
 const negator=/\b(don'?t|do not|doesn'?t|does not|didn'?t|not|no need for|stop|never|without)\b[^.]{0,24}\b(more|add|adding)\b/;
 const intensifier=/\b(really|very|way|so|much|definitely|absolutely|extremely|completely)\b|!/;
@@ -168,6 +172,12 @@ export function interpretFeedback(e:FeedbackEvent):Interpretation{
    let dir:'up'|'down'|null=lex?(lex.up.test(clause)&&!lex.down.test(clause)?'up':lex.down.test(clause)&&!lex.up.test(clause)?'down':
     lex.down.test(clause)&&lex.up.test(clause)&&neg&&!pos?'down':null):null;
    if(dir&&negator.test(clause))dir=dir==='up'?'down':'up';
+   // An absolute image prohibition is a hard constraint, not a vague request
+   // to decrease density by one step. This still respects licensing gates.
+   if(dimension==='imageryDensity'&&c.value==='none'){
+    push({scope,condition,dimension,op:'require',value:'none',prior,strength:1,polarity:'negative',evidence:original});
+    continue;
+   }
    if(ordinalDimensions.has(dimension)&&!c.value&&dir){
     // A complaint about amount moves the decision; praise of amount keeps it.
     if(pos&&!neg)push({scope,condition,dimension,op:'keep',value:prior,prior,strength,polarity:'positive',evidence:original});
@@ -178,7 +188,7 @@ export function interpretFeedback(e:FeedbackEvent):Interpretation{
    if(value&&!(designDimensions[dimension] as readonly string[]).includes(value))continue;
    if(neg&&!pos){
     if(hard&&value&&prohibit.test(clause))push({scope,condition,dimension,op:'forbid',value,prior,strength,polarity:'negative',evidence:original});
-    else if(value&&(dimension==='hierarchy'||(hard&&request.test(clause))||(dimension==='ctaStructure'&&value==='sticky-bar')))
+    else if(value&&((dimension==='hierarchy'&&buriedContent.test(clause))||(hard&&request.test(clause)&&!prohibit.test(clause))||(dimension==='ctaStructure'&&value==='sticky-bar'&&!prohibit.test(clause))))
      push({scope,condition,dimension,op:hard?'require':'prefer',value,prior,strength,polarity:'negative',evidence:original});
     else push({scope,condition,dimension,op:'avoid',value:value??prior,prior,strength,polarity:'negative',evidence:original});
    }else if(pos||hard){

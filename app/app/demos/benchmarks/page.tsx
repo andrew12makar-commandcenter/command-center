@@ -2,7 +2,7 @@ import Link from 'next/link';
 import SiteRenderer from '@/components/site-renderer';
 import {requireWorkspace} from '@/lib/workspace';
 import {buildBenchmark,generatorBenchmarks} from '@/lib/generator-benchmarks';
-import {getGeneratedConceptSet} from '@/lib/concept-imagery';
+import {getMatchedConceptSet} from '@/lib/concept-imagery';
 
 export const dynamic='force-dynamic';
 
@@ -20,7 +20,7 @@ export default async function GeneratorBenchmarkGallery(){
      <div><p className="kicker">{item.vertical} · {item.holdout?'holdout':'core'}</p><h2 id={'benchmark-'+item.id} className="mt-2 text-2xl font-semibold">{item.name}</h2></div>
      <p className="muted text-xs">{site.design.composition.replaceAll('-',' ')} · {site.design.motion} motion · preflight {site.quality.evaluation.score}/100</p>
     </div>
-    <SiteRenderer site={site} conceptMedia={getGeneratedConceptSet(item.vertical)}/>
+    <SiteRenderer site={site} conceptMedia={getMatchedConceptSet(item.vertical,item.category,item.services,item.name)}/>
    </section>;
   })}</div>
  </main>;

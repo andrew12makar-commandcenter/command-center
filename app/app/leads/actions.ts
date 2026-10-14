@@ -1,12 +1,18 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
+import { redirect, unstable_rethrow } from 'next/navigation';
 import { randomUUID } from 'node:crypto';
 import { requireWorkspace, shortText, validUuid, webUrl } from '@/lib/workspace';
 import { parseCsv, normalizedHeader } from '@/lib/csv';
 import {classifyWebPresence,validateBusinessWebsite,discoveredProfile} from '@/lib/web-presence';
 import {collectAllPages,potentialMatches,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '@/lib/lead-identity';
+import {validateCampaignInput} from '@/lib/discovery-campaigns';
+import {resolveCampaign} from '@/lib/discovery-campaigns-server';
+import {OPPORTUNITIES,CONFIDENCES,NEXT_ACTIONS,EVIDENCE_STATES,qualifyStagedRow,readReview,type Qualification,type ManualReview} from '@/lib/prospect-qualification';
+import {checkWebsiteEvidence} from '@/lib/website-evidence-server';
+import {errorReturnUrl,safeQueueReturn} from '@/lib/action-errors';
+import type {TargetService} from '@/lib/discovery-campaigns';
 
 const STAGES = ['not_contacted','contacted','visited','proposal_sent','won','lost'];
 const OPERATIONS = ['unknown','operating','opening','closed'];
@@ -208,6 +214,12 @@ export async function stageCsv(form: FormData) {
   if(rows.length<2 || rows.length>501) redirect('/app/leads/import?error=length');
   const headers=rows[0].map(normalizedHeader);
   const pick=(obj:Record<string,string>,keys:string[])=>keys.map(k=>obj[k]??'').find(Boolean)??'';
+  // Campaign attribution is optional for CSV intake; without one, behavior is unchanged.
+  const existingCampaign=shortText(form.get('campaign_id'),64);
+  const newCampaignName=shortText(form.get('campaign_name'),120);
+  const campaign=existingCampaign||newCampaignName?await resolveCampaign(supabase,organizationId,user.id,existingCampaign,
+    existingCampaign?null:validateCampaignInput({name:newCampaignName,target_area:form.get('target_area'),industry:'any',
+      keyword:form.get('target_industry'),target_service:form.get('target_service'),discovery_source:'csv_import'})):null;
   const batchId=randomUUID();
   const entries=rows.slice(1).map((row,i)=>{
     const raw_data:Record<string,string>={};
@@ -224,7 +236,8 @@ export async function stageCsv(form: FormData) {
       name,city,category:pick(raw_data,['category','industry','type']).slice(0,180),
       website_url,phone:pick(raw_data,['phone','phonenumber','telephone']).slice(0,120),
       source_url,source_type:pick(raw_data,['sourcetype','source','registry']).slice(0,120),
-      raw_data,review_status:name.length<2?'invalid':'pending'
+      raw_data,review_status:name.length<2?'invalid':'pending',
+      ...(campaign?{campaign_id:campaign.id}:{})
     };
   });
   const {error}=await supabase.from('lead_import_rows').insert(entries);
@@ -233,7 +246,7 @@ export async function stageCsv(form: FormData) {
   redirect('/app/leads/import?staged='+entries.length);
 }
 
-export async function approveImportedRow(form: FormData) {
+async function approveImportedRowImpl(form: FormData) {
   const {supabase,organizationId}=await requireWorkspace(true);
   const id=shortText(form.get('row_id'),64);
   if(!validUuid(id)) throw new Error('Invalid staging row.');
@@ -241,6 +254,7 @@ export async function approveImportedRow(form: FormData) {
     .select('*').eq('id',id).eq('organization_id',organizationId).eq('review_status','pending').maybeSingle();
   if(readError || !row) throw new Error('Staged row is no longer pending.');
   if(!row.name || row.name.length<2) throw new Error('No business name.');
+  if(row.triage_status==='disqualified')throw new Error('This candidate is disqualified. Restore it to review before importing.');
   // Check every CRM page. Comparing only the first 1,000 silently loses duplicates at scale.
   const candidates=await collectAllPages<BusinessIdentity>(async (from,to)=>{
     const {data,error}=await supabase.from('businesses')
@@ -259,16 +273,44 @@ export async function approveImportedRow(form: FormData) {
   try {website_url=webUrl(row.website_url);source_url=webUrl(row.source_url);}
   catch {throw new Error('The staged website/source URL is invalid. Correct the CSV and re-import.');}
   const raw=(row.raw_data??{}) as Record<string,unknown>;
-  const street_address=streetFromRaw(raw),postal_code=postcodeFromRaw(raw);
+  const reviewedAddress=readReview(raw).manual?.address||'';
+  const street_address=streetFromRaw(raw)||reviewedAddress,postal_code=postcodeFromRaw(raw)||(reviewedAddress.match(/\b(\d{5})\b/)?.[1]??'');
   const service_area=researchServiceArea(raw);
   const socialUrl=discoveredProfile((row.raw_data??{}) as Record<string,unknown>,row.website_url);
-  const officialWebsite=validateBusinessWebsite(website_url&&classifyWebPresence(website_url).kind==='website'?website_url:null);
-  const {data:business,error}=await supabase.from('businesses').insert({
+  const review=readReview(raw);
+  // An operator-confirmed official site (from review) fills an empty source website field.
+  const reviewedSite=review.manual?.website_url&&classifyWebPresence(review.manual.website_url).kind==='website'?review.manual.website_url:null;
+  const officialWebsite=validateBusinessWebsite(website_url&&classifyWebPresence(website_url).kind==='website'?website_url:reviewedSite);
+  // Carry the deterministic qualification (or the operator's overrides) into the CRM.
+  // priority_score is never set here; it stays a manual, evidence-backed CRM field.
+  let campaignService:TargetService|null=null,campaignArea:string|null=null;
+  if(row.campaign_id){
+    const {data:campaign}=await supabase.from('discovery_campaigns').select('target_service,target_area')
+      .eq('organization_id',organizationId).eq('id',row.campaign_id).maybeSingle();
+    campaignService=(campaign?.target_service as TargetService|undefined)??null;
+    campaignArea=campaign?.target_area??null;
+  }
+  const q=qualifyStagedRow(row,{targetService:campaignService,duplicateWarning:false,targetArea:campaignArea});
+  const carried=qualificationColumns(q,row.campaign_id??null);
+  const rawText=(keys:string[])=>keys.map(k=>raw[k]).find((v):v is string=>typeof v==='string'&&v.trim().length>0)?.trim().slice(0,180)||null;
+  let gbpUrl:string|null=null;
+  try{gbpUrl=webUrl(rawText(['googlebusinessurl','gbpurl','googlebusinessprofile','googlemapsurl'])||review.manual?.gbp_url||null);}catch{gbpUrl=null;}
+  const contact={
+    ...((rawText(['email','contactemail'])||review.manual?.email)?{contact_email:rawText(['email','contactemail'])||review.manual?.email}:{}),
+    ...((rawText(['contactname','owner','ownername'])||review.manual?.contact_name)?{contact_name:rawText(['contactname','owner','ownername'])||review.manual?.contact_name}:{}),
+    ...(gbpUrl?{google_business_url:gbpUrl}:{}),
+  };
+  const baseRecord={
     organization_id:organizationId,name:row.name,city:row.city||null,category:row.category,
-    phone:row.phone,website_url:officialWebsite,verification_status:source_url?'pending':'unverified',
+    phone:row.phone||review.manual?.phone||null,website_url:officialWebsite,verification_status:source_url?'pending':'unverified',
     ...(street_address?{street_address}:{}),...(postal_code?{postal_code}:{}),
-    ...(service_area?{service_area}:{})
-  }).select('id').single();
+    ...(service_area?{service_area}:{}),...contact
+  };
+  let {data:business,error}=await supabase.from('businesses').insert({...baseRecord,...carried}).select('id').single();
+  if(error&&/column|schema cache/i.test(error.message)){
+    // Migration 0007 not applied yet: keep the existing import path working without the new fields.
+    ({data:business,error}=await supabase.from('businesses').insert(baseRecord).select('id').single());
+  }
   if(error||!business)throw new Error(error?.message??'Failed to insert business');
   const evidence=[];
   if(source_url)evidence.push({
@@ -291,11 +333,11 @@ export async function approveImportedRow(form: FormData) {
     .update({review_status:'imported',matched_business_id:business.id})
     .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending');
   if(updateError)throw new Error('Business created, but staging update failed: '+updateError.message);
-  revalidatePath('/app');revalidatePath('/app/leads');revalidatePath('/app/leads/import');
-  redirect('/app/leads/import');
+  revalidatePath('/app');revalidatePath('/app/leads');revalidatePath('/app/leads/import');revalidatePath('/app/opportunities');
+  redirect(form.get('open_crm')==='yes'?'/app/leads/'+business.id:queueReturn(form));
 }
 
-export async function skipImportedRow(form:FormData){
+async function skipImportedRowImpl(form:FormData){
   const {supabase,organizationId}=await requireWorkspace(true);
   const id=shortText(form.get('row_id'),64);
   if(!validUuid(id)) throw new Error('Invalid staging row.');
@@ -303,11 +345,11 @@ export async function skipImportedRow(form:FormData){
     .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending');
   if(error) throw new Error(error.message);
   revalidatePath('/app/leads/import');
-  redirect('/app/leads/import');
+  redirect(queueReturn(form));
 }
 
 // Explicitly link an already-known business instead of manufacturing a second CRM record.
-export async function linkImportedDuplicate(form:FormData){
+async function linkImportedDuplicateImpl(form:FormData){
  const {supabase,organizationId}=await requireWorkspace(true);
  const id=shortText(form.get('row_id'),64),businessId=shortText(form.get('matched_business_id'),64);
  if(!validUuid(id)||!validUuid(businessId))throw new Error('Invalid staging or business record.');
@@ -342,7 +384,160 @@ export async function linkImportedDuplicate(form:FormData){
   review_status:'duplicate',matched_business_id:businessId
  }).eq('organization_id',organizationId).eq('id',id).eq('review_status','pending');
  if(error)throw Error('Could not mark staged record as duplicate: '+error.message);
+ if(row.campaign_id){
+  // Fill gaps only; never overwrite a CRM record's existing campaign or qualification.
+  await supabase.from('businesses').update({campaign_id:row.campaign_id})
+   .eq('organization_id',organizationId).eq('id',businessId).is('campaign_id',null);
+ }
  revalidatePath('/app');revalidatePath('/app/leads');revalidatePath('/app/leads/import');
  revalidatePath('/app/leads/'+businessId);
  redirect('/app/leads/'+businessId);
 }
+
+// ---- Prospect Research Queue triage (deliberate, per-row operator decisions) ----
+function qualificationColumns(q:Qualification,campaignId:string|null){
+ return {
+  campaign_id:campaignId,primary_opportunity:q.primaryOpportunity,evidence_confidence:q.evidenceConfidence,
+  next_action:q.nextAction,
+  qualification_rationale:('Score '+q.score+'/100 at import. '+q.summary+' '+q.reasons.slice(1).join(' ')).slice(0,1200),
+ };
+}
+const TRIAGE_ACTIONS={shortlist:'shortlisted',hold:'held',disqualify:'disqualified',restore:'review_needed'} as const;
+function queueReturn(form:FormData):string{
+ return safeQueueReturn(shortText(form.get('return_to'),600));
+}
+async function triageStagedRowImpl(form:FormData){
+ const {supabase,organizationId}=await requireWorkspace(true);
+ const id=shortText(form.get('row_id'),64);
+ const action=shortText(form.get('triage'),20) as keyof typeof TRIAGE_ACTIONS;
+ if(!validUuid(id)||!Object.hasOwn(TRIAGE_ACTIONS,action))throw new Error('Choose a valid staged record and action.');
+ const reason=shortText(form.get('disqualification_reason'),500);
+ if(action==='disqualify'&&reason.length<8)throw new Error('Record the evidence-backed reason for disqualifying (at least 8 characters).');
+ const {data,error}=await supabase.from('lead_import_rows').update({
+  triage_status:TRIAGE_ACTIONS[action],
+  disqualification_reason:action==='disqualify'?reason:null,
+ }).eq('id',id).eq('organization_id',organizationId).eq('review_status','pending').select('id').maybeSingle();
+ if(error)throw new Error('Could not update the research status. Has migration 0007 been applied? '+error.message);
+ if(!data)throw new Error('This staged record is no longer pending review.');
+ revalidatePath('/app/leads/import');
+ redirect(queueReturn(form));
+}
+async function updateStagedQualificationImpl(form:FormData){
+ const {supabase,organizationId}=await requireWorkspace(true);
+ const id=shortText(form.get('row_id'),64);
+ if(!validUuid(id))throw new Error('Invalid staged record.');
+ const pick=<T extends string>(name:string,list:readonly T[]):T|null=>{
+  const v=shortText(form.get(name),40);
+  if(!v)return null;
+  if(!list.includes(v as T))throw new Error('Invalid value for '+name.replaceAll('_',' ')+'.');
+  return v as T;
+ };
+ const {data,error}=await supabase.from('lead_import_rows').update({
+  primary_opportunity_override:pick('primary_opportunity_override',OPPORTUNITIES),
+  evidence_confidence_override:pick('evidence_confidence_override',CONFIDENCES),
+  next_action_override:pick('next_action_override',NEXT_ACTIONS),
+ }).eq('id',id).eq('organization_id',organizationId).eq('review_status','pending').select('id').maybeSingle();
+ if(error)throw new Error('Could not save the qualification. Has migration 0007 been applied? '+error.message);
+ if(!data)throw new Error('This staged record is no longer pending review.');
+ revalidatePath('/app/leads/import');
+ redirect(queueReturn(form));
+}
+
+// CRM qualification: blank means "derive from recorded evidence". Never touches priority_score.
+export async function updateBusinessQualification(form:FormData){
+ const {supabase,organizationId}=await requireWorkspace(true);
+ const id=shortText(form.get('business_id'),64);
+ if(!validUuid(id))throw new Error('Invalid business.');
+ const pick=<T extends string>(name:string,list:readonly T[]):T|null=>{
+  const v=shortText(form.get(name),40);
+  if(!v)return null;
+  if(!list.includes(v as T))throw new Error('Invalid value for '+name.replaceAll('_',' ')+'.');
+  return v as T;
+ };
+ const note=shortText(form.get('qualification_rationale'),1200);
+ const {error}=await supabase.from('businesses').update({
+  primary_opportunity:pick('primary_opportunity',OPPORTUNITIES),
+  evidence_confidence:pick('evidence_confidence',CONFIDENCES),
+  next_action:pick('next_action',NEXT_ACTIONS),
+  qualification_rationale:note||null,
+  updated_at:new Date().toISOString(),
+ }).eq('id',id).eq('organization_id',organizationId);
+ if(error)throw new Error('Could not save qualification. Has migration 0007 been applied? '+error.message);
+ revalidatePath('/app/leads/'+id);revalidatePath('/app/opportunities');revalidatePath('/app/leads/'+id+'/pitch');
+ redirect('/app/leads/'+id+'#qualification');
+}
+
+
+// ---- Inline error handling: return to the queue with a readable message instead of an error screen ----
+function withError(form:FormData,message:string):string{
+ return errorReturnUrl(shortText(form.get('return_to'),600),shortText(form.get('row_id'),64),message);
+}
+function guarded(impl:(form:FormData)=>Promise<void>){
+ return async (form:FormData)=>{
+  let message:string|null=null;
+  try{await impl(form);}
+  catch(error){unstable_rethrow(error);message=error instanceof Error?error.message:'The action could not be completed.';}
+  if(message)redirect(withError(form,message));
+ };
+}
+export async function approveImportedRow(form:FormData){return guarded(approveImportedRowImpl)(form);}
+export async function skipImportedRow(form:FormData){return guarded(skipImportedRowImpl)(form);}
+export async function linkImportedDuplicate(form:FormData){return guarded(linkImportedDuplicateImpl)(form);}
+export async function triageStagedRow(form:FormData){return guarded(triageStagedRowImpl)(form);}
+export async function updateStagedQualification(form:FormData){return guarded(updateStagedQualificationImpl)(form);}
+
+// ---- Free evidence collection on staged candidates (stored under raw_data.review; source keys untouched) ----
+async function readPendingRow(form:FormData){
+ const {supabase,organizationId,user}=await requireWorkspace(true);
+ const id=shortText(form.get('row_id'),64);
+ if(!validUuid(id))throw new Error('Invalid staged record.');
+ const {data:row,error}=await supabase.from('lead_import_rows').select('id,name,website_url,raw_data,review_status')
+  .eq('id',id).eq('organization_id',organizationId).maybeSingle();
+ if(error||!row)throw new Error('Staged record not found.');
+ if(row.review_status!=='pending')throw new Error('Only candidates still in review can be updated here.');
+ return {supabase,organizationId,user,id,row};
+}
+async function saveReview(ctx:Awaited<ReturnType<typeof readPendingRow>>,patch:Record<string,unknown>){
+ const raw=(ctx.row.raw_data??{}) as Record<string,unknown>;
+ const prior=(raw.review&&typeof raw.review==='object'?raw.review:{}) as Record<string,unknown>;
+ const {error}=await ctx.supabase.from('lead_import_rows').update({raw_data:{...raw,review:{...prior,...patch}}})
+  .eq('id',ctx.id).eq('organization_id',ctx.organizationId).eq('review_status','pending');
+ if(error)throw new Error('Could not save review evidence: '+error.message);
+}
+async function checkCandidateWebsiteImpl(form:FormData){
+ const ctx=await readPendingRow(form);
+ const raw=(ctx.row.raw_data??{}) as Record<string,unknown>;
+ const manualSite=readReview(raw).manual?.website_url||null;
+ const target=[manualSite,ctx.row.website_url].find(u=>u&&classifyWebPresence(u).kind==='website');
+ if(!target)throw new Error('No official website is recorded. Find it first and save it in the review, or mark the website as needing manual verification.');
+ const result=await checkWebsiteEvidence(target,ctx.row.name||'');
+ await saveReview(ctx,{website_check:result});
+ revalidatePath('/app/leads/import');
+ redirect(queueReturn(form)+(queueReturn(form).includes('#')?'':'#row-'+ctx.id));
+}
+async function saveCandidateReviewImpl(form:FormData){
+ const ctx=await readPendingRow(form);
+ const state=(name:string)=>{const v=shortText(form.get(name),30);if(!v)return undefined;
+  if(!EVIDENCE_STATES.includes(v as never))throw new Error('Invalid evidence state.');return v as ManualReview['website'];};
+ const one=<T extends string>(name:string,list:readonly T[])=>{const v=shortText(form.get(name),30);if(!v)return undefined;
+  if(!list.includes(v as T))throw new Error('Invalid value for '+name.replaceAll('_',' ')+'.');return v as T;};
+ let website_url:string|null=null,gbp_url:string|null=null;
+ try{website_url=webUrl(form.get('website_url'));gbp_url=webUrl(form.get('gbp_url'));}
+ catch{throw new Error('Enter website and GBP links as full https:// addresses.');}
+ if(website_url&&classifyWebPresence(website_url).kind!=='website')throw new Error('That link is a social profile or directory, not an official website. Leave the website field empty.');
+ const manual:ManualReview={
+  website:state('website'),website_url,gbp:state('gbp'),gbp_url,
+  identity:one('identity',['confirmed','unclear','unknown'] as const),active:one('active',['confirmed','possibly_inactive','unknown'] as const),
+  location_type:one('location_type',['storefront','office','home_based','service_area','unknown'] as const),
+  service_area:shortText(form.get('service_area'),200)||null,note:shortText(form.get('note'),600)||null,
+  phone:shortText(form.get('phone'),40)||null,email:shortText(form.get('email'),160)||null,contact_name:shortText(form.get('contact_name'),120)||null,
+  address:shortText(form.get('address'),200)||null,
+  reviewed_at:new Date().toISOString(),reviewed_by:ctx.user.id,
+ };
+ if(manual.gbp==='verified_present'&&!gbp_url)throw new Error('Add the GBP link you verified, or choose a different GBP state.');
+ await saveReview(ctx,{manual});
+ revalidatePath('/app/leads/import');
+ redirect(queueReturn(form)+(queueReturn(form).includes('#')?'':'#row-'+ctx.id));
+}
+export async function checkCandidateWebsite(form:FormData){return guarded(checkCandidateWebsiteImpl)(form);}
+export async function saveCandidateReview(form:FormData){return guarded(saveCandidateReviewImpl)(form);}

@@ -18,6 +18,7 @@ test('fresh local Lighthouse report matches prospect homepage with www redirect'
  assert.equal(result.status,'verified_gaps');
  assert.equal(result.findings.performance_score,35);
  assert.equal(result.findings.source_method,'local_lighthouse_upload');
+ assert.equal(result.findings.provider,'Local Chrome Lighthouse');
  assert.ok(result.findings.note.includes('Operator-imported'));
  assert.equal(result.evidence.length,4);
 });

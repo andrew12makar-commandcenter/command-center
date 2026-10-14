@@ -55,7 +55,10 @@ const mapping={
  name:['businessname','companyname','company','business','dba','dbaname','legalname','name','establishmentname'],
  city:['city','town','municipality','businesscity'],
  zip:['zip','zipcode','postalcode','businesszip','zip5','zipcod'],
- category:['category','industry','businesstype','primarybusinessactivity','services','description'],
+ // Industry evidence only. "Business type" in the Boston certified directory is the
+ // legal structure (LLC, Corporation...), kept in raw data as legal_structure.
+ category:['category','industry','primarybusinessactivity','servicesprovided','services','description'],
+ legal:['businesstype','legalstructure','entitytype'],
  website:['website','websiteurl','webaddress','url','businesswebsite'],
  phone:['phone','phonenumber','telephone','businessphone'],
  identifier:['licenseno','licensenumber','licenseid','certificationnumber','certificatenumber','vendorid','id'],
@@ -75,11 +78,13 @@ export function mapBostonCsv(csv:string,download:string,source:'boston-certified
   const external_id=source+'/'+(pick(raw,mapping.identifier)||normalizeBusiness(name)+':'+normalizeBusiness(zip||city));
   const recordedWebsite=http(pick(raw,mapping.website));
   const web=classifyWebPresence(recordedWebsite);
+  const legalStructure=pick(raw,mapping.legal);
   return [{name:safe(name,180),city:safe(city,100),category:safe(pick(raw,mapping.category)|| (source==='boston-food'?'Food establishment':'Certified business'),150),
    website_url:web.kind==='website'?web.url||'':'',phone:safe(pick(raw,mapping.phone),100),
    source_type:source,source_url:'https://data.boston.gov/dataset/'+slugs[source],external_id,
    raw_data:{...Object.fromEntries(Object.entries(raw).slice(0,22)),provider:'City of Boston Open Data',download_url:download,
     external_id,source_row:String(i+2),postcode:zip,neighborhood:neighbor,
+    ...(legalStructure?{legal_structure:safe(legalStructure,120)}:{}),
     ...(web.kind==='social'||web.kind==='listing'?{discovered_social_profile_url:web.url||''}:{})}
   }];
  });

@@ -25,6 +25,8 @@ export type DesignPreferences = {
   prominentNav: boolean;
   needsRealAssets: boolean;
   composition: CompositionFamily;
+  /** Optional renderable section precedence. Unspecified uses template default. */
+  sectionOrder?: string[];
   typography: TypographyTone;
   imageTreatment: ImageTreatment;
   cardStyle: 'bordered'|'numbered'|'flat';
@@ -194,7 +196,7 @@ export function planGeneration(name:string,template:Template,preferences:DesignP
   schemaVersion:1 as const,composition,typography:preferences.typography,
   imageTreatment:preferences.needsRealAssets?(composition==='immersive'?'full-bleed':'mosaic'):preferences.imageTreatment,
   cardStyle:preferences.cardStyle,alignment:preferences.alignment,
-  sectionOrder:template==='medical'?['hero','services','trust','about','contact']:
+  sectionOrder:preferences.sectionOrder?.length?[...preferences.sectionOrder]:template==='medical'?['hero','services','trust','about','contact']:
    template==='landscaping'?['hero','proof','services','process','contact']:['hero','services','about','proof','contact'],
   conversionGoal,motion,motionPlan,rationale:[
    `Selected ${composition.replaceAll('-',' ')} for ${template} context`,

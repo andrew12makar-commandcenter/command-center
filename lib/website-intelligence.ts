@@ -1,15 +1,14 @@
 import {classifyWebPresence} from './web-presence.ts';
 import {extractTechnicalSignals,hasMeasuredMobileIssue,type TechnicalSignals} from './lighthouse-signals.ts';
-// Evidence-based mobile page audits through Google's PageSpeed Insights (Lighthouse).
-// No direct requests to prospect URLs: remote websites are inspected by Google,
-// avoiding direct localhost/private-network fetches from this application.
+// Evidence-based mobile page audits using Google PageSpeed or local Lighthouse.
+// Local Chrome execution is separately protected by public-DNS and redirect preflight.
 export type AuditStatus='verified_gaps'|'no_gaps'|'inconclusive';
 export type AuditEvidence={
   id:string;title:string;result:'failed'|'passed'|'unknown';score:number|null;
   detail:string;source:'Google Lighthouse';measured_at:string
 };
 export type AuditFindings={
-  version:1;provider:'Google PageSpeed Insights';strategy:'mobile';
+  version:1;provider:'Google PageSpeed Insights'|'Local Chrome Lighthouse';strategy:'mobile';
   analyzed_url:string;final_url:string|null;measured_at:string;
   performance_score:number|null;seo_score:number|null;
   technical_opportunity_score:number|null;
@@ -17,7 +16,7 @@ export type AuditFindings={
   note:string;error?:string;
   report_warnings?:string[];
   technical_signals?:TechnicalSignals;
-  source_method?:'pagespeed_api'|'local_lighthouse_upload';
+  source_method?:'pagespeed_api'|'local_lighthouse_upload'|'local_lighthouse_execution';
 };
 export type Assessment={
  status:AuditStatus;findings:AuditFindings;evidence:AuditEvidence[]

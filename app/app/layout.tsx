@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { hasSupabaseConfig } from '@/lib/supabase/config';
 import { signOut } from '@/app/login/actions';
-import { LayoutDashboard, Building2, Upload, PanelsTopLeft, ShieldCheck, ScanSearch, Activity, Target, ListChecks } from 'lucide-react';
+import { LayoutDashboard, Building2, Upload, PanelsTopLeft, ShieldCheck, ScanSearch, Activity, Target, ListChecks, ClipboardList } from 'lucide-react';
 import {requireWorkspace} from '@/lib/workspace';
 import {getProjectProgress} from '@/lib/project-roadmap-server';
 import RoadmapSidebar from '@/components/roadmap-sidebar';
@@ -15,6 +15,7 @@ const links=[
   {href:'/app/opportunities',icon:Target,label:'Opportunity Board'},
   {href:'/app/leads/import',icon:Upload,label:'Lead intake'},
   {href:'/app/demos',icon:PanelsTopLeft,label:'Demo studio'},
+  {href:'/app/project-status',icon:ClipboardList,label:'Project Status'},
 ];
 
 export default async function PrivateLayout({children}:{children:React.ReactNode}){

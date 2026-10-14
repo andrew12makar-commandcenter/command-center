@@ -8,6 +8,8 @@ import {createInterface} from 'node:readline/promises';
 import {stdin,stdout} from 'node:process';
 import {parseApprovedManifest,preflightPublicWebsite} from './local-audit-guard.mjs';
 import {extractCandidates,robotsAllows} from './site-candidates.mjs';
+import {extractBusinessFacts} from './site-facts.mjs';
+import {buildWebsiteBrief,briefToMarkdown} from '../lib/website-brief.ts';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const file=process.argv[2];
@@ -50,7 +52,7 @@ async function run(manifestPath){
   const response=await fetch(robotUrl,{signal:AbortSignal.timeout(9000),redirect:'manual'});
   if(response.ok)robots=await textResponse(response,100_000);
  }catch{console.log('robots.txt unavailable; proceed conservatively with explicitly approved public pages only.');}
- const todo=[homepage],visited=new Set(),pages=[],errors=[];
+ const todo=[homepage],visited=new Set(),pages=[],errors=[],extractions=[];
  while(todo.length&&pages.length<5&&visited.size<12){
   const candidate=todo.shift();
   if(!candidate||visited.has(candidate))continue;
@@ -74,7 +76,14 @@ async function run(manifestPath){
    const html=await textResponse(response,1_500_000);
    const candidates=extractCandidates(html,checked);
    pages.push({...candidates,images:candidates.images.slice(0,30)});
-   for(const link of candidates.links.slice(0,10))
+   // Same guarded HTML, parsed again for structured facts with provenance.
+   let navLinks=[];
+   try{const ex=extractBusinessFacts(html,checked,new Date().toISOString());extractions.push(ex);navLinks=ex.navLinks||[];}
+   catch(e){errors.push({url:checked,reason:'Fact extraction failed: '+(e instanceof Error?e.message:String(e))});}
+   // Keyword-matched links first (about/services/contact), then the site's own
+   // menu pages; the first live landscaping run only found "contact" because
+   // its pages are /landscape-architecture/, /construction/, /estate-care/.
+   for(const link of [...candidates.links.slice(0,10),...navLinks])
     if(!visited.has(link)&&!todo.includes(link)&&todo.length<15)todo.push(link);
   }catch(e){errors.push({url:candidate,reason:e instanceof Error?e.message:'Could not inspect this page'});}
   if(todo.length&&pages.length<5)await new Promise(done=>setTimeout(done,1200));
@@ -90,10 +99,13 @@ async function run(manifestPath){
   business_name:row.name,
   website_url:row.url,
   pages,errors,
+  brief:buildWebsiteBrief(row.name,row.url,extractions),
   legal_note:'These are unverified research candidates. Images are references only; no rights to display or publish have been inferred.'
  };
  await writeFile(path,JSON.stringify(result,null,2));
+ await writeFile(path.replace(/\.json$/,'-brief.md'),briefToMarkdown(result.brief));
  console.log('\nSaved local research candidates: '+path);
+ console.log('Website Intelligence Brief: '+path.replace(/\.json$/,'-brief.md'));
  console.log('Pages inspected: '+pages.length+', image references: '+pages.reduce((n,p)=>n+p.images.length,0));
  console.log('Import into the matching private Demo Studio draft; review all content and rights before displaying.');
 }

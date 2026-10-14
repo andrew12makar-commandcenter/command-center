@@ -8,7 +8,21 @@ import {Activity,ArrowUpRight,Globe2,ShieldAlert,ScanSearch} from 'lucide-react'
 const errors:Record<string,string>={
  'no-website':'No website URL is recorded for that business. Research and add the correct public website before auditing. An empty field does not mean it has no website.',
  'invalid-website':'The business website must be a public HTTP/HTTPS domain. Check the CRM entry.',
- cooldown:'That business was checked within the past 20 minutes. Recent results are saved below; wait before rerunning.',
+ cooldown:'A completed audit of this business exists from the past 20 minutes. Its measured result is below; wait before rerunning.',
+ 'remote-not-configured':'PageSpeed is not configured on this server. Use the local Lighthouse audit on your Mac development server or import a local JSON report below.',
+ 'remote-unavailable':'Google PageSpeed is rate-limited or unavailable. No empty audit was saved. Use local Lighthouse on your Mac or import a report instead.',
+ 'local-busy':'Another local Chrome Lighthouse audit is running. Wait for it to finish before starting another.',
+ 'local-install':'The local Lighthouse installation is missing. In the integration-preview project folder, run npm install and retry.',
+ 'local-preflight':'The website refused a safety preflight or resolved to an unsafe destination. No browser audit was run and no score was saved.',
+ 'local-unsafe':'The domain or one of its redirects resolved to an unsafe or private address. Chrome was not started. Confirm the correct official public website in the CRM.',
+ 'local-dns':'Your Mac could not resolve the company website to a usable public address. The scan did not run. Check connectivity and the recorded domain.',
+ 'local-network':'The website could not be reached by the safety check, or its HTTP request timed out. This is not a measured website defect.',
+ 'local-redirect':'The website redirected incorrectly, too many times, or to a destination that could not be accepted safely. No scan was run.',
+ 'local-denied':'The business website refused the local HTTP safety check (HTTP 401 or 403). This is not proof of a website flaw. Use Chrome Lighthouse manually if you can open the site in your normal browser.',
+ 'local-rate-limited':'The business website returned HTTP 429 to the local safety check. Avoid repeated requests; no scan or score was saved.',
+ 'local-unavailable':'The website returned an HTTP error during the local safety check. No scan or score was saved. Check the website manually before retrying.',
+ 'local-failed':'Chrome Lighthouse could not finish this local audit. Confirm Chrome is installed, the site loads normally, and retry; no misleading score was saved.',
+ 'local-report':'The local browser did not produce a valid recent Lighthouse report for this CRM website. No score was saved.',
  'profile-not-site':'The recorded URL is a social account or directory listing, not an independent business website. Open the CRM record and move it to research evidence before attempting an audit.',
  'upload-size':'Select a Chrome Lighthouse JSON report smaller than 8 MB.',
  'upload-json':'This is not a complete native Lighthouse JSON report. Export as JSON from Chrome DevTools Lighthouse, not HTML.',
@@ -26,26 +40,49 @@ export default async function WebsiteIntelligence({
  let businessQuery=supabase.from('businesses').select('id,name,city,category,website_url,verification_status')
    .eq('organization_id',organizationId).order('created_at',{ascending:false});
  if(selectedId)businessQuery=businessQuery.eq('id',selectedId);
+ // A selected CRM business scopes BOTH the action table and its audit history.
+ // Otherwise an old audit for another business appears to belong to the
+ // selected prospect and can misleadingly show a generic "CRM business" label.
+ let assessmentsQuery=supabase.from('website_assessments')
+   .select('id,business_id,website_url,status,findings,evidence,assessed_at')
+   .eq('organization_id',organizationId)
+   .order('assessed_at',{ascending:false});
+ if(selectedId)assessmentsQuery=assessmentsQuery.eq('business_id',selectedId);
  const [{data:businesses,error:bError},{data:assessments,error:aError},{count:pending}]=await Promise.all([
   businessQuery.limit(100),
-  supabase.from('website_assessments').select('id,business_id,website_url,status,findings,evidence,assessed_at')
-    .eq('organization_id',organizationId).order('assessed_at',{ascending:false}).limit(20),
+  assessmentsQuery.limit(20),
   supabase.from('lead_import_rows').select('id',{head:true,count:'exact'})
     .eq('organization_id',organizationId).eq('review_status','pending')
  ]);
- const nameById=new Map((businesses??[]).map(b=>[b.id,b.name]));
+ // The unfiltered audit list can reference businesses older than the
+ // most-recent-100 CRM list. Resolve their names independently, with the
+ // same organization scope, rather than silently calling them "CRM business".
+ const auditBusinessIds=Array.from(new Set((assessments??[]).map(a=>a.business_id).filter(validUuid)));
+ const auditNameQuery=auditBusinessIds.length
+   ?await supabase.from('businesses').select('id,name')
+      .eq('organization_id',organizationId).in('id',auditBusinessIds)
+   :null;
+ const nameById=new Map([...(businesses??[]),...(auditNameQuery?.data??[])].map(b=>[b.id,b.name]));
  const auditable=(businesses??[]).filter(b=>classifyWebPresence(b.website_url).kind==='website');
  const hasApiKey=Boolean(process.env.PAGESPEED_API_KEY?.trim());
  return <main className="max-w-7xl">
    <div className="flex flex-wrap items-end justify-between gap-4">
     <div><p className="kicker">Phase 5 / Evidence-first technical audits</p><h1 className="mt-3 text-4xl font-semibold">Website Intelligence</h1>
-    <p className="muted mt-3 max-w-3xl leading-7">Check real mobile performance and technical SEO using Google PageSpeed Insights. Every assessment keeps its timestamp and evidence. Unknown data stays unknown.</p></div>
+    <p className="muted mt-3 max-w-3xl leading-7">Measure real mobile performance and technical SEO. Your Mac development server runs Chrome Lighthouse locally without Google&apos;s PageSpeed quota; deployed servers may use an approved API key or imported reports. Unknown data stays unknown.</p></div>
     <Link className="btn" href="/app/leads/import">Review {pending??0} pending leads <ArrowUpRight size={16}/></Link>
    </div>
    {selectedId&&<div className="mt-5"><Link href="/app/intelligence" className="text-sm text-cyan-300 underline">← Show full Website Intelligence list</Link>
-      <p className="muted mt-2 text-sm">Showing the requested CRM business, even if it is not among the 100 newest records.</p></div>}
+      <p className="muted mt-2 text-sm">Showing the selected CRM business and only its audit history, even if it is not among the 100 newest records.</p></div>}
    {p.error&&<div className="mt-7 rounded-xl border border-amber-700/40 bg-amber-950/15 p-5 text-amber-200" role="alert">
-      <ShieldAlert className="mr-2 inline" size={18}/>{errors[p.error]||'Website audit was not completed.'}</div>}
+      <ShieldAlert className="mr-2 inline" size={18}/>{errors[p.error]||'Website audit was not completed.'}
+      {p.error.startsWith('local-')&&<div className="mt-3 border-t border-amber-800/30 pt-3 text-sm">
+       <strong>Alternative that does not bypass the website&apos;s restrictions:</strong>
+       {' '}Open the website in Chrome, run DevTools → Lighthouse → Mobile → Analyze page load, then export JSON.
+       <a href="#lighthouse-fallback" className="ml-2 font-semibold text-cyan-200 underline underline-offset-4">
+        Import that report for this CRM business ↓
+       </a>
+       <p className="mt-2 text-xs">Manual reports are checked for freshness and matching business URL before saving. No score is invented when Chrome cannot measure the site.</p>
+      </div>}</div>}
    {p.audited&&<div className="panel mt-7 border-[#29615f] p-5 text-cyan-100" role="status">
       The test result was saved. Review its measured findings below. A partial or failed Google request is recorded as inconclusive, not a bad website.</div>}
    {p.imported&&<p className="mt-7 rounded-xl border border-cyan-700/50 bg-cyan-950/20 p-5 text-sm text-cyan-100" role="status">Local Lighthouse report saved as operator-imported evidence. Review its findings and provenance below.</p>}
@@ -62,7 +99,7 @@ export default async function WebsiteIntelligence({
    <section className="panel mt-7 overflow-x-auto">
       <div className="flex flex-wrap justify-between gap-4 p-6">
        <div><p className="kicker">One prospect at a time</p><h2 className="mt-2 text-xl font-semibold">Select a website to assess</h2></div>
-       <p className="muted max-w-md text-sm">Scans may take 20–45 seconds. Google quotas or unavailable websites can return an inconclusive result.</p>
+       <p className="muted max-w-md text-sm">Local Chrome scans can take up to two minutes. Websites can refuse automated checks; no score is invented when a scan fails.</p>
       </div>
       {bError&&<p className="p-5 text-red-300">Unable to read the CRM businesses.</p>}
       <table><thead><tr><th>Company</th><th>Area</th><th>Recorded website</th><th>Action</th></tr></thead>
@@ -72,8 +109,9 @@ export default async function WebsiteIntelligence({
           <td>{presence.url?<><a href={presence.url} className="break-all text-sm text-cyan-300 underline" target="_blank" rel="noopener noreferrer">{presence.url}</a>
             {presence.kind!=='website'&&<span className="mt-2 block text-xs text-amber-200">{presence.provider} profile / listing, not independent website</span>}</>:
             <span className="muted text-xs">{presence.kind==='invalid'?'Invalid URL: review CRM':'Not recorded (not proof of absence)'}</span>}</td>
-          <td>{presence.kind==='website'?<form action={auditBusiness}><input type="hidden" name="business_id" value={b.id}/>
-            <button className="btn text-xs" type="submit">Run mobile audit →</button></form>:
+          <td>{presence.kind==='website'?(process.env.NODE_ENV==='development'||hasApiKey?<form action={auditBusiness}><input type="hidden" name="business_id" value={b.id}/>
+            <button className="btn text-xs" type="submit">{process.env.NODE_ENV==='development'?'Run local Lighthouse →':'Run PageSpeed audit →'}</button></form>:
+            <a href="#lighthouse-fallback" className="text-xs text-cyan-300 underline">Import local Lighthouse report ↓</a>):
             <Link href={'/app/leads/'+b.id} className="text-xs text-cyan-300 underline">{presence.kind==='social'||presence.kind==='listing'?'Move profile to research evidence':'Check business details'} →</Link>}</td>
         </tr>})}</tbody></table>
       {!businesses?.length&&!bError&&<p className="muted p-8 text-sm">The CRM has no approved prospects yet. Review your discovered candidates in Lead Intake first.</p>}
@@ -81,14 +119,14 @@ export default async function WebsiteIntelligence({
    {process.env.NODE_ENV==='development'&&
    <section id="local-lighthouse-queue" className="panel mt-7 p-6">
      <p className="kicker">Zero paid API credits · pilot</p>
-     <h2 className="mt-2 text-xl font-semibold">Local Lighthouse audit queue</h2>
+     <h2 className="mt-2 text-xl font-semibold">Optional batch Lighthouse queue (advanced)</h2>
      <p className="muted mt-3 max-w-4xl text-sm leading-6">
-       Choose up to 10 CRM businesses below. Download the approved queue and run it in your Mac terminal with
+       The Run local Lighthouse buttons above now launch one Chrome audit and save its measured results automatically. For an optional batch, choose up to 10 CRM businesses below, download their queue, and run it in your Mac terminal with
        <code> npm run audit:local -- ~/Downloads/command-center-audit-queue.json</code>.
        Chrome audits sites one at a time and saves JSON reports on your computer. No Google Cloud account, PageSpeed credits,
        unattended scraping, or public auditing endpoint. You must approve the queue again in Terminal.
      </p>
-     <p className="mt-3 text-sm text-amber-200">This pilot does not automatically upload the files. Import each completed JSON through the existing authenticated form below. Failed or incomplete runs remain inconclusive.</p>
+     <p className="mt-3 text-sm text-amber-200">The optional terminal batch does not automatically import its JSON files. Use the import form below for batch results. A one-click local audit above saves its own results automatically.</p>
      {auditable.length>0?
        <form method="get" action="/api/local-audits/manifest" className="mt-5">
          <div className="grid gap-3 sm:grid-cols-2">
@@ -145,7 +183,7 @@ export default async function WebsiteIntelligence({
           <div><p className="kicker">{a.status==='verified_gaps'?'Issues observed':a.status==='no_gaps'?'No issues in checked tests':'Inconclusive measurement'}</p>
           <h3 className="mt-3 text-xl font-semibold">{nameById.get(a.business_id)||'CRM business'}</h3>
           <p className="muted mt-1 text-sm">{a.website_url} · {new Date(a.assessed_at).toLocaleString('en-US')}</p>
-          <p className="mt-2 text-xs text-cyan-300">{f?.source_method==='local_lighthouse_upload'?'Operator-uploaded local Lighthouse report (not independently authenticated)':'Google PageSpeed API response'}</p></div>
+          <p className="mt-2 text-xs text-cyan-300">{f?.source_method==='local_lighthouse_execution'?'Locally executed Chrome Lighthouse (no Google API)':f?.source_method==='local_lighthouse_upload'?'Operator-uploaded local Lighthouse report (not independently authenticated)':'Google PageSpeed API response'}</p></div>
           <Link className="text-sm text-cyan-300 underline" href={'/app/leads/'+a.business_id}>CRM record ↗</Link>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -163,7 +201,7 @@ export default async function WebsiteIntelligence({
            <p className="muted mt-2 text-xs">{short(e.detail)||'No additional measured details provided.'}</p></div>)}</div>}
         <div className="mt-5 flex flex-wrap gap-4 text-xs"><a className="text-cyan-300 underline" href={'https://pagespeed.web.dev/analysis?url='+encodeURIComponent(a.website_url||'')}
           target="_blank" rel="noreferrer">Review using PageSpeed Insights ↗</a>
-          <span className="muted">Provider: Google Lighthouse · Mobile lab audit</span></div>
+          <span className="muted">Provider: {f?.source_method==='pagespeed_api'?'Google PageSpeed API':'Local Chrome Lighthouse'} · Mobile lab audit</span></div>
       </article>;
     })}
     {!assessments?.length&&!aError&&<p className="panel muted p-8 text-sm">No website audits yet. Select one approved company with a recorded public website above.</p>}

@@ -38,3 +38,25 @@ export function getGeneratedConceptSet(template:Template):GeneratedConceptSet{re
 export function getPrivatePreviewConcept(template:Template):ConceptImage{
  return getGeneratedConceptSet(template).hero;
 }
+
+/**
+ * The legacy concept library is NOT a universal stock photo bank. A dental
+ * chair on a veterinary site is harmful even when disclosed as conceptual.
+ * Unknown subtypes use typographic previews pending appropriately matched
+ * and rights-cleared imagery.
+ */
+export function getMatchedConceptSet(
+ template:Template,category:string|null|undefined,services:readonly string[]=[],
+ businessName=''
+):GeneratedConceptSet|undefined{
+ const subject=[category??'',...services,businessName].join(' ').toLowerCase();
+ const vet=/\b(vets?|veterinar\w*|animal\w*|pets?|canine|feline|puppy|kitten)\b/i;
+ const dental=/\b(dent(?:al|ist|istry)|orthodont\w*|implants?|invisalign|teeth|tooth|endodont\w*)\b/i;
+ const fieldOther=/\b(plumb\w*|hvac|heat(?:ing)?|air condition\w*|roof\w*|electri\w*|pest control|floor\w*|painting|garage|mason\w*)\b/i;
+ const garden=/\b(landscap\w*|garden\w*|hardscap\w*|lawn\w*|plant(?:ing)?|irrigation|groundskeep\w*|outdoor design)\b/i;
+ const hospitality=/\b(restaurant|cafe|coffee|bakery|bookstore|retail|salon|barber|fitness|gym|hotel|food|catering|pet|veterinar\w*)\b/i;
+ const professional=/\b(consult\w*|strateg\w*|advis\w*|account\w*|law|attorney|architect\w*|design stud\w*|creative stud\w*|professional servic\w*)\b/i;
+ if(template==='medical')return !vet.test(subject)&&dental.test(subject)?concepts.medical:undefined;
+ if(template==='landscaping')return !fieldOther.test(subject)&&garden.test(subject)?concepts.landscaping:undefined;
+ return !hospitality.test(subject)&&professional.test(subject)?concepts.universal:undefined;
+}
