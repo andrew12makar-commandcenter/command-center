@@ -1,18 +1,22 @@
 {
   "project": "Prospect Discovery MVP",
-  "branch": "codex/agent-ledger-board-counts-oct14",
-  "worktree": "GitHub connector branch; no local workstation checkout (Mac worktrees untouched)",
-  "current_milestone": "M7 in progress: shared agent ledger and accurate Opportunity Board counts (tests pending)",
+  "branch": "integration/prospect-intake-generator-oct14",
+  "worktree": "GitHub connector integration branch only; Mac worktree not accessed or changed",
+  "current_milestone": "M8 in progress: cross-branch lead-intake and website-generator integration (CI and authenticated QA pending)",
   "overall_status": "in_progress",
-  "last_updated": "2026-10-14T09:28:56.150Z",
+  "last_updated": "2026-10-14T21:37:41.176Z",
   "responsible_agent": "ChatGPT",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "00fd19089a59f1213b8c6ea0936dce694c4db125",
-    "message": "Board visibility regression: filtered hidden-test counter"
+    "sha": "4bf4b6c4842e85ec3fd1210bcaee7af8418906fb",
+    "message": "Source checkpoint for integrated M8; status snapshot follows"
   },
-  "next_action": "Run npm test, typecheck, lint, build and nonmutating browser QA on codex/agent-ledger-board-counts-oct14; check GitHub Actions directly. Verify separate GBP guardrails branch before cross-branch integration. No merge or deploy authorized.",
-  "blockers": [],
+  "next_action": "Verify integration-branch CI test suite, typecheck, lint, build, isolated export and Chromium QA using actual run logs. Then validate lead intake with nonmutating authenticated QA or a separate disposable DB, and resolve non-atomic CRM import failure handling before any merge. Main and Mac untouched.",
+  "blockers": [
+    "Integration-branch full test / CI result not independently available yet; no authenticated browser QA or live database verification.",
+    "approveImportedRowImpl makes CRM, evidence and staging writes separately, without an independently verified all-or-nothing transaction or retry recovery.",
+    "Older divergent feature/nextjs-foundation changes require semantic review before a future history merge."
+  ],
   "known_limitations": [
     "Local dev server on the owner Mac against the single live Supabase project; no separate preview database.",
     "GBP evidence comes from manual Google search/Maps panel checks; stored GBP links are Maps search URLs, not listing IDs. \"Own this business?\" appears on every listing for a signed-out viewer and is not used as claim evidence.",
@@ -24,7 +28,9 @@
     "Migration 0008 (privilege hardening) prepared, not applied.",
     "M7 source changes were committed remotely; runtime checks, browser validation and production effects are not verified. Existing CI workflow does not trigger on the M7 branch.",
     "Test exclusion identifies campaigns whose name starts with 'Test'; untagged historical test data may still affect totals until explicitly classified.",
-    "Push-triggered CI branch was added, but the GitHub connector did not return workflow-run results. No checks are marked passed on this branch."
+    "Push-triggered CI branch was added, but the GitHub connector did not return workflow-run results. No checks are marked passed on this branch.",
+    "M8 integration branch copies exact Board/GBP source files without rewriting the source branches or claiming a Git history merge.",
+    "Imported scan-area and GBP-search contamination is now prevented in integration code but previous live rows have not been read, repaired or asserted clean."
   ],
   "manual_steps": [
     "Check GitHub issue #3 for cross-agent claims and exact branch checkpoints before touching related files.",
@@ -181,6 +187,16 @@
       "command": "DB integrity after batch",
       "result": "Original 7 businesses and 25 staged rows fingerprints unchanged; test campaign rows and Welland record untouched; 0 activities; all demos draft",
       "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "GitHub Actions run 38625679812 (generator-media branch before fixes)",
+      "result": "FAIL: 202 TS pass, 3 fail (stale cursor); browser export build could not resolve missing selector file. Fixed in later commits; post-fix run unverified.",
+      "ran_at": "2026-10-14T19:42:08Z"
+    },
+    {
+      "command": "Integration CI / authenticated lead-intake QA",
+      "result": "NOT VERIFIED. Scoped branch push workflow configured, but no accessible run log identified; localhost and live DB not used.",
+      "ran_at": "2026-10-14T21:37:41.176Z"
     }
   ],
   "milestones": [
@@ -396,6 +412,40 @@
         ".github/workflows/ci.yml"
       ],
       "commit": "00fd19089a59f1213b8c6ea0936dce694c4db125"
+    },
+    {
+      "id": "M8",
+      "title": "Cross-branch intake integration and generator media verification",
+      "status": "in_progress",
+      "responsible_agent": "ChatGPT",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Integrated byte-identical Opportunity Board files and tests from b9881e2",
+        "Integrated GBP evidence-guardrail files from a7a11b6, extending import-specific URL safety",
+        "Integrated corrected generator media selector/export code from 5fd2cf4",
+        "Added cross-module intake regression and prevented scan area from being stored as service area",
+        "Recorded source audit and blockers in docs/prospect-discovery-integration-audit-oct14.md"
+      ],
+      "in_progress": [
+        "GitHub Actions full suite and export/browser checks; results not independently verified",
+        "Source-only import transaction risk review"
+      ],
+      "remaining": [
+        "Obtain actual CI logs and fix any failures",
+        "Signed-in nonmutating lead-intake QA or separate test organization",
+        "Resolve non-atomic partial import behavior before production use",
+        "Reconcile older divergent feature branch before main-branch merge approval"
+      ],
+      "files_changed": [
+        "tests/prospect-intake-combined.test.ts",
+        "lib/lead-identity.ts",
+        "tests/lead-identity.test.ts",
+        "lib/google-listing-link.ts",
+        "app/app/leads/actions.ts",
+        "tests/google-listing-link.test.ts",
+        "docs/prospect-discovery-integration-audit-oct14.md"
+      ],
+      "commit": "4bf4b6c"
     }
   ],
   "review_checkpoint": {
