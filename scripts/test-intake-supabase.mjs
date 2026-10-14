@@ -98,6 +98,23 @@ await assertCompletedExactlyOnce(normal);
 await assert.rejects(commitStagedImport(payload(normal)),/not pending/);
 label('normal import completes and completed row is not importable twice');
 
+// A real database CHECK-constraint rejection, not a synthetic network throw:
+// partial CRM creation and staging claim must be recoverable after fixing the
+// evidence payload. This proves the normal PostgREST error branch.
+const constraintRow=await staged('Source check constraint failure');
+const validConstraint=payload(constraintRow);
+const badConstraint={...validConstraint,evidence:validConstraint.evidence.map(x=>({...x,confidence:'rejected_not_allowed'}))};
+await assert.rejects(commitStagedImport(badConstraint),/source evidence remains incomplete/);
+const constraintPartial=await countRecords(constraintRow);
+assert.equal(constraintPartial.business.length,1);
+assert.equal(constraintPartial.sources.length,0);
+assert.equal(constraintPartial.queue.review_status,'pending');
+assert.equal(constraintPartial.queue.matched_business_id,constraintRow.id);
+const constraintFixed=await commitStagedImport(validConstraint);
+assert.equal(constraintFixed.resumed,true);
+await assertCompletedExactlyOnce(constraintRow);
+label('actual PostgreSQL evidence CHECK-constraint failure recovers without duplicate CRM or sources');
+
 // Two authenticated editors submitting the exact same row in parallel.
 const shared=await staged('Concurrency probe');
 const race=await Promise.allSettled([
