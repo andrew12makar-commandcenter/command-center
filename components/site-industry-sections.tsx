@@ -1,6 +1,7 @@
 import type {SiteBlueprint} from '@/lib/site-blueprint';
 import {contactJourney,selectSectionPresentation} from '@/lib/site-presentation';
 import {reviewedSiteFeatures} from '@/lib/reviewed-business-features';
+import {galleryMediaDescription} from '@/lib/site-media-selection';
 
 type Tone={base:string;paper:string;ink:string;soft:string;muted:string;eyebrow:string;border:string};
 type Props={site:SiteBlueprint;theme:Tone;compact:boolean};
@@ -131,9 +132,7 @@ export function IndustryGallery({site,theme,images}:{site:SiteBlueprint;theme:To
  const eyebrow=outdoor?'Outdoor inspiration':medical?'Visual references':'A closer look';
  const title=outdoor?'Considered spaces, thoughtfully composed.':
   medical?'A calm, considered visual direction.':'Details that define the experience.';
- const intro=outdoor?'Concept directions and approved imagery provide a visual starting point.':
-  medical?'Any conceptual imagery is illustrative, not a photograph of the practice.':
-  'A mix of approved business photography and clearly marked concepts.';
+ const intro=galleryMediaDescription(images);
  const dark=layout==='project-grid';
  const bg=dark?theme.ink:layout==='editorial'?theme.soft:theme.paper;
  const muted=dark?'text-white/70':theme.muted;
