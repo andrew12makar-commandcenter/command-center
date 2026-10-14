@@ -259,13 +259,13 @@ async function approveImportedRowImpl(form: FormData) {
   if(row.triage_status==='disqualified')throw new Error('This candidate is disqualified. Restore it to review before importing.');
   // A partially imported row carries a durable link to the CRM record. Never
   // create a second business for that row on retry.
-  let linkedBusiness:{id:string;name:string}|null=null;
-  if(row.matched_business_id){
-    const {data:linked,error:linkError}=await supabase.from('businesses').select('id,name')
-      .eq('organization_id',organizationId).eq('id',row.matched_business_id).maybeSingle();
-    if(linkError)throw new Error('Could not verify the partially imported CRM record. Import was not retried.');
-    linkedBusiness=linked;
-  }
+  // Reserve the staging UUID as the CRM UUID. It already has a primary-key
+  // uniqueness guarantee, even when two operators submit simultaneously.
+  // Older partial imports can still point to their original random CRM ID.
+  const recoveryId=row.matched_business_id||id;
+  const {data:linkedBusiness,error:linkError}=await supabase.from('businesses').select('id,name')
+    .eq('organization_id',organizationId).eq('id',recoveryId).maybeSingle();
+  if(linkError)throw new Error('Could not verify whether this staged row already created a CRM record. Import stopped to prevent duplicates.');
   const decision=importRecoveryDecision(row,linkedBusiness);
   if(decision==='blocked')throw new Error('Staged import link is missing or does not match its original business. Review the linked CRM record before continuing.');
   const resuming=decision==='resume';
@@ -325,15 +325,17 @@ async function approveImportedRowImpl(form: FormData) {
     ...(street_address?{street_address}:{}),...(postal_code?{postal_code}:{}),
     ...(service_area?{service_area}:{}),...contact
   };
-  let business:{id:string}|null=resuming?{id:row.matched_business_id!}:null;
+  let business:{id:string}|null=resuming?{id:linkedBusiness!.id}:null;
   if(!resuming){
     // The durable recovery link is persisted as soon as a business is created,
     // BEFORE source inserts. It does not make this workflow a DB transaction.
-    let {data:created,error}=await supabase.from('businesses').insert({...baseRecord,...carried}).select('id').single();
+    let {data:created,error}=await supabase.from('businesses').insert({id,...baseRecord,...carried}).select('id').single();
     if(error&&/column|schema cache/i.test(error.message)){
       // Migration 0007 not applied yet: keep the original import path working.
-      ({data:created,error}=await supabase.from('businesses').insert(baseRecord).select('id').single());
+      ({data:created,error}=await supabase.from('businesses').insert({id,...baseRecord}).select('id').single());
     }
+    if(error&&/duplicate key|unique constraint/i.test(error.message))throw new Error(
+      'A CRM record may already exist for staging row '+id+'. Reload the queue and resume this import, rather than creating another business.');
     if(error||!created)throw new Error(error?.message??'Failed to insert business');
     business=created;
     const {data:claimed,error:claimError}=await supabase.from('lead_import_rows')
