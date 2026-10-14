@@ -1,6 +1,7 @@
 import {opportunityLabels,strengthLabels,confidenceLabels,nextActionLabels,evidenceStateLabels,progressLabels,formatLocation,type Qualification,type Opportunity} from './prospect-qualification.ts';
 import {targetServiceLabels,type Campaign} from './discovery-campaigns.ts';
 import type {SalesBrief} from './sales-brief.ts';
+import {classifyGoogleListingLink} from './google-listing-link.ts';
 
 // Internal, evidence-bounded pitch preparation. Never a public claim or a proposal.
 export type PitchInput={
@@ -29,6 +30,7 @@ const offers:Record<Opportunity,string>={
 const safeUrl=(v:string|null|undefined)=>{try{const u=new URL(v||'');return ['http:','https:'].includes(u.protocol)?u.toString():null;}catch{return null;}};
 export function buildPitchBrief(i:PitchInput):PitchBrief{
  const b=i.business,q=i.q;
+ const gbpLink=classifyGoogleListingLink(b.google_business_url);
  const crmVerified=b.verification_status==='verified'&&b.operational_status==='operating';
  const locationVerified=crmVerified||(q.identityConfirmed&&q.activeConfirmed);
  const place=formatLocation(b.street_address,b.city,b.state,b.postal_code);
@@ -55,6 +57,8 @@ export function buildPitchBrief(i:PitchInput):PitchBrief{
  if(q.websiteState!=='verified_missing'&&q.websitePresence!=='official_site_recorded')doNotClaim.push('Do not say the business has no website; none is recorded, which is not proof.');
  if(q.gbpState==='unknown'||q.gbpState==='conflicting')doNotClaim.push('Do not say the business has no Google Business Profile; it has not been confirmed either way.');
  if(q.gbpState==='likely_weak')doNotClaim.push('Describe GBP gaps only as observed (for example missing hours or website); do not claim ranking effects.');
+ if(gbpLink.kind==='search')doNotClaim.push('The stored Google Maps link is a search, not an exact business listing. Do not present it as a verified GBP URL.');
+ if(gbpLink.kind==='unverified_link')doNotClaim.push('The stored Google Maps link does not provide a confirmed listing ID. Verify the specific listing before citing it.');
  if(q.legalStructure)doNotClaim.push('Do not describe their industry from the legal structure ('+q.legalStructure+').');
  if(q.websitePresence==='social_only')doNotClaim.push('Do not criticize their social page as a substitute for a website.');
  if(i.sales.confidence!=='measured')doNotClaim.push(q.websiteIssues.length?'Do not make speed claims; SEO points are limited to the basics the free check observed.':'Do not make performance or SEO claims; no reliable measurement is recorded.');
@@ -63,7 +67,7 @@ export function buildPitchBrief(i:PitchInput):PitchBrief{
  for(const c of i.sales.cautions)if(!doNotClaim.includes(c))doNotClaim.push(c);
  const links=[
   ...(safeUrl(b.website_url)?[{label:'Website',url:safeUrl(b.website_url)!}]:[]),
-  ...(safeUrl(b.google_business_url)?[{label:'Google Business Profile',url:safeUrl(b.google_business_url)!}]:[])
+  ...(gbpLink.url?[{label:gbpLink.kind==='specific_id'?'Google Business Profile':gbpLink.kind==='search'?'Google Maps search (listing unverified)':'Google Maps link (identity unverified)',url:gbpLink.url}]:[])
  ];
  const auditSummary=i.sales.confidence==='unmeasured'?['No website audit recorded.']:[
   `${i.sales.sourceLabel}${i.sales.assessedAt?', '+i.sales.assessedAt.slice(0,10):''} (${i.sales.confidence.replaceAll('_',' ')}).`,
