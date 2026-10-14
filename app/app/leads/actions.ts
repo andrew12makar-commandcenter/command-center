@@ -387,9 +387,11 @@ async function skipImportedRowImpl(form:FormData){
   const {supabase,organizationId}=await requireWorkspace(true);
   const id=shortText(form.get('row_id'),64);
   if(!validUuid(id)) throw new Error('Invalid staging row.');
-  const {error}=await supabase.from('lead_import_rows').update({review_status:'skipped'})
-    .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending');
-  if(error) throw new Error(error.message);
+  const {data:skipped,error}=await supabase.from('lead_import_rows').update({review_status:'skipped'})
+    .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending')
+    .is('matched_business_id',null).select('id').maybeSingle();
+  if(error)throw new Error(error.message);
+  if(!skipped)throw new Error('Cannot skip this row: it may already be linked to a CRM business. Resume or review the import first.');
   revalidatePath('/app/leads/import');
   redirect(queueReturn(form));
 }
@@ -407,6 +409,7 @@ async function linkImportedDuplicateImpl(form:FormData){
     .eq('organization_id',organizationId).eq('id',businessId).maybeSingle()
  ]);
  if(rowError||businessError||!row||!business)throw Error('The pending row or CRM business could not be found.');
+ if(row.matched_business_id)throw Error('This row already has an import recovery link. Resume the incomplete import instead of relinking it as a duplicate.');
  const matches=potentialMatches(row,[business]);
  if(!matches.length)throw Error('These records do not share the same normalized business name. Verify them manually before linking.');
  const sourceUrl=webUrl(row.source_url);
@@ -426,10 +429,11 @@ async function linkImportedDuplicateImpl(form:FormData){
    if(insertError)throw Error('Could not preserve new provenance: '+insertError.message);
   }
  }
- const {error}=await supabase.from('lead_import_rows').update({
+ const {data:linked,error}=await supabase.from('lead_import_rows').update({
   review_status:'duplicate',matched_business_id:businessId
- }).eq('organization_id',organizationId).eq('id',id).eq('review_status','pending');
- if(error)throw Error('Could not mark staged record as duplicate: '+error.message);
+ }).eq('organization_id',organizationId).eq('id',id).eq('review_status','pending')
+   .is('matched_business_id',null).select('id').maybeSingle();
+ if(error||!linked)throw Error('Could not mark staged record as duplicate. It may already be linked to a CRM business.');
  if(row.campaign_id){
   // Fill gaps only; never overwrite a CRM record's existing campaign or qualification.
   await supabase.from('businesses').update({campaign_id:row.campaign_id})
@@ -462,7 +466,7 @@ async function triageStagedRowImpl(form:FormData){
  const {data,error}=await supabase.from('lead_import_rows').update({
   triage_status:TRIAGE_ACTIONS[action],
   disqualification_reason:action==='disqualify'?reason:null,
- }).eq('id',id).eq('organization_id',organizationId).eq('review_status','pending').select('id').maybeSingle();
+ }).eq('id',id).eq('organization_id',organizationId).eq('review_status','pending').is('matched_business_id',null).select('id').maybeSingle();
  if(error)throw new Error('Could not update the research status. Has migration 0007 been applied? '+error.message);
  if(!data)throw new Error('This staged record is no longer pending review.');
  revalidatePath('/app/leads/import');
@@ -482,7 +486,7 @@ async function updateStagedQualificationImpl(form:FormData){
   primary_opportunity_override:pick('primary_opportunity_override',OPPORTUNITIES),
   evidence_confidence_override:pick('evidence_confidence_override',CONFIDENCES),
   next_action_override:pick('next_action_override',NEXT_ACTIONS),
- }).eq('id',id).eq('organization_id',organizationId).eq('review_status','pending').select('id').maybeSingle();
+ }).eq('id',id).eq('organization_id',organizationId).eq('review_status','pending').is('matched_business_id',null).select('id').maybeSingle();
  if(error)throw new Error('Could not save the qualification. Has migration 0007 been applied? '+error.message);
  if(!data)throw new Error('This staged record is no longer pending review.');
  revalidatePath('/app/leads/import');
@@ -537,10 +541,11 @@ async function readPendingRow(form:FormData){
  const {supabase,organizationId,user}=await requireWorkspace(true);
  const id=shortText(form.get('row_id'),64);
  if(!validUuid(id))throw new Error('Invalid staged record.');
- const {data:row,error}=await supabase.from('lead_import_rows').select('id,name,website_url,raw_data,review_status')
+ const {data:row,error}=await supabase.from('lead_import_rows').select('id,name,website_url,raw_data,review_status,matched_business_id')
   .eq('id',id).eq('organization_id',organizationId).maybeSingle();
  if(error||!row)throw new Error('Staged record not found.');
  if(row.review_status!=='pending')throw new Error('Only candidates still in review can be updated here.');
+ if(row.matched_business_id)throw new Error('This candidate is linked to an unfinished CRM import. Resume that import before changing the staging evidence.');
  return {supabase,organizationId,user,id,row};
 }
 async function saveReview(ctx:Awaited<ReturnType<typeof readPendingRow>>,patch:Record<string,unknown>){
