@@ -129,6 +129,7 @@ export default async function RoadmapPage({searchParams}:{searchParams:Promise<S
    </div>
    <Link href="/app" className="btn text-xs"><Target size={15} className="mr-2"/>Mission Control</Link>
   </div>
+  <p className="mt-5 max-w-3xl text-xs leading-6 text-[#91abb8]">Roadmap milestones are manually confirmed in Supabase. For branch ownership, commits, tests and handoffs across ChatGPT, Claude and collaborators, use the <a href="https://github.com/andrew12makar-commandcenter/command-center/issues/3" target="_blank" rel="noopener noreferrer" className="text-cyan-300 underline">shared GitHub agent ledger ↗</a>.</p>
   <nav className="my-7 flex flex-wrap gap-2" aria-label="Select roadmap project">
    {[['','Both ventures'],['seo','Local Business'],['mcat','MCAT Platform']].map(([key,label])=>
     <Link key={key} href={'/app/roadmap'+(key?'?project='+key:'')}
