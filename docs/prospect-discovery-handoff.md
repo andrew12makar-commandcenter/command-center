@@ -1,6 +1,6 @@
 # Prospect Discovery MVP: agent handoff
 
-**Status: `ready_for_review`.** Review checkpoint: merge commit `3e2f757` (nine Prospect Discovery commits + origin `235f637`); all tests, typecheck, lint and build were run on it. Awaiting independent review by ChatGPT. Migration 0007 has NOT been applied and the live database has not been modified. Do not apply it until the owner authorizes it.
+**Status: `in_progress`.** Review checkpoint: merge commit `3e2f757` (nine Prospect Discovery commits + origin `235f637`); all tests, typecheck, lint and build were run on it. ChatGPT independently reviewed the implementation. Migrations 0005, 0006 and 0007 are applied and recorded in Supabase migration history. Existing counts remain 7 businesses and 25 staged leads; all 25 staged leads received only `triage_status = 'review_needed'`, and all new business qualification fields remain null. Next owner: Claude, for the controlled signed-in browser validation. Do not publish, share a demo or contact anyone during validation.
 
 Machine-readable status: `docs/prospect-discovery-status.json` (shown read-only at `/app/project-status`).
 Update both files before and after each milestone, after each commit or test run, before asking the owner a question, and before ending a session. No secrets, credentials, customer data or environment values.
@@ -30,19 +30,24 @@ Reuse: `lead_import_rows` (staging), `businesses` (CRM), `/app/opportunities` (b
 - Demo: the existing `createDemo` form on the CRM record (`#website-demo`). Nothing is published automatically.
 - Pitch brief (`/app/leads/[id]/pitch`): print or "Copy as Markdown"; the Markdown is also shown raw for pasting into a deck.
 
-## Manual step for the owner
-Open the Supabase SQL Editor for the business Command Center project, paste `supabase/migrations/0007_prospect_discovery.sql`, and run it once (after 0006).
+## Database status
+- `0005_project_roadmap`, `0006_roadmap_execution_log` and `0007_prospect_discovery` are applied and recorded in Supabase migration history.
+- Verified objects include roadmap activity, widened roadmap status, discovery campaigns, campaign-org triggers, qualification constraints and RLS policies.
+- Post-migration verification: `businesses = 7`, `lead_import_rows = 25`, all 25 staged rows are `review_needed`, and the new business qualification columns are null on all 7 existing businesses.
+- `0008_revoke_inherited_table_privileges.sql` is prepared locally but has not been applied. Review it as a separate security change after Prospect Discovery validation.
 
 ## Verification status
 - Automated: all 189 .ts tests and 40 .mjs tests pass (the .mjs suite needs Linux or macOS native deps matching the machine; it passed after `npm ci` in a Linux copy). Typecheck passes. Lint shows 0 errors (14 pre-existing warnings). `next build` succeeds.
-- Browser verification has NOT been done. It needs the Supabase env, a signed-in session, and migration 0007 applied.
+- Browser verification has NOT been done. The Supabase schema is now ready for the signed-in validation.
 
 ## Remaining / suggested next steps (safe for ChatGPT)
-1. Owner applies migration 0007.
-2. Click-through: create a campaign and scan (Brighton, Boston certified) → shortlist → import → check the CRM panel, the board, generate a demo, and open the pitch brief.
-3. Optional polish: on CRM records, recorded email/contact name from the lead form could refresh contact readiness (it already does when the stored next_action is cleared).
+1. Claude pulls the tracker-only local commits and confirms the recorded 0005-0007 history.
+2. Click-through: create a campaign and scan (Brighton, Boston certified) → shortlist → import one sufficiently clear candidate → check the CRM panel and board → generate an internal demo → open and copy the pitch brief.
+3. Record exact browser evidence and update the tracker. Do not publish, share or contact anyone.
+4. Optional polish: on CRM records, recorded email/contact name from the lead form could refresh contact readiness (it already does when the stored next_action is cleared).
 
 ## Session log
 - 2026-10-13 (Claude): Tracker, migration 0007 and campaign-based discovery (M0–M1).
 - 2026-10-13 (Claude): Merged origin 235f637 with a normal merge commit (3e2f757, no rebase, no force push); checks passed on it; pushed; tracker set to ready_for_review.
 - 2026-10-13 (Claude): Qualification (M2), queue (M3), CRM/board/demo handoff (M4), pitch brief (M5), full verification. Also fixed 2 pre-existing lint errors (unescaped apostrophes) in app/app/intelligence/page.tsx.
+- 2026-10-14 (ChatGPT): Applied and verified migrations 0006 and 0007 through the Supabase SQL Editor, reconciled migration history, confirmed 7 businesses and 25 staged leads remained, and handed controlled browser validation back to Claude.

@@ -2,29 +2,27 @@
   "project": "Prospect Discovery MVP",
   "branch": "codex/generator-intelligence-checkpoints-oct12",
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
-  "current_milestone": "Preview validation: applying migrations 0005-0007",
-  "overall_status": "blocked",
-  "last_updated": "2026-10-14T05:47:24Z",
+  "current_milestone": "Preview validation: signed-in browser workflow",
+  "overall_status": "in_progress",
+  "last_updated": "2026-10-14T05:50:59Z",
   "responsible_agent": "Claude",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
     "sha": "3e2f75738a016bead7084eefaea96001345bd974",
     "message": "REVIEW CHECKPOINT: merge of origin 235f637 (Overture cache) into Prospect Discovery; all checks run on this commit. Later commits, if any, are tracker-only docs changes."
   },
-  "next_action": "Owner: approve the Supabase connector prompt when 0006 is retried (or apply 0006 in the SQL editor). Separately review prepared, unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql.",
-  "blockers": [
-    "0005_project_roadmap APPLIED and verified. 0006_roadmap_execution_log NOT applied: apply_migration returned status cancelled twice (2026-10-14 ~00:55 and ~01:50 ET); the Supabase connector approval prompt for its DROP ... IF EXISTS statements was not completed in the client. Verified after each attempt: nothing from 0006 exists; history = 0004, 0005; businesses=7 and lead_import_rows=25 with unchanged full-row fingerprints. 0007 not attempted."
-  ],
+  "next_action": "Claude: pull the tracker-only commits, confirm migrations 0005-0007 in Supabase history, then perform the controlled signed-in browser test from Project Status through one Brighton campaign, queue triage, one safe CRM import, Opportunity Board, internal demo and pitch brief. Do not publish, share or contact anyone.",
+  "blockers": [],
   "known_limitations": [
-    "Browser verification not performed: requires Supabase env, a signed-in session and migration 0007.",
-    "Pages that use campaigns/triage need migration 0007; the queue and board fall back to read-only qualification without it, and import falls back to the legacy insert.",
+    "Browser verification has not yet been performed; migrations 0005-0007 are now applied and verified.",
     "Stored CRM opportunity/confidence/next action act as overrides; clear them on the CRM record to recompute from new audits or contacts.",
     "GBP status is only recorded/unconfirmed; there is no GBP audit (no Google Maps scraping by design).",
     "Geolocation requires a CSV service_area/locations column or a CRM service_area that is not a discovery scan area.",
     "tests/*.mjs need native deps for the current OS (DuckDB); run npm ci on the machine running them."
   ],
   "manual_steps": [
-    "Apply supabase/migrations/0007_prospect_discovery.sql once in the business Command Center Supabase project (SQL Editor: paste and run), after 0006."
+    "Run the controlled signed-in browser test. Do not publish, share a demo, contact a prospect or deploy production during validation.",
+    "Review prepared but unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql separately after the Prospect Discovery validation."
   ],
   "tests": [
     {
@@ -166,6 +164,16 @@
       "command": "apply 0006_roadmap_execution_log (retry)",
       "result": "cancelled again before execution; verified nothing applied; fingerprints unchanged",
       "ran_at": "2026-10-14T05:47:24Z"
+    },
+    {
+      "command": "SQL Editor: apply 0006_roadmap_execution_log and 0007_prospect_discovery; reconcile Supabase migration history",
+      "result": "passed; both migrations applied and recorded as 0006_roadmap_execution_log and 0007_prospect_discovery",
+      "ran_at": "2026-10-14T05:50:59Z"
+    },
+    {
+      "command": "Post-migration database verification",
+      "result": "passed; roadmap/discovery tables, policies, triggers and constraints present; businesses=7; lead_import_rows=25; all 25 triage_status=review_needed; all new business qualification fields remain null",
+      "ran_at": "2026-10-14T05:50:59Z"
     }
   ],
   "milestones": [
