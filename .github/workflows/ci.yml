@@ -5,6 +5,7 @@ on:
       - feature/nextjs-foundation
       - integration/claude-roadmap-oct12
       - codex/generator-intelligence-checkpoints-oct12
+      - codex/agent-ledger-board-counts-oct14
   pull_request:
     branches:
       - main
