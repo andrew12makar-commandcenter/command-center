@@ -8,7 +8,8 @@ import { parseCsv, normalizedHeader } from '@/lib/csv';
 import {classifyWebPresence,validateBusinessWebsite,discoveredProfile} from '@/lib/web-presence';
 import {exactGoogleListingUrl,editableCrmListingUrl} from '@/lib/google-listing-link';
 import {collectAllPages,potentialMatches,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '@/lib/lead-identity';
-import {importRecoveryDecision,missingImportEvidence,deterministicSourceId} from '@/lib/staged-import-recovery';
+import {importRecoveryDecision} from '@/lib/staged-import-recovery';
+import {commitStagedImport} from '@/lib/staged-import-commit';
 import {validateCampaignInput} from '@/lib/discovery-campaigns';
 import {resolveCampaign} from '@/lib/discovery-campaigns-server';
 import {OPPORTUNITIES,CONFIDENCES,NEXT_ACTIONS,EVIDENCE_STATES,qualifyStagedRow,readReview,type Qualification,type ManualReview} from '@/lib/prospect-qualification';
@@ -325,70 +326,27 @@ async function approveImportedRowImpl(form: FormData) {
     ...(street_address?{street_address}:{}),...(postal_code?{postal_code}:{}),
     ...(service_area?{service_area}:{}),...contact
   };
-  let business:{id:string}|null=resuming?{id:linkedBusiness!.id}:null;
-  if(!resuming){
-    // The durable recovery link is persisted as soon as a business is created,
-    // BEFORE source inserts. It does not make this workflow a DB transaction.
-    let {data:created,error}=await supabase.from('businesses').insert({id,...baseRecord,...carried}).select('id').single();
-    if(error&&/column|schema cache/i.test(error.message)){
-      // Migration 0007 not applied yet: keep the original import path working.
-      ({data:created,error}=await supabase.from('businesses').insert({id,...baseRecord}).select('id').single());
-    }
-    if(error&&/duplicate key|unique constraint/i.test(error.message))throw new Error(
-      'A CRM record may already exist for staging row '+id+'. Reload the queue and resume this import, rather than creating another business.');
-    if(error||!created)throw new Error(error?.message??'Failed to insert business');
-    business=created;
-  }
-  if(!business)throw new Error('Import recovery could not identify the CRM business.');
-  if(!row.matched_business_id){
-    // Also repair the staged link when recovering a deterministic-ID business
-    // created by a request that failed before it could write this reference.
-    const {data:claimed,error:claimError}=await supabase.from('lead_import_rows')
-      .update({matched_business_id:business.id})
-      .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending')
-      .is('matched_business_id',null).select('id').maybeSingle();
-    if(claimError||!claimed)throw new Error(
-      'CRM business '+business.id+' exists, but the staging recovery link could not be saved. Reload to review the record before continuing.');
-  }
-  const evidence=[];
+  const evidence:{
+    source_url:string;source_type:string;raw_name:string|null;
+    raw_address:string|null;registration_number:string|null;confidence:'pending'
+  }[]=[];
   if(source_url)evidence.push({
-    id:deterministicSourceId(id,row.source_type||'csv_import',source_url),
-    organization_id:organizationId,business_id:business.id,
-    source_url,source_type:row.source_type||'csv_import',raw_name:row.name,
-    raw_address:street_address||null,
+    source_url,source_type:row.source_type||'csv_import',
+    raw_name:row.name,raw_address:street_address||null,
     registration_number:typeof raw.external_id==='string'?raw.external_id:null,
     confidence:'pending'
   });
   if(socialUrl&&socialUrl!==source_url)evidence.push({
-    id:deterministicSourceId(id,'social_profile',socialUrl),
-    organization_id:organizationId,business_id:business.id,
     source_url:socialUrl,source_type:'social_profile',raw_name:row.name,
     raw_address:null,registration_number:null,confidence:'pending'
   });
-  // On retries, save only missing evidence, never replay all prior sources.
-  // A unique DB constraint/transaction is still needed to prevent concurrent writes.
-  const present:{source_type:string;source_url:string|null}[]=[];
-  for(const item of evidence){
-    const {data:found,error:lookupError}=await supabase.from('business_sources')
-      .select('source_type,source_url').eq('organization_id',organizationId)
-      .eq('business_id',business.id).eq('source_type',item.source_type)
-      .eq('source_url',item.source_url).limit(1);
-    if(lookupError)throw new Error('CRM business '+business.id+' is linked, but source evidence could not be checked: '+lookupError.message);
-    if(found?.length)present.push(...found);
-  }
-  const missing=missingImportEvidence(evidence,present);
-  if(missing.length){
-    const {error:srcError}=await supabase.from('business_sources').insert(missing);
-    if(srcError)throw new Error('CRM business '+business.id+' is linked, but evidence is incomplete: '+srcError.message+'. Another request may already have inserted it; reload and resume the staged row.');
-  }
-  const {data:completed,error:updateError}=await supabase.from('lead_import_rows')
-    .update({review_status:'imported'})
-    .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending')
-    .eq('matched_business_id',business.id).select('id').maybeSingle();
-  if(updateError||!completed)throw new Error(
-    'CRM business '+business.id+' exists, but staging completion could not be verified. Recheck the linked record before retrying.');
+  // Real server actions and local authenticated DB integration tests call the
+  // SAME commit function. No service-role client is passed by the app.
+  const {businessId}=await commitStagedImport({
+    supabase,organizationId,row,baseRecord,qualifiedRecord:carried,evidence
+  });
   revalidatePath('/app');revalidatePath('/app/leads');revalidatePath('/app/leads/import');revalidatePath('/app/opportunities');
-  redirect(form.get('open_crm')==='yes'?'/app/leads/'+business.id:queueReturn(form));
+  redirect(form.get('open_crm')==='yes'?'/app/leads/'+businessId:queueReturn(form));
 }
 
 async function skipImportedRowImpl(form:FormData){
