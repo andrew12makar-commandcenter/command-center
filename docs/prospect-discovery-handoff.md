@@ -46,6 +46,9 @@ Reuse: `lead_import_rows` (staging), `businesses` (CRM), `/app/opportunities` (b
 3. Record exact browser evidence and update the tracker. Do not publish, share or contact anyone.
 4. Optional polish: on CRM records, recorded email/contact name from the lead form could refresh contact readiness (it already does when the stored next_action is cleared).
 
+## Preview validation (2026-10-14, Claude)
+Local dev server on port 3107 (owner's Mac), signed in by the owner, against Supabase lxdnoxflwqmsvnoforgl with migrations 0005-0007 applied. All seven browser stages passed; see docs/prospect-discovery-status.json tests. Records created by the test: 1 campaign ("Test: Brighton website design"), 16 staged candidates, 1 CRM business imported from a clear-identity candidate, 1 internal demo draft. Nothing published, shared or sent. Observations for follow-up are listed under known limitations.
+
 ## Session log
 - 2026-10-13 (Claude): Tracker, migration 0007 and campaign-based discovery (M0–M1).
 - 2026-10-13 (Claude): Merged origin 235f637 with a normal merge commit (3e2f757, no rebase, no force push); checks passed on it; pushed; tracker set to ready_for_review.

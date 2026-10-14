@@ -2,69 +2,31 @@
   "project": "Prospect Discovery MVP",
   "branch": "codex/generator-intelligence-checkpoints-oct12",
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
-  "current_milestone": "Preview validation: signed-in browser workflow",
-  "overall_status": "in_progress",
-  "last_updated": "2026-10-14T05:50:59Z",
+  "current_milestone": "Preview validation complete (localhost:3107, signed in); awaiting final approval",
+  "overall_status": "ready_for_review",
+  "last_updated": "2026-10-14T07:04:41Z",
   "responsible_agent": "Claude",
-  "safe_for_other_agent_to_edit": false,
+  "safe_for_other_agent_to_edit": true,
   "latest_commit": {
     "sha": "3e2f75738a016bead7084eefaea96001345bd974",
     "message": "REVIEW CHECKPOINT: merge of origin 235f637 (Overture cache) into Prospect Discovery; all checks run on this commit. Later commits, if any, are tracker-only docs changes."
   },
-  "next_action": "Claude: pull the tracker-only commits, confirm migrations 0005-0007 in Supabase history, then perform the controlled signed-in browser test from Project Status through one Brighton campaign, queue triage, one safe CRM import, Opportunity Board, internal demo and pitch brief. Do not publish, share or contact anyone.",
+  "next_action": "Owner: review browser evidence and observations, then decide on production integration. Do not merge or deploy production, apply 0008, publish, share or contact anyone without separate approval.",
   "blockers": [],
   "known_limitations": [
-    "Browser verification has not yet been performed; migrations 0005-0007 are now applied and verified.",
-    "Stored CRM opportunity/confidence/next action act as overrides; clear them on the CRM record to recompute from new audits or contacts.",
-    "GBP status is only recorded/unconfirmed; there is no GBP audit (no Google Maps scraping by design).",
-    "Geolocation requires a CSV service_area/locations column or a CRM service_area that is not a discovery scan area.",
-    "tests/*.mjs need native deps for the current OS (DuckDB); run npm ci on the machine running them."
+    "Browser validation ran on a local dev server against the single live Supabase project; there is no separate preview database.",
+    "Qualification ranks GBP Moderate whenever a street address exists and no GBP link is recorded, so website-design campaigns from the Boston certified directory currently show GBP as the primary opportunity; home-office addresses are not distinguished from storefronts.",
+    "Boston certified-directory category maps to legal entity type (businesstype), so industry hints read Other business; pre-existing mapping in lib/discovery.ts.",
+    "Pitch brief location repeats city/postcode when the recorded street field already holds a full address.",
+    "Server action validation errors show the Next.js error page/overlay rather than an inline message (existing app pattern).",
+    "Print layout verified by loaded print CSS only; the native print dialog was not opened.",
+    "Migration 0008 (privilege hardening) prepared, reviewed by no one yet, NOT applied."
   ],
   "manual_steps": [
     "Run the controlled signed-in browser test. Do not publish, share a demo, contact a prospect or deploy production during validation.",
     "Review prepared but unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql separately after the Prospect Discovery validation."
   ],
   "tests": [
-    {
-      "command": "node --experimental-strip-types --test tests/*.test.ts (baseline)",
-      "result": "163 passed, 0 failed",
-      "ran_at": "2026-10-13T22:30:00Z"
-    },
-    {
-      "command": "npx tsc --noEmit (baseline)",
-      "result": "passed",
-      "ran_at": "2026-10-13T22:30:00Z"
-    },
-    {
-      "command": "node --test discovery, discovery-campaigns, lead-identity, business-classification",
-      "result": "27 passed, 0 failed",
-      "ran_at": "2026-10-13T22:30:21Z"
-    },
-    {
-      "command": "npx tsc --noEmit",
-      "result": "passed",
-      "ran_at": "2026-10-13T22:30:21Z"
-    },
-    {
-      "command": "npx eslint (changed files)",
-      "result": "passed",
-      "ran_at": "2026-10-13T22:30:21Z"
-    },
-    {
-      "command": "node --test tests/prospect-qualification.test.ts",
-      "result": "20 passed, 0 failed",
-      "ran_at": "2026-10-13T22:34:55Z"
-    },
-    {
-      "command": "npx tsc --noEmit + eslint (M2 files)",
-      "result": "passed",
-      "ran_at": "2026-10-13T22:34:55Z"
-    },
-    {
-      "command": "node --experimental-strip-types --test tests/*.test.ts",
-      "result": "186 passed, 0 failed",
-      "ran_at": "2026-10-13T22:37:38Z"
-    },
     {
       "command": "npx tsc --noEmit + eslint app/app/leads",
       "result": "passed",
@@ -174,6 +136,46 @@
       "command": "Post-migration database verification",
       "result": "passed; roadmap/discovery tables, policies, triggers and constraints present; businesses=7; lead_import_rows=25; all 25 triage_status=review_needed; all new business qualification fields remain null",
       "ran_at": "2026-10-14T05:50:59Z"
+    },
+    {
+      "command": "Browser 1: /app/project-status and /app/roadmap (signed in, localhost:3107)",
+      "result": "PASS: tracker page renders status/milestones/tests; roadmap renders (9/31 checkpoints); sidebar sync shows ready (0005/0006 live); Project Status nav link present",
+      "ran_at": "2026-10-14T07:00:12Z"
+    },
+    {
+      "command": "Browser 2: campaign Test: Brighton website design (Website design, Any industry, Boston certified, Brighton, max 25)",
+      "result": "PASS: staged 16 new (dataset has 16 Brighton matches), 0 skipped; campaign e81054d6 recorded; 16 rows carry campaign_id",
+      "ran_at": "2026-10-14T07:00:12Z"
+    },
+    {
+      "command": "Browser 3: repeat scan into same campaign",
+      "result": "PASS: added 0, skipped 16; DB shows 0 duplicate source/external_id pairs; lead_import_rows 25 -> 41",
+      "ran_at": "2026-10-14T07:00:12Z"
+    },
+    {
+      "command": "Browser 4: queue cards and filters (campaign view)",
+      "result": "PASS: 16 cards show campaign, area, industry, website presence, GBP status, opportunity/strength, confidence, readiness, next action, status, rationale; filter counts: website official=1, none=15, opp gbp=16, website_design=0, strength moderate=16, readiness ready=16, confidence medium=16, area Brighton=3, industry other=16, name search=1, no-campaign=24. Observation: all 16 rank GBP Moderate (street address, no GBP link) even in a website-design campaign; Boston certified category maps to legal entity type, so industry hint is Other business",
+      "ran_at": "2026-10-14T07:02:32Z"
+    },
+    {
+      "command": "Browser 5: shortlist, hold, restore, disqualify validation, restore",
+      "result": "PASS: candidate A shortlisted; candidate B held then restored; candidate C: empty reason blocked client-side, 5-char reason rejected server-side (row unchanged), valid reason disqualified, then restored with reason cleared. Observation: server validation errors surface as the Next.js error overlay (dev) / error page, not an inline message",
+      "ran_at": "2026-10-14T07:02:32Z"
+    },
+    {
+      "command": "Browser 6: import one clear-identity candidate (candidate A: city-certified record, official site domain matches name, no duplicate warning)",
+      "result": "PASS: CRM record created; campaign_id, primary_opportunity=gbp, evidence_confidence=medium, next_action=confirm_gbp, rationale carried; priority_score null; contact name/email from source; 1 source row; staged row review_status=imported",
+      "ran_at": "2026-10-14T07:04:41Z"
+    },
+    {
+      "command": "Browser 7: CRM, Opportunity Board, internal demo, pitch brief",
+      "result": "PASS: CRM qualification panel with pitch/demo/board links; board campaign filter shows 1 business with qualification line and Pitch brief/Website demo links (board total 8); demo generated via existing createDemo as status=draft (generated imagery ack only, business-image reuse NOT authorized, no external API); pitch brief shows all sections, links the draft demo, Copy as Markdown works (Copied), print CSS loaded",
+      "ran_at": "2026-10-14T07:04:41Z"
+    },
+    {
+      "command": "Post-test DB integrity",
+      "result": "Original 7 businesses and 25 staged rows: fingerprints identical to pre-migration baseline (new columns excluded); totals now 8 businesses, 41 staged rows, 1 campaign, 1 new demo draft by this test; no activities, no outreach",
+      "ran_at": "2026-10-14T07:04:41Z"
     }
   ],
   "milestones": [
