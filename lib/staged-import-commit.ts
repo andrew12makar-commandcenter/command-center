@@ -56,7 +56,18 @@ export async function commitStagedImport({
    .eq('id',row.id).eq('organization_id',organizationId)
    .eq('review_status','pending').is('matched_business_id',null)
    .select('id').maybeSingle();
-  if(claimError||!claimed)throw Error('CRM business '+businessId+' exists; staging recovery link not saved. Reload and review.');
+  if(claimError)throw Error('CRM business '+businessId+' exists; staging recovery link write failed: '+claimError.message);
+  if(!claimed){
+   // The caller may have read an earlier snapshot while another request
+   // successfully saved the recovery link. Accept only an exact match still
+   // awaiting completion, never a different CRM record or finished row.
+   const {data:latest,error:readError}=await supabase.from('lead_import_rows')
+    .select('matched_business_id,review_status')
+    .eq('id',row.id).eq('organization_id',organizationId).maybeSingle();
+   if(readError||latest?.matched_business_id!==businessId||latest?.review_status!=='pending'){
+    throw Error('CRM business '+businessId+' exists; staged link no longer matches. Reload and review.');
+   }
+  }
  }
  await runHook(onPhase,'after_claim');
  const desired=evidence.map(x=>({
