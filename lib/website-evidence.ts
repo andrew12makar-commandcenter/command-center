@@ -15,9 +15,11 @@ export const websiteIssueLabels:Record<WebsiteIssue,string>={
  old_copyright:'Copyright year looks out of date',no_sitemap:'No sitemap found',
  name_not_found:'Business name not found on the homepage (identity unconfirmed)'
 };
+// LocalBusiness has hundreds of schema.org subtypes; accept the family by suffix as well as by name.
+const LOCAL_SUFFIX=/(Business|Store|Restaurant|Agency|Service|Office|Clinic|Practice|Shop|Salon|Cafe|Bakery|Contractor|Center|Physician|Attorney|Notary|Club|Studio|Dealer|Repair)$/;
 const LOCAL_TYPES=/^(LocalBusiness|Organization|Restaurant|FoodEstablishment|Store|ProfessionalService|HomeAndConstructionBusiness|HealthAndBeautyBusiness|MedicalBusiness|Dentist|AutomotiveBusiness|LegalService|FinancialService|SportsActivityLocation|LodgingBusiness|EntertainmentBusiness|CafeOrCoffeeShop|BarOrPub|Bakery|BeautySalon|HairSalon|DaySpa|ExerciseGym|RealEstateAgent|Plumber|Electrician|GeneralContractor|HVACBusiness|Locksmith|MovingCompany|RoofingContractor|HousePainter)$/;
 const STOP=new Set(['llc','inc','co','corp','corporation','company','the','and','of','ltd','limited','liability','group','services','service','enterprises','enterprise','boston','ma','pc','pllc','llp']);
-function decode(s:string){return s.replace(/&amp;/g,'&').replace(/&#39;|&apos;/g,"'").replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();}
+function decode(s:string){return s.replace(/&#(\d{1,6});/g,(_,n)=>String.fromCodePoint(Number(n))).replace(/&#x([0-9a-f]{1,6});/gi,(_,h)=>String.fromCodePoint(parseInt(h,16))).replace(/&mdash;/g,'—').replace(/&ndash;/g,'–').replace(/&amp;/g,'&').replace(/&#39;|&apos;/g,"'").replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();}
 function meta(html:string,attr:'name'|'property',key:string):string{
  const re=new RegExp(`<meta[^>]+${attr}=["']${key}["'][^>]*>`,'i');const tag=html.match(re)?.[0]||'';
  return decode(tag.match(/content=["']([^"']*)["']/i)?.[1]||'');
@@ -57,7 +59,7 @@ export function parseWebsiteHtml(html:string,opts:{finalUrl:string;businessName:
  const https=/^https:/i.test(opts.finalUrl);
  let host='';try{host=new URL(opts.finalUrl).hostname;}catch{host='';}
  const name_match=nameMatches(opts.businessName,[title,meta(head,'property','og:site_name'),host,text.slice(0,20000)].join(' '));
- const local_business_schema=types.some(t=>LOCAL_TYPES.test(t));
+ const local_business_schema=types.some(t=>LOCAL_TYPES.test(t)||LOCAL_SUFFIX.test(t));
  const issues:WebsiteIssue[]=[];
  if(!https)issues.push('no_https');
  if(!viewport)issues.push('no_viewport');

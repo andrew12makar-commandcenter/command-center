@@ -56,3 +56,10 @@ test('Boston certified directory maps business type to legal structure, not cate
  assert.equal(r[1].category,'Certified business');
  assert.equal(r[1].raw_data.legal_structure,'Corporation');
 });
+
+test('numeric entities are decoded and LocalBusiness subtypes are recognised',()=>{
+ const h='<title>Home - Caf&#233; Lava</title><script type="application/ld+json">{"@type":"InsuranceAgency"}</script>';
+ const x=parseWebsiteHtml(h,{finalUrl:'https://a.example/',businessName:'Cafe Lava',now});
+ assert.equal(x.title,'Home - Café Lava');
+ assert.equal(x.local_business_schema,true);
+});

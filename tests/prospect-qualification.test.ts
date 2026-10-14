@@ -63,7 +63,9 @@ test('a missing website stays unknown until review supports "verified missing"',
  assert.equal(m.websiteState,'verified_missing');assert.equal(m.opportunityStrength,'strong');
 });
 test('website check evidence sets explicit evidence states',()=>{
- assert.equal(qualifyProspect(base({websiteUrl:'https://dental.example/',review:{website_check:check()}})).websiteState,'verified_present');
+ const present=qualifyProspect(base({websiteUrl:'https://dental.example/',review:{website_check:check()}}));
+ assert.equal(present.websiteState,'verified_present');assert.equal(present.opportunityStrength,'weak');assert.match(present.summary,/looks low/);
+ assert.equal(qualifyProspect(base({websiteUrl:'https://dental.example/',review:{website_check:check({status:'error',error_code:'local-unavailable'})}})).websiteState,'unknown');
  assert.equal(qualifyProspect(base({websiteUrl:'https://dental.example/',review:{website_check:weakCheck}})).websiteState,'likely_weak');
  assert.equal(qualifyProspect(base({websiteUrl:'https://dental.example/',review:{website_check:check({name_match:false,issues:['name_not_found']})}})).websiteState,'conflicting');
  assert.equal(qualifyProspect(base({websiteUrl:'https://dental.example/',review:{website_check:check({status:'unreachable'})}})).websiteState,'conflicting');
@@ -172,4 +174,10 @@ test('business adapter is read-only and respects audit provenance',()=>{
  assert.equal(q.primaryOpportunity,'website_design');assert.equal(q.websiteState,'likely_weak');
  assert.equal(q.nextAction,'find_decision_maker');
  assert.equal(JSON.stringify(b),copy,'rescoring never mutates the record');
+});
+
+test('reviewed public contact routes fill gaps without overwriting source values',()=>{
+ const q=qualifyProspect(base({phone:null,review:{manual:{phone:'(617) 555-0199',reviewed_at:'2026-10-14'}}}));
+ assert.notEqual(q.contactReadiness,'not_ready');
+ assert.ok(!q.unmet.includes('No public contact route'));
 });

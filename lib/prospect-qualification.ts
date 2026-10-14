@@ -57,6 +57,8 @@ export type ManualReview={
  identity?:'confirmed'|'unclear'|'unknown';active?:'confirmed'|'possibly_inactive'|'unknown';
  location_type?:'storefront'|'office'|'home_based'|'service_area'|'unknown';
  service_area?:string|null;note?:string|null;reviewed_at?:string;reviewed_by?:string;
+ // Public contact routes found during review (business phone/email only; never personal data).
+ phone?:string|null;email?:string|null;contact_name?:string|null;
 };
 export type ReviewEvidence={manual?:ManualReview;website_check?:WebsiteCheck};
 export function readReview(raw:Record<string,unknown>|null|undefined):ReviewEvidence{
@@ -133,8 +135,8 @@ function websiteStateOf(i:QualificationInput,site:boolean):{state:EvidenceState;
    return weak>=2?{state:'likely_weak',why:'Website check found '+weak+' quality issues: '+c.issues.filter(x=>x!=='no_local_business_schema'&&x!=='no_sitemap').slice(0,3).map(x=>websiteIssueLabels[x].toLowerCase()).join('; ')+'.',check:c}:
     {state:'verified_present',why:'Website loads and names the business'+(weak?'; 1 minor quality issue':'')+'.',check:c};
   }
-  if(c.status==='unreachable')return {state:'conflicting',why:'A website is recorded but did not load during the check.',check:c};
-  return {state:'unknown',why:'Website check could not complete ('+c.status+'). Needs manual verification.',check:c};
+  if(c.status==='unreachable')return {state:'conflicting',why:'A website is recorded but its domain did not resolve or connect during the check.',check:c};
+  return {state:'unknown',why:'Website check could not complete'+(c.error_code?' ('+c.error_code.replace(/^local-/,'')+')':'')+'. Needs manual verification.',check:c};
  }
  if(i.audit&&!i.audit.operatorSupplied&&i.audit.status==='verified_gaps'&&i.audit.performanceScore!==null&&i.audit.performanceScore<50)
   return {state:'likely_weak',why:'Measured mobile performance '+i.audit.performanceScore+'/100.'};
@@ -148,8 +150,10 @@ function gbpStateOf(i:QualificationInput):{state:EvidenceState;why:string}{
  return {state:'unknown',why:'GBP not yet checked. A missing link is not proof there is no profile.'};
 }
 
-export function qualifyProspect(i:QualificationInput):Qualification{
- const m=i.review?.manual;
+export function qualifyProspect(input:QualificationInput):Qualification{
+ const m=input.review?.manual;
+ // Reviewed public contact routes fill gaps; they never overwrite source values.
+ const i:QualificationInput={...input,phone:input.phone||m?.phone||null,email:input.email||m?.email||null,contactName:input.contactName||m?.contact_name||null};
  const recordedSite=classifyWebPresence(i.websiteUrl);
  const operatorSite=classifyWebPresence(m?.website_url||null);
  const site=recordedSite.kind==='website'||operatorSite.kind==='website';
@@ -254,7 +258,7 @@ export function qualifyProspect(i:QualificationInput):Qualification{
  const score=clamp(parts.reduce((n,p)=>n+p.points,0)+penalties.reduce((n,p)=>n+p.points,0),0,100);
 
  const strength:Strength=excludedReason||primary==='no_clear_opportunity'?'weak':
-  lane.state==='unknown'?'unknown':need>=24?'strong':need>=15?'moderate':need>=6?'weak':'unknown';
+  lane.state==='unknown'?'unknown':lane.state==='verified_present'?'weak':need>=24?'strong':need>=15?'moderate':need>=6?'weak':'unknown';
  let confidence:Confidence=conf>=11?'high':conf>=7?'medium':conf>=3?'low':'unknown';
  if((i.duplicateWarning||penalties.some(p=>p.key==='conflict'||p.key==='identity'))&&confidence!=='unknown')
   confidence=confidence==='high'?'medium':'low';
@@ -310,7 +314,7 @@ export function qualifyProspect(i:QualificationInput):Qualification{
  if(primaryLane!=='gbp'&&gbp.state==='unknown')reasons.push('GBP unknown (not checked).');
  if(i.duplicateWarning)reasons.push('Possible duplicate of a CRM record; check before importing.');
  if(overridden.length)reasons.push('Manually set: '+overridden.map(x=>x==='primaryOpportunity'?'opportunity':x==='evidenceConfidence'?'confidence':'next action').join(', ')+'.');
- const summary=(excludedReason??(opportunityLabels[primary]+(strength==='unknown'?' need is not yet shown: ':' need is '+strength+': ')+lane.why)).slice(0,240);
+ const summary=(excludedReason??(opportunityLabels[primary]+(strength==='unknown'?' need is not yet shown: ':lane.state==='verified_present'?' need looks low: ':' need is '+strength+': ')+lane.why)).slice(0,240);
  const rationale=(opportunityLabels[primary]+' · '+strengthLabels[strength]+': '+(excludedReason||lane.why)).slice(0,400);
  return {researchStatus,websitePresence,gbpStatus,websiteState:web.state,gbpState:gbp.state,
   primaryOpportunity:primary,opportunityStrength:strength,evidenceConfidence:confidence,contactReadiness:readiness,

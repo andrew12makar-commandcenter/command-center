@@ -84,6 +84,9 @@ function CandidateCard({x,here,err,compact=false}:{x:Scored;here:string;err:stri
      <label>Currently operating<select name="active" className="mt-1 !py-1.5 text-xs" defaultValue={m?.active??''}><option value="">Not reviewed</option><option value="confirmed">Confirmed</option><option value="possibly_inactive">Possibly inactive</option><option value="unknown">Unknown</option></select></label>
      <label>Location type<select name="location_type" className="mt-1 !py-1.5 text-xs" defaultValue={m?.location_type??''}><option value="">Not reviewed</option><option value="storefront">Storefront</option><option value="office">Office</option><option value="home_based">Home-based (confirmed)</option><option value="service_area">Service-area business</option><option value="unknown">Unknown</option></select></label>
      <label>Service area (if published)<input name="service_area" className="mt-1 !py-1.5 text-xs" maxLength={200} defaultValue={m?.service_area??''}/></label>
+     <label>Business phone found<input name="phone" className="mt-1 !py-1.5 text-xs" maxLength={40} defaultValue={m?.phone??''}/></label>
+     <label>Business email found<input name="email" type="email" className="mt-1 !py-1.5 text-xs" maxLength={160} defaultValue={m?.email??''}/></label>
+     <label>Decision maker (if published)<input name="contact_name" className="mt-1 !py-1.5 text-xs" maxLength={120} defaultValue={m?.contact_name??''}/></label>
      <label className="sm:col-span-2 lg:col-span-1">Note (what you checked)<input name="note" className="mt-1 !py-1.5 text-xs" maxLength={600} defaultValue={m?.note??''}/></label>
      <div className="sm:col-span-2 lg:col-span-3"><button className="btn !px-3 !py-1.5 text-xs" type="submit">Save review</button>
       <span className="muted ml-2">Only record what you actually verified. Leave unknowns as Not reviewed.</span></div>

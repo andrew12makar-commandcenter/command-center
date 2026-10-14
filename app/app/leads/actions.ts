@@ -295,13 +295,13 @@ async function approveImportedRowImpl(form: FormData) {
   let gbpUrl:string|null=null;
   try{gbpUrl=webUrl(rawText(['googlebusinessurl','gbpurl','googlebusinessprofile','googlemapsurl'])||review.manual?.gbp_url||null);}catch{gbpUrl=null;}
   const contact={
-    ...(rawText(['email','contactemail'])?{contact_email:rawText(['email','contactemail'])}:{}),
-    ...(rawText(['contactname','owner','ownername'])?{contact_name:rawText(['contactname','owner','ownername'])}:{}),
+    ...((rawText(['email','contactemail'])||review.manual?.email)?{contact_email:rawText(['email','contactemail'])||review.manual?.email}:{}),
+    ...((rawText(['contactname','owner','ownername'])||review.manual?.contact_name)?{contact_name:rawText(['contactname','owner','ownername'])||review.manual?.contact_name}:{}),
     ...(gbpUrl?{google_business_url:gbpUrl}:{}),
   };
   const baseRecord={
     organization_id:organizationId,name:row.name,city:row.city||null,category:row.category,
-    phone:row.phone,website_url:officialWebsite,verification_status:source_url?'pending':'unverified',
+    phone:row.phone||review.manual?.phone||null,website_url:officialWebsite,verification_status:source_url?'pending':'unverified',
     ...(street_address?{street_address}:{}),...(postal_code?{postal_code}:{}),
     ...(service_area?{service_area}:{}),...contact
   };
@@ -529,6 +529,7 @@ async function saveCandidateReviewImpl(form:FormData){
   identity:one('identity',['confirmed','unclear','unknown'] as const),active:one('active',['confirmed','possibly_inactive','unknown'] as const),
   location_type:one('location_type',['storefront','office','home_based','service_area','unknown'] as const),
   service_area:shortText(form.get('service_area'),200)||null,note:shortText(form.get('note'),600)||null,
+  phone:shortText(form.get('phone'),40)||null,email:shortText(form.get('email'),160)||null,contact_name:shortText(form.get('contact_name'),120)||null,
   reviewed_at:new Date().toISOString(),reviewed_by:ctx.user.id,
  };
  if(manual.gbp==='verified_present'&&!gbp_url)throw new Error('Add the GBP link you verified, or choose a different GBP state.');

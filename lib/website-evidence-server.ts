@@ -23,12 +23,14 @@ export async function checkWebsiteEvidence(input:string,businessName:string):Pro
  try{finalUrl=String(await preflightPublicWebsite(input));}
  catch(error){
   const code=(error as {code?:string})?.code||'error';
+  // Only DNS or connection failure counts as "unreachable". An HTTP error page or bot
+  // protection is not evidence of inactivity; it needs manual verification.
   const status:WebsiteCheckStatus=code==='local-unsafe'?'unsafe':code==='local-denied'||code==='local-rate-limited'?'denied':
-   code==='local-dns'||code==='local-network'||code==='local-unavailable'?'unreachable':'error';
+   code==='local-dns'||code==='local-network'?'unreachable':'error';
   return {checked_at,url:input,status,error_code:code,...empty};
  }
  const page=await smallGet(finalUrl,1_500_000,'text/html');
- if(!page||page.status>=400||!page.body)return {checked_at,url:input,status:page&&page.status>=400?'unreachable':'error',error_code:page?'http-'+page.status:'fetch',...empty,final_url:finalUrl};
+ if(!page||page.status>=400||!page.body)return {checked_at,url:input,status:'error',error_code:page?'http-'+page.status:'fetch',...empty,final_url:finalUrl};
  const parsed=parseWebsiteHtml(page.body,{finalUrl,businessName});
  const origin=new URL(finalUrl).origin;
  const robots=await smallGet(origin+'/robots.txt',50_000,'text/plain');
