@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {filterOpportunityBoard} from '../lib/opportunity-board-filter.ts';
+import {filterOpportunityBoard,type BoardVisibility} from '../lib/opportunity-board-filter.ts';
 import type {BoardStage} from '../lib/opportunity-board.ts';
 
 const stages:BoardStage[]=['research_website','verify_business','technical_review','audit_website'];
@@ -10,8 +10,8 @@ const fixtures=[
  {stage:'technical_review' as BoardStage,business:{name:'Test: Mock Shop',city:'Brighton',category:null,service_area:null},meta:{isTest:true,opportunity:'website_design',campaignId:'test'}},
  {stage:'audit_website' as BoardStage,business:{name:'Brighton Dental',city:'Brighton',category:'Dentist',service_area:null},meta:{isTest:false,opportunity:'local_seo',campaignId:'brighton'}}
 ];
-const defaults={showTests:false,stage:null,opportunity:'',campaignFilter:'',q:''};
-const run=(params:Partial<typeof defaults>={})=>filterOpportunityBoard(fixtures,stages,{...defaults,...params},row=>row.meta);
+const defaults:BoardVisibility={showTests:false,stage:null,opportunity:'',campaignFilter:'',q:''};
+const run=(params:Partial<BoardVisibility>={})=>filterOpportunityBoard(fixtures,stages,{...defaults,...params},row=>row.meta);
 
 test('stage counts and list exclude test campaigns by default',()=>{
  const {searched,counts,testCount}=run();
