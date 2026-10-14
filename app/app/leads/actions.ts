@@ -8,7 +8,7 @@ import { parseCsv, normalizedHeader } from '@/lib/csv';
 import {classifyWebPresence,validateBusinessWebsite,discoveredProfile} from '@/lib/web-presence';
 import {exactGoogleListingUrl,editableCrmListingUrl} from '@/lib/google-listing-link';
 import {collectAllPages,potentialMatches,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '@/lib/lead-identity';
-import {importRecoveryDecision,missingImportEvidence} from '@/lib/staged-import-recovery';
+import {importRecoveryDecision,missingImportEvidence,deterministicSourceId} from '@/lib/staged-import-recovery';
 import {validateCampaignInput} from '@/lib/discovery-campaigns';
 import {resolveCampaign} from '@/lib/discovery-campaigns-server';
 import {OPPORTUNITIES,CONFIDENCES,NEXT_ACTIONS,EVIDENCE_STATES,qualifyStagedRow,readReview,type Qualification,type ManualReview} from '@/lib/prospect-qualification';
@@ -352,6 +352,7 @@ async function approveImportedRowImpl(form: FormData) {
   }
   const evidence=[];
   if(source_url)evidence.push({
+    id:deterministicSourceId(id,row.source_type||'csv_import',source_url),
     organization_id:organizationId,business_id:business.id,
     source_url,source_type:row.source_type||'csv_import',raw_name:row.name,
     raw_address:street_address||null,
@@ -359,6 +360,7 @@ async function approveImportedRowImpl(form: FormData) {
     confidence:'pending'
   });
   if(socialUrl&&socialUrl!==source_url)evidence.push({
+    id:deterministicSourceId(id,'social_profile',socialUrl),
     organization_id:organizationId,business_id:business.id,
     source_url:socialUrl,source_type:'social_profile',raw_name:row.name,
     raw_address:null,registration_number:null,confidence:'pending'
@@ -377,7 +379,7 @@ async function approveImportedRowImpl(form: FormData) {
   const missing=missingImportEvidence(evidence,present);
   if(missing.length){
     const {error:srcError}=await supabase.from('business_sources').insert(missing);
-    if(srcError)throw new Error('CRM business '+business.id+' is linked, but evidence is incomplete: '+srcError.message+'. Resume import from the research queue.');
+    if(srcError)throw new Error('CRM business '+business.id+' is linked, but evidence is incomplete: '+srcError.message+'. Another request may already have inserted it; reload and resume the staged row.');
   }
   const {data:completed,error:updateError}=await supabase.from('lead_import_rows')
     .update({review_status:'imported'})
