@@ -53,6 +53,33 @@ jobs:
           CC_TEST_SUPABASE_ANON_KEY="$ANON_KEY" \
           CC_TEST_SUPABASE_SERVICE_KEY="$SERVICE_ROLE_KEY" \
             node --experimental-strip-types scripts/test-intake-supabase.mjs
+      - name: Install Chromium for signed-in browser QA
+        run: npx playwright install --with-deps chromium
+      - name: Verify real Next.js login and UI-led import
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_ID
+          set -a
+          eval "$(supabase status -o env 2>/dev/null)"
+          set +a
+          test "$API_URL" = "http://127.0.0.1:54321"
+          test -n "$ANON_KEY" && test -n "$SERVICE_ROLE_KEY"
+          export NEXT_PUBLIC_SUPABASE_URL="$API_URL"
+          export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$ANON_KEY"
+          npm run dev -- --hostname 127.0.0.1 --port 3000 > "$RUNNER_TEMP/cc-next.log" 2>&1 &
+          next_pid=$!
+          trap 'kill "$next_pid" 2>/dev/null || true' EXIT
+          CC_ISOLATED_DB=YES \
+          CC_TEST_SUPABASE_URL="$API_URL" \
+          CC_TEST_SUPABASE_ANON_KEY="$ANON_KEY" \
+          CC_TEST_SUPABASE_SERVICE_KEY="$SERVICE_ROLE_KEY" \
+          CC_TEST_WEB_URL="http://127.0.0.1:3000" \
+            node scripts/test-intake-ui.mjs || {
+              echo 'Isolated Next.js browser QA failed; server log tail:'
+              tail -n 80 "$RUNNER_TEMP/cc-next.log"
+              exit 1
+            }
       - name: Stop disposable stack
         if: always()
         run: supabase stop --no-backup || true
