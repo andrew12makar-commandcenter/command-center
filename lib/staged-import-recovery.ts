@@ -19,7 +19,7 @@ export function importRecoveryDecision(row:RecoveryStage,business:RecoveryBusine
  if(!business||business.id!==linkedId)return 'blocked';
  const name=normalizeBusiness(row.name||''),existing=normalizeBusiness(business.name||'');
  // A stale or manually reassigned link is never permission to edit another CRM lead.
- return name.length>=3&&name===existing?'resume':'blocked';
+ return name.length>=2&&name===existing?'resume':'blocked';
 }
 
 export type SourceEvidence={source_type:string;source_url:string|null};
