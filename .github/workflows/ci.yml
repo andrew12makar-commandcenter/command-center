@@ -7,6 +7,7 @@ on:
       - codex/generator-intelligence-checkpoints-oct12
       - codex/generator-media-context-oct14
       - integration/prospect-intake-generator-oct14
+      - codex/intake-recovery-guard-oct14
   pull_request:
     branches:
       - main
