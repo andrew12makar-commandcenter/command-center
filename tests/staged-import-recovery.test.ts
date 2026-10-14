@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {importRecoveryDecision,missingImportEvidence} from '../lib/staged-import-recovery.ts';
+import {importRecoveryDecision,missingImportEvidence,deterministicSourceId} from '../lib/staged-import-recovery.ts';
 
 const pending={id:'staged-1',name:'Brighton Dental, LLC',matched_business_id:null,review_status:'pending'};
 test('new pending staging row creates once; linked row resumes its exact matching business',()=>{
@@ -35,4 +35,15 @@ test('resume can skip previously saved provenance but retain missing source type
  assert.deepEqual(missingImportEvidence(input,existing),[input[1]]);
  assert.deepEqual(missingImportEvidence(input,[]),[input[0],input[1]]);
  assert.deepEqual(missingImportEvidence(input,[...existing,{source_url:'https://example.com/social',source_type:'social_profile'}]),[]);
+});
+
+test('deterministic source ID is a valid UUIDv8 stable per staging row and source',()=>{
+ const stage='b5e52f4b-6392-401a-9e1c-f1be31763c50';
+ const source='https://data.boston.gov/dataset/business';
+ const first=deterministicSourceId(stage,'local_registry',source);
+ assert.match(first,/^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+ assert.equal(first,deterministicSourceId(stage,'local_registry',source),'same retry must use identical evidence ID');
+ assert.notEqual(first,deterministicSourceId(stage,'social_profile',source));
+ assert.notEqual(first,deterministicSourceId(stage,'local_registry',source+'?v=2'));
+ assert.notEqual(first,deterministicSourceId('b5e52f4b-6392-401a-9e1c-f1be31763c51','local_registry',source));
 });
