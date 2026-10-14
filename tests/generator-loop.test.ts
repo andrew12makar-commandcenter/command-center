@@ -137,6 +137,43 @@ test('business images need a matching authorization; low-quality and foreign ima
  assert.ok(plan.sections.flatMap(s=>s.images).every(i=>i.origin==='generated'&&i.disclosure));
 });
 
+test('the generator selects an authorized hero and reserves staff photos even when the gallery renders first',()=>{
+ const media={
+  generatedAllowed:true,authorizedHost:'studio.example',
+  businessImages:[
+   {url:'https://studio.example/staff.jpg',alt:'Studio owner working in the shop',role:'team' as const},
+   {url:'https://studio.example/work.jpg',alt:'Finished packaging on a table',role:'gallery' as const},
+   {url:'https://studio.example/entry.jpg',alt:'Main studio entrance',role:'hero' as const},
+  ],
+  generated:gen('universal')
+ };
+ const plan=composePage(facts({team:[{name:'Ana Ruiz',role:'Owner'}],imagery:media}),
+  {...reviewed,composition:'split-editorial',hierarchy:'offer-first',imageryDensity:'immersive',copyDepth:'brief'});
+ const hero=plan.sections.find(s=>s.id==='top')!;
+ const gallery=plan.sections.find(s=>s.id==='gallery')!;
+ const team=plan.sections.find(s=>s.id==='team')!;
+ assert.equal(hero.images[0]?.src,'https://studio.example/entry.jpg');
+ assert.equal(gallery.images[0]?.src,'https://studio.example/work.jpg');
+ assert.equal(team.images[0]?.src,'https://studio.example/staff.jpg');
+ assert.ok(plan.sections.findIndex(s=>s.id==='gallery')<plan.sections.findIndex(s=>s.id==='team'));
+ const used=plan.sections.flatMap(s=>s.images);
+ assert.equal(new Set(used.map(i=>i.src)).size,used.length,'images are not reused in several sections');
+ assert.ok(used.length<=plan.imagery.requested,'density remains a ceiling');
+ assert.equal(plan.imagery.filled,used.length);
+});
+
+test('generated concepts are disclosed and never presented as actual staff or recent work',()=>{
+ const f=facts({team:[{name:'Ana Ruiz',role:'Owner'}]});
+ const plan=composePage(f,{...reviewed,composition:'split-editorial',hierarchy:'offer-first',
+  imageryDensity:'immersive',copyDepth:'brief'});
+ const team=plan.sections.find(s=>s.id==='team')!;
+ const gallery=plan.sections.find(s=>s.id==='gallery')!;
+ assert.deepEqual(team.images,[],'concept art cannot pretend to be a staff portrait');
+ assert.equal(gallery.heading.text,'Visual concepts');
+ assert.ok(gallery.images.every(i=>i.origin==='generated'&&i.disclosure));
+ assert.equal(plan.sections.flatMap(s=>s.images).length,3);
+});
+
 test('composer omits sections without facts and never branches on the industry label',()=>{
  const plan=composePage(facts(),reviewed);
  assert.ok(!plan.sections.some(s=>['team','proof','process','faq','visit','area'].includes(s.kind)));
