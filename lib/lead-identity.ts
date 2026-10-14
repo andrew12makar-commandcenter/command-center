@@ -28,8 +28,10 @@ export function researchServiceArea(raw:Record<string,unknown>|null|undefined):s
  // field from the source record can populate the CRM service_area column.
  const source=raw??{};
  const recorded=clean(source.service_area||source.servicearea||source.serviceareas||source.serviceArea);
- const scanArea=clean(source.search_area);
- return recorded&&recorded.toLowerCase()!==scanArea.toLowerCase()?recorded.slice(0,180):'';
+ // The source can genuinely declare the same area we searched. Presence
+ // in its own service-area field is independent evidence; the scan field alone
+ // still cannot be used.
+ return recorded.slice(0,180);
 }
 
 // A name in a city is too weak to collapse franchises or multiple locations.
