@@ -9,6 +9,7 @@ import {scoreOpportunity,sortOpportunities,stageLabels,
 import {qualifyCrmBusiness,type SourceRow} from '@/lib/business-qualification-server';
 import {listCampaigns} from '@/lib/discovery-campaigns-server';
 import {isTestCampaign} from '@/lib/discovery-campaigns';
+import {filterOpportunityBoard} from '@/lib/opportunity-board-filter';
 import {progressLabels} from '@/lib/prospect-qualification';
 import {OPPORTUNITIES,opportunityLabels,strengthLabels,confidenceLabels,nextActionLabels,type Opportunity} from '@/lib/prospect-qualification';
 
@@ -75,23 +76,23 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
  const stage=stages.includes(p.stage as BoardStage)?p.stage as BoardStage|null:null;
  const q=(p.q||'').trim().slice(0,100);
  const showTests=p.tests==='1';
- const testCount=all.filter(x=>isTestCampaign(qualification.get(x.business.id)?.campaign)).length;
- const searched=all.filter(x=>(showTests||!isTestCampaign(qualification.get(x.business.id)?.campaign))&&(!stage||x.stage===stage)&&
-   (!opportunity||qualification.get(x.business.id)?.q.primaryOpportunity===opportunity)&&
-   (!campaignFilter||qualification.get(x.business.id)?.campaign?.id===campaignFilter)&&(!q||
-   [x.business.name,x.business.city,x.business.category,x.business.service_area]
-     .some(v=>(v||'').toLocaleLowerCase().includes(q.toLocaleLowerCase()))));
+ const {searched,counts,testCount}=filterOpportunityBoard(all,stages,
+  {showTests,stage,opportunity,campaignFilter,q},item=>{
+   const detail=qualification.get(item.business.id);
+   return {isTest:isTestCampaign(detail?.campaign),opportunity:detail?.q.primaryOpportunity??null,
+    campaignId:detail?.campaign?.id??null};
+  });
  const pages=Math.max(1,Math.ceil(searched.length/PAGE_SIZE));
  const req=Number(p.page);
  const page=Number.isInteger(req)?Math.max(1,Math.min(pages,req)):1;
  const results=searched.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
- const counts=Object.fromEntries(stages.map(x=>[x,all.filter(y=>y.stage===x).length])) as Record<BoardStage,number>;
  const selectedLabel=stage?stageLabels[stage]:null;
  const tileHref=(selected:BoardStage)=>{
   const params=new URLSearchParams();
   if(q)params.set('q',q);
   if(opportunity)params.set('opportunity',opportunity);
   if(campaignFilter)params.set('campaign',campaignFilter);
+  if(showTests)params.set('tests','1');
   // Clicking an already-selected tile clears its category filter.
   if(stage!==selected)params.set('stage',selected);
   return '/app/opportunities'+(params.size?'?'+params.toString():'')+'#opportunity-results';
@@ -102,8 +103,18 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
   if(stage)params.set('stage',stage);
   if(opportunity)params.set('opportunity',opportunity);
   if(campaignFilter)params.set('campaign',campaignFilter);
+  if(showTests)params.set('tests','1');
   params.set('page',String(n));
   return '/app/opportunities?'+params.toString();
+ };
+ const testToggleHref=()=>{
+  const params=new URLSearchParams();
+  if(q)params.set('q',q);
+  if(stage)params.set('stage',stage);
+  if(opportunity)params.set('opportunity',opportunity);
+  if(campaignFilter)params.set('campaign',campaignFilter);
+  if(!showTests)params.set('tests','1');
+  return '/app/opportunities'+(params.size?'?'+params.toString():'')+'#opportunity-results';
  };
  return <main className="max-w-7xl">
   <div className="flex flex-wrap items-end justify-between gap-4">
@@ -114,6 +125,7 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
    </div>
    <Link className="btn" href="/app/leads/import">Review pending discovery →</Link>
   </div>
+  <p className="muted mt-4 text-xs">Stage totals respect search, campaign, opportunity and test-record visibility; choosing a stage filters the table only.</p>
   <section aria-label="Filter businesses by next action" className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
    {stages.map(s=><Link
     key={s} href={tileHref(s)} scroll={true}
@@ -132,6 +144,7 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
   </section>
   <section className="panel mt-7 p-6">
    <form action="/app/opportunities#opportunity-results" method="get" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_220px_200px_200px_auto]">
+    {showTests&&<input type="hidden" name="tests" value="1"/>}
     <label className="text-sm">Search prospects<input name="q" maxLength={100} className="mt-2" defaultValue={q} placeholder="Business, industry, or area"/></label>
     <label className="text-sm">Next action<select name="stage" className="mt-2" defaultValue={stage||''}>
       <option value="">All opportunities</option>{stages.map(x=><option key={x} value={x}>{stageLabels[x]}</option>)}
@@ -142,7 +155,7 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
       <option value="">All campaigns</option>{campaigns.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
     <div className="flex items-end gap-4"><button className="btn" type="submit">Filter</button><Link href="/app/opportunities" className="text-sm text-cyan-300 underline">Clear</Link></div>
    </form>
-   <p className="mt-3 text-xs"><Link className="text-cyan-300 underline" href={showTests?'/app/opportunities':'/app/opportunities?tests=1'}>{showTests?'Hide test records':'Show test records ('+testCount+')'}</Link></p>
+   <p className="mt-3 text-xs"><Link className="text-cyan-300 underline" href={testToggleHref()}>{showTests?'Hide test records':'Show test records ('+testCount+')'}</Link></p>
    <p className="muted mt-4 text-xs">Sorted by actionability, recent measured technical improvement, then research priority. No invented revenue estimates or commercial scores. PageSpeed results older than 90 days or for a different website are not treated as current.</p>
   </section>
   <section id="opportunity-results" tabIndex={-1} aria-label="Filtered opportunity results" className="panel mt-7 scroll-mt-6 overflow-x-auto">
@@ -155,7 +168,7 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
       {q?` for “${q}”`:''} · page {page} of {pages}
      </p>
     </div>
-    {(stage||q||opportunity||campaignFilter)&&<Link className="text-sm text-cyan-300 underline" href="/app/opportunities#opportunity-results">Show all categories ↗</Link>}
+    {(stage||q||opportunity||campaignFilter)&&<Link className="text-sm text-cyan-300 underline" href={showTests?'/app/opportunities?tests=1#opportunity-results':'/app/opportunities#opportunity-results'}>Show all categories ↗</Link>}
    </div>
    <table><thead><tr><th>Business</th><th>Research status</th><th>Measured technical signal</th><th>What the evidence supports</th><th>Next step</th></tr></thead>
     <tbody>{results.map(x=><tr key={x.business.id}>
