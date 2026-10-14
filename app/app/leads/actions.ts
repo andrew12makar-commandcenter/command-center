@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { requireWorkspace, shortText, validUuid, webUrl } from '@/lib/workspace';
 import { parseCsv, normalizedHeader } from '@/lib/csv';
 import {classifyWebPresence,validateBusinessWebsite,discoveredProfile} from '@/lib/web-presence';
+import {exactGoogleListingUrl} from '@/lib/google-listing-link';
 import {collectAllPages,potentialMatches,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '@/lib/lead-identity';
 import {validateCampaignInput} from '@/lib/discovery-campaigns';
 import {resolveCampaign} from '@/lib/discovery-campaigns-server';
@@ -294,7 +295,12 @@ async function approveImportedRowImpl(form: FormData) {
   const carried=qualificationColumns(q,row.campaign_id??null);
   const rawText=(keys:string[])=>keys.map(k=>raw[k]).find((v):v is string=>typeof v==='string'&&v.trim().length>0)?.trim().slice(0,180)||null;
   let gbpUrl:string|null=null;
-  try{gbpUrl=webUrl(rawText(['googlebusinessurl','gbpurl','googlebusinessprofile','googlemapsurl'])||review.manual?.gbp_url||null);}catch{gbpUrl=null;}
+  try{
+    const link=webUrl(review.manual?.gbp_url||rawText(['googlebusinessurl','gbpurl','googlebusinessprofile','googlemapsurl'])||null);
+    // The staged row retains raw search links as research evidence. Never
+    // promote one to the CRM's listing URL without a specific listing ID.
+    gbpUrl=exactGoogleListingUrl(link);
+  }catch{gbpUrl=null;}
   const contact={
     ...((rawText(['email','contactemail'])||review.manual?.email)?{contact_email:rawText(['email','contactemail'])||review.manual?.email}:{}),
     ...((rawText(['contactname','owner','ownername'])||review.manual?.contact_name)?{contact_name:rawText(['contactname','owner','ownername'])||review.manual?.contact_name}:{}),
