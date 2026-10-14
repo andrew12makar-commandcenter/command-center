@@ -8,6 +8,7 @@ import { parseCsv, normalizedHeader } from '@/lib/csv';
 import {classifyWebPresence,validateBusinessWebsite,discoveredProfile} from '@/lib/web-presence';
 import {exactGoogleListingUrl} from '@/lib/google-listing-link';
 import {collectAllPages,potentialMatches,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '@/lib/lead-identity';
+import {importRecoveryDecision,missingImportEvidence} from '@/lib/staged-import-recovery';
 import {validateCampaignInput} from '@/lib/discovery-campaigns';
 import {resolveCampaign} from '@/lib/discovery-campaigns-server';
 import {OPPORTUNITIES,CONFIDENCES,NEXT_ACTIONS,EVIDENCE_STATES,qualifyStagedRow,readReview,type Qualification,type ManualReview} from '@/lib/prospect-qualification';
@@ -256,8 +257,20 @@ async function approveImportedRowImpl(form: FormData) {
   if(readError || !row) throw new Error('Staged row is no longer pending.');
   if(!row.name || row.name.length<2) throw new Error('No business name.');
   if(row.triage_status==='disqualified')throw new Error('This candidate is disqualified. Restore it to review before importing.');
+  // A partially imported row carries a durable link to the CRM record. Never
+  // create a second business for that row on retry.
+  let linkedBusiness:{id:string;name:string}|null=null;
+  if(row.matched_business_id){
+    const {data:linked,error:linkError}=await supabase.from('businesses').select('id,name')
+      .eq('organization_id',organizationId).eq('id',row.matched_business_id).maybeSingle();
+    if(linkError)throw new Error('Could not verify the partially imported CRM record. Import was not retried.');
+    linkedBusiness=linked;
+  }
+  const decision=importRecoveryDecision(row,linkedBusiness);
+  if(decision==='blocked')throw new Error('Staged import link is missing or does not match its original business. Review the linked CRM record before continuing.');
+  const resuming=decision==='resume';
   // Check every CRM page. Comparing only the first 1,000 silently loses duplicates at scale.
-  const candidates=await collectAllPages<BusinessIdentity>(async (from,to)=>{
+  const candidates=resuming?[]:await collectAllPages<BusinessIdentity>(async (from,to)=>{
     const {data,error}=await supabase.from('businesses')
       .select('id,name,city,street_address,postal_code,phone,website_url')
       .eq('organization_id',organizationId).order('created_at',{ascending:true})
@@ -312,12 +325,25 @@ async function approveImportedRowImpl(form: FormData) {
     ...(street_address?{street_address}:{}),...(postal_code?{postal_code}:{}),
     ...(service_area?{service_area}:{}),...contact
   };
-  let {data:business,error}=await supabase.from('businesses').insert({...baseRecord,...carried}).select('id').single();
-  if(error&&/column|schema cache/i.test(error.message)){
-    // Migration 0007 not applied yet: keep the existing import path working without the new fields.
-    ({data:business,error}=await supabase.from('businesses').insert(baseRecord).select('id').single());
+  let business:{id:string}|null=resuming?{id:row.matched_business_id!}:null;
+  if(!resuming){
+    // The durable recovery link is persisted as soon as a business is created,
+    // BEFORE source inserts. It does not make this workflow a DB transaction.
+    let {data:created,error}=await supabase.from('businesses').insert({...baseRecord,...carried}).select('id').single();
+    if(error&&/column|schema cache/i.test(error.message)){
+      // Migration 0007 not applied yet: keep the original import path working.
+      ({data:created,error}=await supabase.from('businesses').insert(baseRecord).select('id').single());
+    }
+    if(error||!created)throw new Error(error?.message??'Failed to insert business');
+    business=created;
+    const {data:claimed,error:claimError}=await supabase.from('lead_import_rows')
+      .update({matched_business_id:created.id})
+      .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending')
+      .is('matched_business_id',null).select('id').maybeSingle();
+    if(claimError||!claimed)throw new Error(
+      'CRM business '+created.id+' was created, but the staging recovery link was not saved. Do not retry automatically: inspect that CRM record and the staging row to avoid a duplicate.');
   }
-  if(error||!business)throw new Error(error?.message??'Failed to insert business');
+  if(!business)throw new Error('Import recovery could not identify the CRM business.');
   const evidence=[];
   if(source_url)evidence.push({
     organization_id:organizationId,business_id:business.id,
@@ -331,14 +357,28 @@ async function approveImportedRowImpl(form: FormData) {
     source_url:socialUrl,source_type:'social_profile',raw_name:row.name,
     raw_address:null,registration_number:null,confidence:'pending'
   });
-  if(evidence.length){
-    const {error:srcError}=await supabase.from('business_sources').insert(evidence);
-    if(srcError)throw new Error('Business created, but evidence insert failed: '+srcError.message);
+  // On retries, save only missing evidence, never replay all prior sources.
+  // A unique DB constraint/transaction is still needed to prevent concurrent writes.
+  const present:{source_type:string;source_url:string|null}[]=[];
+  for(const item of evidence){
+    const {data:found,error:lookupError}=await supabase.from('business_sources')
+      .select('source_type,source_url').eq('organization_id',organizationId)
+      .eq('business_id',business.id).eq('source_type',item.source_type)
+      .eq('source_url',item.source_url).limit(1);
+    if(lookupError)throw new Error('CRM business '+business.id+' is linked, but source evidence could not be checked: '+lookupError.message);
+    if(found?.length)present.push(...found);
   }
-  const {error:updateError}=await supabase.from('lead_import_rows')
-    .update({review_status:'imported',matched_business_id:business.id})
-    .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending');
-  if(updateError)throw new Error('Business created, but staging update failed: '+updateError.message);
+  const missing=missingImportEvidence(evidence,present);
+  if(missing.length){
+    const {error:srcError}=await supabase.from('business_sources').insert(missing);
+    if(srcError)throw new Error('CRM business '+business.id+' is linked, but evidence is incomplete: '+srcError.message+'. Resume import from the research queue.');
+  }
+  const {data:completed,error:updateError}=await supabase.from('lead_import_rows')
+    .update({review_status:'imported'})
+    .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending')
+    .eq('matched_business_id',business.id).select('id').maybeSingle();
+  if(updateError||!completed)throw new Error(
+    'CRM business '+business.id+' exists, but staging completion could not be verified. Recheck the linked record before retrying.');
   revalidatePath('/app');revalidatePath('/app/leads');revalidatePath('/app/leads/import');revalidatePath('/app/opportunities');
   redirect(form.get('open_crm')==='yes'?'/app/leads/'+business.id:queueReturn(form));
 }
