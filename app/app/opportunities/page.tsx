@@ -9,6 +9,7 @@ import {scoreOpportunity,sortOpportunities,stageLabels,
 import {qualifyCrmBusiness,type SourceRow} from '@/lib/business-qualification-server';
 import {listCampaigns} from '@/lib/discovery-campaigns-server';
 import {isTestCampaign} from '@/lib/discovery-campaigns';
+import {filterOpportunityBoard} from '@/lib/opportunity-board-filter';
 import {progressLabels} from '@/lib/prospect-qualification';
 import {OPPORTUNITIES,opportunityLabels,strengthLabels,confidenceLabels,nextActionLabels,type Opportunity} from '@/lib/prospect-qualification';
 
@@ -75,21 +76,16 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
  const stage=stages.includes(p.stage as BoardStage)?p.stage as BoardStage|null:null;
  const q=(p.q||'').trim().slice(0,100);
  const showTests=p.tests==='1';
- const testCount=all.filter(x=>isTestCampaign(qualification.get(x.business.id)?.campaign)).length;
- // Build a single visible pool so the tiles and table honor the same campaign,
- // opportunity, search and test-record settings. Stage selection is applied only
- // to the result list; it must not zero out the other stage counters.
- const matchingPool=all.filter(x=>(showTests||!isTestCampaign(qualification.get(x.business.id)?.campaign))&&
-   (!opportunity||qualification.get(x.business.id)?.q.primaryOpportunity===opportunity)&&
-   (!campaignFilter||qualification.get(x.business.id)?.campaign?.id===campaignFilter)&&(!q||
-   [x.business.name,x.business.city,x.business.category,x.business.service_area]
-     .some(v=>(v||'').toLocaleLowerCase().includes(q.toLocaleLowerCase()))));
- const searched=matchingPool.filter(x=>!stage||x.stage===stage);
+ const {searched,counts,testCount}=filterOpportunityBoard(all,stages,
+  {showTests,stage,opportunity,campaignFilter,q},item=>{
+   const detail=qualification.get(item.business.id);
+   return {isTest:isTestCampaign(detail?.campaign),opportunity:detail?.q.primaryOpportunity??null,
+    campaignId:detail?.campaign?.id??null};
+  });
  const pages=Math.max(1,Math.ceil(searched.length/PAGE_SIZE));
  const req=Number(p.page);
  const page=Number.isInteger(req)?Math.max(1,Math.min(pages,req)):1;
  const results=searched.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
- const counts=Object.fromEntries(stages.map(x=>[x,matchingPool.filter(y=>y.stage===x).length])) as Record<BoardStage,number>;
  const selectedLabel=stage?stageLabels[stage]:null;
  const tileHref=(selected:BoardStage)=>{
   const params=new URLSearchParams();
