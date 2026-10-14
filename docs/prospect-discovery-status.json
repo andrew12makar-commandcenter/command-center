@@ -1,17 +1,17 @@
 {
   "project": "Prospect Discovery MVP",
-  "branch": "codex/generator-intelligence-checkpoints-oct12",
-  "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
-  "current_milestone": "M6 complete: campaign-aligned scoring and first real Brighton batch (awaiting owner review)",
-  "overall_status": "ready_for_review",
-  "last_updated": "2026-10-14T09:06:33Z",
-  "responsible_agent": "Claude",
-  "safe_for_other_agent_to_edit": true,
+  "branch": "codex/agent-ledger-board-counts-oct14",
+  "worktree": "GitHub connector branch; no local workstation checkout (Mac worktrees untouched)",
+  "current_milestone": "M7 in progress: shared agent ledger and accurate Opportunity Board counts (tests pending)",
+  "overall_status": "in_progress",
+  "last_updated": "2026-10-14T09:28:56.150Z",
+  "responsible_agent": "ChatGPT",
+  "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "e9d01f7",
-    "message": "Code checkpoint for M6 (tracker-only commits may follow)"
+    "sha": "00fd19089a59f1213b8c6ea0936dce694c4db125",
+    "message": "Board visibility regression: filtered hidden-test counter"
   },
-  "next_action": "Owner: review the 5 imported prospects, 3 draft demos and pitch briefs for Oct 15; decide who to approach. No PR, merge, deploy, publish, share or outreach without separate approval. Migration 0008 remains unapplied.",
+  "next_action": "Run npm test, typecheck, lint, build and nonmutating browser QA on codex/agent-ledger-board-counts-oct14; check GitHub Actions directly. Verify separate GBP guardrails branch before cross-branch integration. No merge or deploy authorized.",
   "blockers": [],
   "known_limitations": [
     "Local dev server on the owner Mac against the single live Supabase project; no separate preview database.",
@@ -21,9 +21,13 @@
     "Free website check reads one page, robots.txt and sitemap.xml only; no Lighthouse run for the batch, so no speed claims.",
     "Opportunity Board stage tiles still count test records; the list hides them by default.",
     "Operator review evidence is stored under lead_import_rows.raw_data.review (no new migration); source keys are untouched.",
-    "Migration 0008 (privilege hardening) prepared, not applied."
+    "Migration 0008 (privilege hardening) prepared, not applied.",
+    "M7 source changes were committed remotely; runtime checks, browser validation and production effects are not verified. Existing CI workflow does not trigger on the M7 branch.",
+    "Test exclusion identifies campaigns whose name starts with 'Test'; untagged historical test data may still affect totals until explicitly classified.",
+    "Push-triggered CI branch was added, but the GitHub connector did not return workflow-run results. No checks are marked passed on this branch."
   ],
   "manual_steps": [
+    "Check GitHub issue #3 for cross-agent claims and exact branch checkpoints before touching related files.",
     "Run the controlled signed-in browser test. Do not publish, share a demo, contact a prospect or deploy production during validation.",
     "Review prepared but unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql separately after the Prospect Discovery validation."
   ],
@@ -359,6 +363,39 @@
         "tests/website-evidence.test.ts"
       ],
       "commit": "e9d01f7"
+    },
+    {
+      "id": "M7",
+      "title": "Cross-agent build ledger and accurate Opportunity Board counts",
+      "status": "in_progress",
+      "responsible_agent": "ChatGPT",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Opened canonical cross-branch GitHub issue #3 with task claims and checkpoint protocol",
+        "Added docs/agent-coordination.md and issue links to Project Status and Roadmap",
+        "Aligned Opportunity Board tile totals and filtered list using a shared visibility helper; navigation preserves test record toggle",
+        "Added four source-level regression tests for stage totals, filters and test visibility",
+        "Filtered test-count indicator now reflects search/opportunity/campaign; fifth regression case added."
+      ],
+      "in_progress": [
+        "Run npm test, typecheck, lint, build and nonmutating signed-in browser QA from an isolated checkout"
+      ],
+      "remaining": [
+        "Reconcile and review tests, post verified result on issue #3",
+        "Do not merge or deploy without explicit approval"
+      ],
+      "files_changed": [
+        "docs/agent-coordination.md",
+        "lib/opportunity-board-filter.ts",
+        "tests/opportunity-board-filter.test.ts",
+        "app/app/opportunities/page.tsx",
+        "app/app/project-status/page.tsx",
+        "app/app/roadmap/page.tsx",
+        "app/app/layout.tsx",
+        "docs/prospect-discovery-status.json",
+        ".github/workflows/ci.yml"
+      ],
+      "commit": "00fd19089a59f1213b8c6ea0936dce694c4db125"
     }
   ],
   "review_checkpoint": {
