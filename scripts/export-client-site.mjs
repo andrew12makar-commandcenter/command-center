@@ -13,6 +13,7 @@ const files={
  'lib/business-specific-copy.ts':'lib/business-specific-copy.ts',
  'lib/site-section-order.ts':'lib/site-section-order.ts',
  'lib/site-presentation.ts':'lib/site-presentation.ts',
+ 'lib/site-media-selection.ts':'lib/site-media-selection.ts',
  'lib/reviewed-business-features.ts':'lib/reviewed-business-features.ts',
  'lib/site-evaluation.ts':'lib/site-evaluation.ts',
  'lib/demo-engine.ts':'lib/demo-engine.ts',
