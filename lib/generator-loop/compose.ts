@@ -70,12 +70,18 @@ function allocateImages(f:BusinessFacts,density:DesignCandidate['imageryDensity'
   ...generated.map(g=>({src:g.src,alt:g.alt,origin:'generated' as const,disclosure:g.disclosure,role:'concept' as const})),
  ];
  const requested=slots[density],used=new Set<number>();
- const remaining=(roles:readonly ImageRole[])=>Math.min(Math.max(0,requested-used.size),
+ // When a verified staff portrait exists, preserve one immersive slot until
+ // the team section, even if it appears after a gallery in the page hierarchy.
+ const reserveTeam=density==='immersive'&&Boolean(f.team?.length)&&business.some(b=>b.role==='team');
+ const teamPlaced=()=>[...used].some(i=>pool[i].role==='team');
+ const capacity=(roles:readonly ImageRole[])=>Math.max(0,requested-used.size-
+  (reserveTeam&&!teamPlaced()&&!roles.includes('team')?1:0));
+ const remaining=(roles:readonly ImageRole[])=>Math.min(capacity(roles),
   pool.reduce((n,image,i)=>n+(!used.has(i)&&roles.includes(image.role)?1:0),0));
  const take=(n:number,roles:readonly ImageRole[]):PlanImage[]=>{
   const out:PlanImage[]=[];
   if(n<=0)return out;
-  for(const role of roles)for(let i=0;i<pool.length&&out.length<n&&used.size<requested;i++){
+  for(const role of roles)for(let i=0;i<pool.length&&out.length<n&&capacity([role])>0;i++){
    if(used.has(i)||pool[i].role!==role)continue;
    used.add(i);
    const {role:_subjectRole,...image}=pool[i];
