@@ -15,12 +15,18 @@ export type PotentialMatch={id:string;name:string;city:string|null;reason:string
 function clean(value:unknown):string{return typeof value==='string'?value.trim():'';}
 function digits(value:string):string{return value.replace(/\D/g,'');}
 export function streetFromRaw(raw:Record<string,unknown>|null|undefined):string{
- const street=clean(raw?.street||raw?.streetaddress||raw?.address);
+ const street=clean(raw?.street||raw?.streetaddress||raw?.street_address||raw?.address);
  const number=clean(raw?.housenumber||raw?.streetnumber);
- return street?([number,street].filter(Boolean).join(' ').slice(0,180)):'';
+ if(!street)return '';
+ // CSV street lines may already include their house number; do not create
+ // "101 101 Beacon St" and silently break strong-address deduplication.
+ const prefixed=street.toLowerCase()===number.toLowerCase()||
+  street.toLowerCase().startsWith(number.toLowerCase()+' ')||
+  street.toLowerCase().startsWith(number.toLowerCase()+',');
+ return (number&&!prefixed?number+' '+street:street).slice(0,180);
 }
 export function postcodeFromRaw(raw:Record<string,unknown>|null|undefined):string{
- return clean(raw?.postcode||raw?.postalcode||raw?.zipcode).slice(0,20);
+ return clean(raw?.postcode||raw?.postalcode||raw?.postal_code||raw?.zipcode||raw?.zip).slice(0,20);
 }
 export function researchServiceArea(raw:Record<string,unknown>|null|undefined):string{
  // A discovery scan area is a search constraint, not evidence that a

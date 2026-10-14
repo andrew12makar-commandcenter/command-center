@@ -25,7 +25,7 @@ export function classifyGoogleListingLink(value:string|null|undefined):GoogleLis
  }catch{return {kind:'invalid',url:null};}
 }
 
-// CRM's google_business_url column is reserved for listing-specific references.
+// Staged imports only promote listing-specific references into CRM google_business_url.
 // Search and shortened links remain available in the staged source/review evidence
 // for manual resolution, but must not silently become a recorded listing.
 export function exactGoogleListingUrl(value:string|null|undefined):string|null{

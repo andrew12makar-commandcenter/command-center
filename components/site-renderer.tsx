@@ -19,7 +19,7 @@ type RendererProps={
 };
 const number=(value:number)=>String(value).padStart(2,'0');
 function SectionLabel({children,className}:{children:string;className:string}){
- return <p className={`text-[10px] font-bold uppercase tracking-[.28em] ${className}`}>{children}</p>;
+ return <p className={`text-xs font-bold uppercase tracking-[.28em] sm:text-[10px] ${className}`}>{children}</p>;
 }
 
 export default function SiteRenderer({site,standalone=false,conceptMedia}:RendererProps){

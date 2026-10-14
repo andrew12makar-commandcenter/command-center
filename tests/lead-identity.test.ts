@@ -37,6 +37,18 @@ test('OSM address and scan area are not confused with an actual service area',()
  assert.equal(researchServiceArea({...data,service_area:'Allston and Brighton'}),'Allston and Brighton');
  assert.equal(researchServiceArea({...data,servicearea:'Brighton'}),'Brighton','explicit source field is evidence even if it matches the scan');
 });
+test('CSV addresses and ZIP fields normalize before the full CRM duplicate check',()=>{
+ assert.equal(streetFromRaw({street:'101 Beacon St',housenumber:'101'}),'101 Beacon St');
+ assert.equal(streetFromRaw({street:'Beacon St',housenumber:'101'}),'101 Beacon St');
+ assert.equal(streetFromRaw({street_address:'101 Beacon St'}),'101 Beacon St');
+ assert.equal(postcodeFromRaw({zip:'02135'}),'02135');
+ const known=[{id:'x',name:'Dr Smith Clinic',city:'Brighton',street_address:'101 Beacon St',
+  postal_code:'02135',phone:null,website_url:null}];
+ const candidate={name:'Dr Smith Clinic',city:'Brighton',phone:null,website_url:null,
+  raw_data:{street:'101 Beacon St',housenumber:'101',zip:'02135'}};
+ assert.equal(potentialMatches(candidate,known)[0].strength,'strong');
+});
+
 test('automatic discovery dedupe requires street-level location identity',()=>{
  assert.equal(strongLocationKey('Dr Smith Clinic','', 'Brighton','02135'),null);
  assert.equal(strongLocationKey('Dr Smith Clinic','10 Main St','Brighton','02135'),
