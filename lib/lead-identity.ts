@@ -23,7 +23,13 @@ export function postcodeFromRaw(raw:Record<string,unknown>|null|undefined):strin
  return clean(raw?.postcode||raw?.postalcode||raw?.zipcode).slice(0,20);
 }
 export function researchServiceArea(raw:Record<string,unknown>|null|undefined):string{
- return clean(raw?.search_area).slice(0,180);
+ // A discovery scan area is a search constraint, not evidence that a
+ // contractor or practice serves that location. Only an explicit service-area
+ // field from the source record can populate the CRM service_area column.
+ const source=raw??{};
+ const recorded=clean(source.service_area||source.servicearea||source.serviceareas||source.serviceArea);
+ const scanArea=clean(source.search_area);
+ return recorded&&recorded.toLowerCase()!==scanArea.toLowerCase()?recorded.slice(0,180):'';
 }
 
 // A name in a city is too weak to collapse franchises or multiple locations.
