@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { requireWorkspace, shortText, validUuid, webUrl } from '@/lib/workspace';
 import { parseCsv, normalizedHeader } from '@/lib/csv';
 import {classifyWebPresence,validateBusinessWebsite,discoveredProfile} from '@/lib/web-presence';
-import {exactGoogleListingUrl} from '@/lib/google-listing-link';
+import {exactGoogleListingUrl,editableCrmListingUrl} from '@/lib/google-listing-link';
 import {collectAllPages,potentialMatches,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '@/lib/lead-identity';
 import {importRecoveryDecision,missingImportEvidence} from '@/lib/staged-import-recovery';
 import {validateCampaignInput} from '@/lib/discovery-campaigns';
@@ -46,7 +46,7 @@ export async function createLead(form: FormData) {
     postal_code:shortText(form.get('postal_code')),service_area:shortText(form.get('service_area')),
     website_url:validateBusinessWebsite(shortText(form.get('website_url'),1024)),phone:shortText(form.get('phone')),
     contact_name:shortText(form.get('contact_name')),contact_email:shortText(form.get('contact_email')),
-    google_business_url:webUrl(form.get('google_business_url')),
+    google_business_url:editableCrmListingUrl(webUrl(form.get('google_business_url'))),
     notes:shortText(form.get('notes'),3000),priority_score,score_rationale,
     verification_status:'unverified',pipeline_status:'not_contacted',
   }).select('id').single();
@@ -68,7 +68,7 @@ export async function updateLead(form: FormData) {
   const score_rationale=shortText(form.get('score_rationale'),500);
   if(priority_score!==null && score_rationale.length<8) throw new Error('Opportunity scores need an evidence-based rationale.');
   const { data: prior } = await supabase.from('businesses')
-    .select('pipeline_status,website_url').eq('id',id).eq('organization_id',organizationId).single();
+    .select('pipeline_status,website_url,google_business_url').eq('id',id).eq('organization_id',organizationId).single();
   if(!prior) throw new Error('Lead not found.');
   const website_url=validateBusinessWebsite(shortText(form.get('website_url'),1024));
   const previousPresence=classifyWebPresence(prior.website_url);
@@ -83,7 +83,7 @@ export async function updateLead(form: FormData) {
     contact_name:shortText(form.get('contact_name')),
     contact_email:shortText(form.get('contact_email')),
     website_url,
-    google_business_url:webUrl(form.get('google_business_url')),
+    google_business_url:editableCrmListingUrl(webUrl(form.get('google_business_url')),prior.google_business_url??null),
     notes:shortText(form.get('notes'),3000),
     updated_at:new Date().toISOString(),
     ...(stage!==prior.pipeline_status && ['contacted','visited','proposal_sent','won'].includes(stage) ? {last_contact_at:new Date().toISOString()}:{}),
