@@ -8,7 +8,7 @@ import { parseCsv, normalizedHeader } from '@/lib/csv';
 import {classifyWebPresence,validateBusinessWebsite,discoveredProfile} from '@/lib/web-presence';
 import {exactGoogleListingUrl,editableCrmListingUrl} from '@/lib/google-listing-link';
 import {collectAllPages,potentialMatches,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '@/lib/lead-identity';
-import {importRecoveryDecision} from '@/lib/staged-import-recovery';
+import {importRecoveryDecision,deterministicSourceId} from '@/lib/staged-import-recovery';
 import {commitStagedImport} from '@/lib/staged-import-commit';
 import {validateCampaignInput} from '@/lib/discovery-campaigns';
 import {resolveCampaign} from '@/lib/discovery-campaigns-server';
