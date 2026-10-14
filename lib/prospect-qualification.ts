@@ -96,6 +96,8 @@ export type Qualification={
  primaryOpportunity:Opportunity;opportunityStrength:Strength;evidenceConfidence:Confidence;
  contactReadiness:Readiness;nextAction:NextAction;rationale:string;reasons:string[];summary:string;
  score:number;parts:ScorePart[];penalties:Penalty[];lanes:LaneScore[];secondary:Lane[];
+ // The campaign lane drives the score; the recommendation may point to a better-supported lane, flagged as outside the campaign focus.
+ recommended:Lane;recommendedOutsideCampaign:boolean;
  tasks:string[];qualified:boolean;unmet:string[];progress:Progress;industry:string;legalStructure:string|null;
  isPriorityLead:boolean;excludedReason:string|null;overridden:('primaryOpportunity'|'evidenceConfidence'|'nextAction')[];
 };
@@ -207,6 +209,10 @@ export function qualifyProspect(input:QualificationInput):Qualification{
   else if(!target&&lane.state==='verified_present'&&lane.need<=4)primary='no_clear_opportunity';
  }
  const secondary=lanes.filter(l=>l.lane!==primaryLane&&l.eligible&&l.need>=20).map(l=>l.lane);
+ const supported=lanes.filter(l=>l.eligible&&l.need>=15).sort((a,b)=>b.need-a.need||LANES.indexOf(a.lane)-LANES.indexOf(b.lane));
+ const primaryLaneScore=lanes.find(l=>l.lane===primaryLane)!;
+ const recommended:Lane=primaryLaneScore.eligible&&primaryLaneScore.need>=15?primaryLane:supported[0]?.lane??primaryLane;
+ const recommendedNeed=lanes.find(l=>l.lane===recommended)!.need;
 
  // ---- Transparent 100-point model ----
  const need=lane.eligible?lane.need:0;
@@ -286,7 +292,7 @@ export function qualifyProspect(input:QualificationInput):Qualification{
  if(!identityOk)unmet.push('Identity not confirmed');
  if(!activeOk)unmet.push('Activity not confirmed');
  if(!reachable)unmet.push('No public contact route');
- if(need<15)unmet.push('Service need not supported by evidence');
+ if(recommendedNeed<15)unmet.push('Service need not supported by evidence');
  if(fit<8)unmet.push('Geographic relevance not shown');
  if(i.duplicateWarning)unmet.push('Unresolved duplicate warning');
  if(penalties.some(p=>p.key==='conflict'||p.key==='inactive'))unmet.push('Conflicting or inactive evidence');
@@ -312,7 +318,8 @@ export function qualifyProspect(input:QualificationInput):Qualification{
  const reasons:string[]=[];
  if(excludedReason)reasons.push(excludedReason);
  reasons.push(lane.why);
- if(secondary.length)reasons.push('Secondary: '+secondary.map(l=>opportunityLabels[l]).join(', ')+'.');
+ if(recommended!==primaryLane)reasons.push('Best-supported service is '+opportunityLabels[recommended]+' (outside the campaign focus): '+lanes.find(l=>l.lane===recommended)!.why);
+ else if(secondary.length)reasons.push('Secondary: '+secondary.map(l=>opportunityLabels[l]).join(', ')+'.');
  if(primaryLane!=='gbp'&&gbp.state==='unknown')reasons.push('GBP unknown (not checked).');
  if(i.duplicateWarning)reasons.push('Possible duplicate of a CRM record; check before importing.');
  if(overridden.length)reasons.push('Manually set: '+overridden.map(x=>x==='primaryOpportunity'?'opportunity':x==='evidenceConfidence'?'confidence':'next action').join(', ')+'.');
@@ -320,7 +327,7 @@ export function qualifyProspect(input:QualificationInput):Qualification{
  const rationale=(opportunityLabels[primary]+' · '+strengthLabels[strength]+': '+(excludedReason||lane.why)).slice(0,400);
  return {researchStatus,websitePresence,gbpStatus,websiteState:web.state,gbpState:gbp.state,
   primaryOpportunity:primary,opportunityStrength:strength,evidenceConfidence:confidence,contactReadiness:readiness,
-  nextAction:next,rationale,reasons,summary,score,parts,penalties,lanes,secondary,tasks,qualified,unmet,progress,
+  nextAction:next,rationale,reasons,summary,score,parts,penalties,lanes,secondary,recommended,recommendedOutsideCampaign:recommended!==primaryLane,tasks,qualified,unmet,progress,
   industry,legalStructure,isPriorityLead:!excludedReason&&i.triageStatus!=='held'&&(strength==='strong'||strength==='moderate'),
   excludedReason,overridden};
 }

@@ -181,3 +181,13 @@ test('reviewed public contact routes fill gaps without overwriting source values
  assert.notEqual(q.contactReadiness,'not_ready');
  assert.ok(!q.unmet.includes('No public contact route'));
 });
+
+test('the campaign lane drives the score while a better-supported service is flagged, not swapped in',()=>{
+ const q=qualifyProspect(base({websiteUrl:'https://d.example/',review:{website_check:check(),manual:{gbp:'likely_weak',identity:'confirmed',active:'confirmed',reviewed_at:'2026-10-14'}}}));
+ assert.equal(q.primaryOpportunity,'website_design');
+ assert.equal(q.parts[0].label,'Need for Website design');
+ assert.equal(q.parts[0].points,4);
+ assert.equal(q.recommended,'gbp');assert.equal(q.recommendedOutsideCampaign,true);
+ assert.ok(q.reasons.some(r=>/outside the campaign focus/.test(r)));
+ assert.ok(!q.unmet.includes('Service need not supported by evidence'));
+});

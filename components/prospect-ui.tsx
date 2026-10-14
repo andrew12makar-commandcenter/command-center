@@ -27,7 +27,10 @@ export function ScoreBadge({q}:{q:Qualification}){
 }
 export function Headline({q}:{q:Qualification}){
  return <span className="text-sm"><strong className="text-white">{opportunityLabels[q.primaryOpportunity]}</strong>
-  <span className="muted"> · {strengthLabels[q.opportunityStrength]} need · {confidenceLabels[q.evidenceConfidence]} confidence</span></span>;
+  <span className="muted"> · {strengthLabels[q.opportunityStrength]} need · {confidenceLabels[q.evidenceConfidence]} confidence</span>
+  {q.recommendedOutsideCampaign&&<span className="ml-2 rounded-full border border-violet-600/60 px-2 py-0.5 text-[11px] text-violet-200">Better fit: {opportunityLabels[q.recommended]}</span>}
+  {!q.recommendedOutsideCampaign&&q.secondary.length>0&&<span className="muted"> · also {q.secondary.map(l=>opportunityLabels[l]).join(', ')}</span>}
+  </span>;
 }
 export function ScoreBreakdown({q}:{q:Qualification}){
  return <div className="space-y-2 text-xs leading-5">

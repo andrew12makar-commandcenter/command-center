@@ -44,7 +44,7 @@ export function buildPitchBrief(i:PitchInput):PitchBrief{
  if(q.contactReadiness!=='ready')unknowns.push('Who the decision maker is and how to reach them.');
  if(q.primaryOpportunity==='geolocation_pages'&&!b.service_area)unknowns.push('The exact areas the business serves.');
  unknowns.push('The owner\'s goals, priorities and ability to invest (never assumed).');
- let offer=offers[q.primaryOpportunity];
+ let offer=q.recommendedOutsideCampaign?offers[q.recommended]+' (Best-supported service; outside the campaign focus of '+opportunityLabels[q.primaryOpportunity]+'.)':offers[q.primaryOpportunity];
  if(q.primaryOpportunity==='website_design'&&q.websitePresence==='social_only')
   offer='Ask whether they have a website they control. If not, offer a simple concept site built from their real details, shown for feedback only.';
  const doNotClaim=['Do not estimate revenue, traffic, rankings, leads or return on investment.','Do not guarantee results or timelines.'];
@@ -68,7 +68,8 @@ export function buildPitchBrief(i:PitchInput):PitchBrief{
   .map(s=>({label:s.label,url:safeUrl(s.url)})).filter((s):s is {label:string;url:string}=>Boolean(s.url)&&!seen.has(s.url!)&&Boolean(seen.add(s.url!)));
  const campaign=i.campaign?`${i.campaign.name} (${targetServiceLabels[i.campaign.target_service]}${i.campaign.target_area?', '+i.campaign.target_area:''})`:'No campaign recorded';
  const opportunity=`${opportunityLabels[q.primaryOpportunity]} · ${strengthLabels[q.opportunityStrength]}`;
- const secondary=q.secondary.length?q.secondary.map(l=>opportunityLabels[l]).join(', '):'None supported by evidence yet';
+ const secondaryLanes=q.recommendedOutsideCampaign?[q.recommended,...q.secondary.filter(l=>l!==q.recommended)]:q.secondary;
+ const secondary=secondaryLanes.length?secondaryLanes.map(l=>opportunityLabels[l]).join(', '):'None supported by evidence yet';
  const score=q.score+'/100';
  const scoreLines=[...q.parts.map(p=>`${p.label}: ${p.points}/${p.max} (${p.why.join(' ')})`),...q.penalties.map(p=>`Penalty, ${p.label}: ${p.points}`)];
  const verifyFirst=q.tasks.length?q.tasks:['Nothing outstanding in recorded evidence; still confirm details on first contact.'];
