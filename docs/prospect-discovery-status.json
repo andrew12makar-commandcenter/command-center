@@ -2,18 +2,18 @@
   "project": "Prospect Discovery MVP",
   "branch": "codex/generator-intelligence-checkpoints-oct12",
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
-  "current_milestone": "Preview validation: pre-migration check",
+  "current_milestone": "Preview validation: applying migrations 0005-0007",
   "overall_status": "blocked",
-  "last_updated": "2026-10-13T23:55:05Z",
+  "last_updated": "2026-10-14T04:51:57Z",
   "responsible_agent": "Claude",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
     "sha": "3e2f75738a016bead7084eefaea96001345bd974",
     "message": "REVIEW CHECKPOINT: merge of origin 235f637 (Overture cache) into Prospect Discovery; all checks run on this commit. Later commits, if any, are tracker-only docs changes."
   },
-  "next_action": "Owner: decide whether to apply 0005 and 0006 first, or authorize 0007 alone (it has no dependency on 0005/0006). Nothing in Supabase was changed.",
+  "next_action": "Owner: approve the 0006 migration prompt (or re-authorize), then Claude applies 0006 once, verifies, and continues to 0007.",
   "blockers": [
-    "Migration 0007 NOT applied. Pre-check failed on Supabase project lxdnoxflwqmsvnoforgl (the project command-center/.env.local points to): migrations 0005_project_roadmap and 0006_roadmap_execution_log are not applied (tables project_roadmap_progress and project_roadmap_activity do not exist). 0001-0004 objects exist; Supabase migration history only records 0004_generator_intelligence (0001-0003 were applied manually). Owner decision needed before proceeding."
+    "0005_project_roadmap APPLIED and verified (tracked in Supabase migration history). 0006_roadmap_execution_log was NOT applied: the apply_migration call returned status cancelled (the approval for its DROP CONSTRAINT / DROP TRIGGER IF EXISTS statements was not granted). Verified afterwards: nothing from 0006 exists (no project_roadmap_activity, status check unchanged, no function/trigger); history = 0004, 0005. 0007 not attempted. businesses=7, lead_import_rows=25 unchanged."
   ],
   "known_limitations": [
     "Browser verification not performed: requires Supabase env, a signed-in session and migration 0007.",
@@ -151,6 +151,16 @@
       "command": "Supabase pre-check (read-only) on lxdnoxflwqmsvnoforgl",
       "result": "0001-0004 present; 0005, 0006, 0007 absent; businesses=7, lead_import_rows=25",
       "ran_at": "2026-10-13T23:55:05Z"
+    },
+    {
+      "command": "apply 0005_project_roadmap (Supabase apply_migration)",
+      "result": "success; table, 3 checks, PK, 2 FKs, index, RLS + 3 policies, grants verified; row counts unchanged",
+      "ran_at": "2026-10-14T04:51:57Z"
+    },
+    {
+      "command": "apply 0006_roadmap_execution_log",
+      "result": "cancelled before execution; verified nothing applied",
+      "ran_at": "2026-10-14T04:51:57Z"
     }
   ],
   "milestones": [
