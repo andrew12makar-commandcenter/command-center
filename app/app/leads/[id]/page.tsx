@@ -41,7 +41,7 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
       <h1 className="mt-2 text-4xl font-semibold">{b.name}</h1>
       <p className="muted mt-3">Verification: {b.verification_status} · Operational status: {b.operational_status}</p></div>
       <div className="flex gap-3">{presence.url && <a className="btn" target="_blank" rel="noopener noreferrer" href={presence.url}>{profileOnly?'Visit '+presence.provider+' profile ↗':'Visit website ↗'}</a>}
-        {b.google_business_url && <a className="btn" target="_blank" rel="noreferrer" href={b.google_business_url}>Google profile ↗</a>}</div>
+        {b.google_business_url && <a className="btn" target="_blank" rel="noreferrer" href={b.google_business_url}>{classifyGoogleListingLink(b.google_business_url).kind==='specific_id'?'Google listing reference ↗':classifyGoogleListingLink(b.google_business_url).kind==='search'?'Google Maps search (unverified) ↗':'Google Maps link (unverified) ↗'}</a>}</div>
     </div>
     <section id="qualification" className="panel mt-7 scroll-mt-6 p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -102,7 +102,7 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
             <label className="text-sm">Contact name<input name="contact_name" className="mt-2" defaultValue={b.contact_name??''}/></label>
             <label className="text-sm">Contact email<input name="contact_email" type="email" className="mt-2" defaultValue={b.contact_email??''}/></label>
             <label className="text-sm">Independent business website<input name="website_url" type="url" className="mt-2" defaultValue={profileOnly?'':b.website_url??''} placeholder="https://official-business-site.com"/></label>
-            <label className="text-sm">Google Business Profile link, if found<input name="google_business_url" type="url" className="mt-2" defaultValue={b.google_business_url??''} placeholder="https://maps.google.com/…"/></label>
+            <label className="text-sm">Google listing-specific link<input name="google_business_url" type="url" className="mt-2" defaultValue={b.google_business_url??''} placeholder="https://maps.google.com/?cid=…"/><small className="muted mt-2 block">New or changed links must contain a listing-specific CID or Place ID. An unchanged historical search link stays unverified.</small></label>
             <p className="muted text-xs md:col-span-2">Website field is for independent business sites only. Instagram, Facebook, and Google listings are separate research evidence. An unrecorded website does not prove the business has none.</p>
             <label className="text-sm">Priority score (0–100)<input name="priority_score" type="number" min="0" max="100" className="mt-2" defaultValue={b.priority_score??''}/></label>
             <label className="text-sm">Evidence behind score<input name="score_rationale" className="mt-2" defaultValue={b.score_rationale??''} placeholder="Observed, checkable reasons"/></label>
