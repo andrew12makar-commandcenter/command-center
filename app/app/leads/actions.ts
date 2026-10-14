@@ -338,14 +338,18 @@ async function approveImportedRowImpl(form: FormData) {
       'A CRM record may already exist for staging row '+id+'. Reload the queue and resume this import, rather than creating another business.');
     if(error||!created)throw new Error(error?.message??'Failed to insert business');
     business=created;
+  }
+  if(!business)throw new Error('Import recovery could not identify the CRM business.');
+  if(!row.matched_business_id){
+    // Also repair the staged link when recovering a deterministic-ID business
+    // created by a request that failed before it could write this reference.
     const {data:claimed,error:claimError}=await supabase.from('lead_import_rows')
-      .update({matched_business_id:created.id})
+      .update({matched_business_id:business.id})
       .eq('id',id).eq('organization_id',organizationId).eq('review_status','pending')
       .is('matched_business_id',null).select('id').maybeSingle();
     if(claimError||!claimed)throw new Error(
-      'CRM business '+created.id+' was created, but the staging recovery link was not saved. Do not retry automatically: inspect that CRM record and the staging row to avoid a duplicate.');
+      'CRM business '+business.id+' exists, but the staging recovery link could not be saved. Reload to review the record before continuing.');
   }
-  if(!business)throw new Error('Import recovery could not identify the CRM business.');
   const evidence=[];
   if(source_url)evidence.push({
     organization_id:organizationId,business_id:business.id,
