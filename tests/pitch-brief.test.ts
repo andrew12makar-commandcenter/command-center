@@ -49,3 +49,10 @@ test('location is not repeated when the street already holds the full address',(
  assert.match(b.score,/^\d+\/100$/);
  assert.ok(b.verifyFirst.length>0);
 });
+
+test('pitch brief clearly distinguishes Maps searches from specific listing links',()=>{
+ const b=buildPitchBrief(input({},null,{google_business_url:'https://www.google.com/maps/search/?api=1&query=Allston+Yard+Care'}));
+ assert.equal(b.links[0]?.label,'Google Maps search (listing unverified)');
+ assert.ok(b.doNotClaim.some(x=>/search, not an exact business listing/.test(x)));
+ assert.ok(!b.links.some(x=>x.label==='Google Business Profile'));
+});
