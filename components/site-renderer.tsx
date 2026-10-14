@@ -3,6 +3,7 @@ import {Fragment} from 'react';
 import {IndustryServices,IndustryNextSteps,IndustryGallery,IndustryHero} from '@/components/site-industry-sections';
 import {orderRenderableSections,type SectionKey} from '@/lib/site-section-order';
 import type {GeneratedConceptSet} from '@/lib/concept-imagery';
+import {selectSiteMedia} from '@/lib/site-media-selection';
 import {ArrowRight,ArrowUpRight,CalendarDays,Check,Mail,MapPin,Menu,Phone} from 'lucide-react';
 
 const schemes={
@@ -25,14 +26,9 @@ export default function SiteRenderer({site,standalone=false,conceptMedia}:Render
  const theme=schemes[site.template];
  const composition=site.design.composition||'split-editorial';
  const centered=composition==='centered',immersive=composition==='immersive',bento=composition==='bento',serviceIndex=composition==='service-index';
- // Minimal imagery is an actual presentation constraint, not just a label.
- const allowImages=site.design.imageTreatment!=='minimal';
- const hero=allowImages?site.content.images.find(x=>x.role==='hero'&&x.permission==='approved'):undefined;
- const approvedGallery=(allowImages?site.content.images:[]).filter(x=>(x.role==='gallery'||x.role==='team')&&x.permission==='approved').slice(0,8)
-  .map(x=>({src:x.url,alt:x.alt,credit:x.credit,concept:false}));
- const generated=allowImages&&site.content.generatedImageryEnabled?conceptMedia:undefined;
- const gallery=[...approvedGallery,...(generated?[generated.editorial,generated.detail].map(x=>({src:x.src,alt:x.alt,credit:x.disclosure,concept:true})):[])].slice(0,8);
- const displayHero=hero?{src:hero.url,alt:hero.alt,credit:hero.credit,concept:false}:generated?{src:generated.hero.src,alt:generated.hero.alt,credit:generated.hero.disclosure,concept:true}:null;
+ // The same role/rights-aware selection is used for internal demos and exports.
+ const generated=site.design.imageTreatment!=='minimal'&&site.content.generatedImageryEnabled?conceptMedia:undefined;
+ const {displayHero,gallery}=selectSiteMedia(site,generated);
  const photoHero=Boolean(displayHero)&&(Boolean(generated)||site.content.heroTreatment==='photo-led');
  const contactHref=site.content.appointmentUrl||(site.contact.email?'mailto:'+site.contact.email:site.contact.phone?'tel:'+site.contact.phone.replace(/[^+0-9]/g,''):null);
  const hasContact=Boolean(contactHref),hasServices=site.services.length>0,hasAbout=site.content.about.trim().length>0;
