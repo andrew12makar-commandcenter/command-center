@@ -84,8 +84,7 @@ function allocateImages(f:BusinessFacts,density:DesignCandidate['imageryDensity'
   for(const role of roles)for(let i=0;i<pool.length&&out.length<n&&capacity([role])>0;i++){
    if(used.has(i)||pool[i].role!==role)continue;
    used.add(i);
-   const {role:_subjectRole,...image}=pool[i];
-   out.push(image);
+   out.push({src:pool[i].src,alt:pool[i].alt,origin:pool[i].origin,disclosure:pool[i].disclosure});
   }
   return out;
  };
