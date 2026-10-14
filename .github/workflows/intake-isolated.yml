@@ -37,6 +37,21 @@ jobs:
           unset SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_ID
           supabase init --force
           supabase start -x realtime,storage-api,imgproxy,mailpit,studio,postgres-meta,edge-runtime,logflare,vector,supavisor
+      - name: Install isolated transaction fixture only
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_ID
+          set -a
+          eval "$(supabase status -o env 2>/dev/null)"
+          set +a
+          test "$API_URL" = "http://127.0.0.1:54321"
+          test -n "$DB_URL"
+          if ! command -v psql >/dev/null; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+          fi
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f tests/isolated/atomic-intake.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -c "NOTIFY pgrst, 'reload schema';"
       - name: Run authenticated fault, concurrency, and RLS tests
         shell: bash
         run: |
