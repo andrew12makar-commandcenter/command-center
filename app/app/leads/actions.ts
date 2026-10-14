@@ -428,6 +428,7 @@ async function linkImportedDuplicateImpl(form:FormData){
   if(!prior?.length){
    const raw=(row.raw_data??{}) as Record<string,unknown>;
    const {error:insertError}=await supabase.from('business_sources').insert({
+    id:deterministicSourceId(id,row.source_type||'csv_import',sourceUrl),
     organization_id:organizationId,business_id:businessId,source_url:sourceUrl,
     source_type:row.source_type||'csv_import',raw_name:row.name,
     raw_address:streetFromRaw(raw)||null,
