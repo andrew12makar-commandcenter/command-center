@@ -1,21 +1,21 @@
 {
   "project": "Prospect Discovery MVP",
-  "branch": "integration/prospect-intake-generator-oct14",
+  "branch": "codex/intake-recovery-guard-oct14",
   "worktree": "GitHub connector integration branch only; Mac worktree not accessed or changed",
-  "current_milestone": "M8 in progress: cross-branch lead-intake and website-generator integration (CI and authenticated QA pending)",
+  "current_milestone": "M8: combined prospect discovery integration verified in CI; staged-import recovery guards in isolated branch review",
   "overall_status": "in_progress",
-  "last_updated": "2026-10-14T21:37:41.176Z",
+  "last_updated": "2026-10-14T22:18:00Z",
   "responsible_agent": "ChatGPT",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "4bf4b6c4842e85ec3fd1210bcaee7af8418906fb",
-    "message": "Source checkpoint for integrated M8; status snapshot follows"
+    "sha": "e6b85e2b4851ba0913d43ca2ab084b9ad423e97e",
+    "message": "Recovery + deterministic source ids + manual Google listing guards; latest branch CI still pending"
   },
-  "next_action": "Verify integration-branch CI test suite, typecheck, lint, build, isolated export and Chromium QA using actual run logs. Then validate lead intake with nonmutating authenticated QA or a separate disposable DB, and resolve non-atomic CRM import failure handling before any merge. Main and Mac untouched.",
+  "next_action": "Run exact HEAD recovery branch CI (tests, typecheck, lint, production build, exported client and browser QA). Then test signed-in staged-import failure and simultaneous requests in a disposable, isolated DB with RLS. Do not merge main, deploy, publish, or migrate; preserve original branches and live Brighton data.",
   "blockers": [
-    "Integration-branch full test / CI result not independently available yet; no authenticated browser QA or live database verification.",
-    "approveImportedRowImpl makes CRM, evidence and staging writes separately, without an independently verified all-or-nothing transaction or retry recovery.",
-    "Older divergent feature/nextjs-foundation changes require semantic review before a future history merge."
+    "Recovery branch exact-head CI and authenticated import failure-injection QA not yet independently verified; prior integrated checkpoint 61aa593 fully passed CI.",
+    "Separate REST writes across businesses, business_sources and lead_import_rows are not a single DB transaction. Same-row duplicates are guarded by deterministic IDs, but cross-row source races and edge-case partial import recovery require isolated database verification.",
+    "Older historical orphan CRM records without staging links need an evidence-based read-only audit; feature/nextjs-foundation divergent history requires semantic review before any formal merge."
   ],
   "known_limitations": [
     "Local dev server on the owner Mac against the single live Supabase project; no separate preview database.",
@@ -197,6 +197,16 @@
       "command": "Integration CI / authenticated lead-intake QA",
       "result": "NOT VERIFIED. Scoped branch push workflow configured, but no accessible run log identified; localhost and live DB not used.",
       "ran_at": "2026-10-14T21:37:41.176Z"
+    },
+    {
+      "command": "GitHub Actions 38643007467 on isolated integration 61aa593",
+      "result": "PASS: 221 TypeScript and 41 MJS tests, TS typecheck, lint (14 warnings / 0 errors), Next.js production build, standalone exported-site build, browser/Lighthouse QA on 8 fictional sites (0 blocking, 0 warnings). Not signed-in intake or DB E2E.",
+      "ran_at": "2026-10-14T21:56:00Z"
+    },
+    {
+      "command": "Recovery branch deterministic staged/CRM and source UUID + manual GBP guardrails",
+      "result": "SOURCE COMMITTED; latest CI still pending; no staging row or CRM record imported or altered, no migration.",
+      "ran_at": "2026-10-14T22:18:00Z"
     }
   ],
   "milestones": [
@@ -424,17 +434,19 @@
         "Integrated GBP evidence-guardrail files from a7a11b6, extending import-specific URL safety",
         "Integrated corrected generator media selector/export code from 5fd2cf4",
         "Added cross-module intake regression and prevented scan area from being stored as service area",
-        "Recorded source audit and blockers in docs/prospect-discovery-integration-audit-oct14.md"
+        "Recorded source audit and blockers in docs/prospect-discovery-integration-audit-oct14.md",
+        "Full automated integrated CI at 61aa593 verified: 221 TS + 41 MJS, typecheck, lint, build, export and zero-warning eight-site browser QA.",
+        "Isolated staged-import recovery with deterministic CRM and provenance IDs, resume UI, error handling, manual GBP guardrails and regression tests committed for review."
       ],
       "in_progress": [
-        "GitHub Actions full suite and export/browser checks; results not independently verified",
-        "Source-only import transaction risk review"
+        "Run latest recovery-branch CI; required actual job logs before ready_for_review",
+        "Validate actual signed-in staging, race and partial-failure behavior in independent test DB; not live Supabase"
       ],
       "remaining": [
-        "Obtain actual CI logs and fix any failures",
-        "Signed-in nonmutating lead-intake QA or separate test organization",
-        "Resolve non-atomic partial import behavior before production use",
-        "Reconcile older divergent feature branch before main-branch merge approval"
+        "Verify retries and concurrent duplicate inserts under isolated DB fault injection",
+        "Evaluate atomic PostgreSQL function/unique evidence index if approved for future migration; no migration now",
+        "Review and reconcile historical orphan rows read-only",
+        "Review divergent older feature branch and obtain explicit approval for any history/main merge"
       ],
       "files_changed": [
         "tests/prospect-intake-combined.test.ts",
@@ -443,9 +455,15 @@
         "lib/google-listing-link.ts",
         "app/app/leads/actions.ts",
         "tests/google-listing-link.test.ts",
-        "docs/prospect-discovery-integration-audit-oct14.md"
+        "docs/prospect-discovery-integration-audit-oct14.md",
+        "lib/staged-import-recovery.ts",
+        "tests/staged-import-recovery.test.ts",
+        "app/app/leads/import/page.tsx",
+        "app/app/leads/new/page.tsx",
+        "app/app/leads/[id]/page.tsx",
+        "docs/lead-intake-recovery-oct14.md"
       ],
-      "commit": "4bf4b6c"
+      "commit": "e6b85e2"
     }
   ],
   "review_checkpoint": {
