@@ -29,7 +29,7 @@ test('discovery targeting and qualification keep the website campaign primary de
  assert.equal(result.primaryOpportunity,'website_design');
  assert.equal(result.gbpState,'unknown');
  assert.equal(result.gbpStatus,'unconfirmed');
- assert.match(result.summary+' '+result.reasons.join(' '),/not proof|not (yet )?checked|search link/i);
+ assert.match(result.lanes.find(l=>l.lane==='gbp')!.why,/Maps search link.*not a confirmed/i);
  assert.equal(researchServiceArea(row.raw_data),'');
  assert.equal(classifyGoogleListingLink(row.raw_data.googlemapsurl).kind,'search');
 });
