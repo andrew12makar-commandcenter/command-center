@@ -35,7 +35,7 @@ test('OSM address and scan area are not confused with an actual service area',()
  assert.equal(postcodeFromRaw(data),'02135');
  assert.equal(researchServiceArea(data),'','search geography is not a business claim');
  assert.equal(researchServiceArea({...data,service_area:'Allston and Brighton'}),'Allston and Brighton');
- assert.equal(researchServiceArea({...data,servicearea:'Brighton'}),'','matching scan area alone is not proof');
+ assert.equal(researchServiceArea({...data,servicearea:'Brighton'}),'Brighton','explicit source field is evidence even if it matches the scan');
 });
 test('automatic discovery dedupe requires street-level location identity',()=>{
  assert.equal(strongLocationKey('Dr Smith Clinic','', 'Brighton','02135'),null);
