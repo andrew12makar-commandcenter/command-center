@@ -24,3 +24,11 @@ export function classifyGoogleListingLink(value:string|null|undefined):GoogleLis
   return {kind:'unverified_link',url:u.toString()};
  }catch{return {kind:'invalid',url:null};}
 }
+
+// CRM's google_business_url column is reserved for listing-specific references.
+// Search and shortened links remain available in the staged source/review evidence
+// for manual resolution, but must not silently become a recorded listing.
+export function exactGoogleListingUrl(value:string|null|undefined):string|null{
+ const link=classifyGoogleListingLink(value);
+ return link.kind==='specific_id'?link.url:null;
+}
