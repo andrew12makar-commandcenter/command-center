@@ -192,6 +192,51 @@ await assertCompletedExactlyOnce(shared);
 assert.ok(race.every(x=>x.status==='fulfilled'||x.status==='rejected'));
 label('parallel authenticated writers converge on one CRM and two evidence rows');
 
+// Two DIFFERENT staging rows can intentionally point to the same CRM business.
+// Serializing on that business row must dedupe shared source evidence across
+// their different staging UUIDs, not just across retries of one staging row.
+const existingId=randomUUID();
+expectOk(await admin.from('businesses').insert({
+ id:existingId,organization_id:orgA,name:'Shared Research Practice',
+ city:'Brighton',category:'amenity:clinic'
+}),'shared CRM seed');
+const linkedA=await staged('Shared Research Practice');
+const linkedB=await staged('Shared Research Practice');
+expectOk(await admin.from('lead_import_rows').update({matched_business_id:existingId})
+ .in('id',[linkedA.id,linkedB.id]),'link two staged rows to shared business');
+const sharedEvidence=[{
+ source_url:'https://example.org/registry/shared-practice',
+ source_type:'local_registry',raw_name:'Shared Research Practice',
+ raw_address:'22 Test Road',registration_number:null,confidence:'pending'
+}];
+const sharedPayloadA={...payload({...linkedA,matched_business_id:existingId},owner.client),
+ evidence:sharedEvidence};
+const sharedPayloadB={...payload({...linkedB,matched_business_id:existingId},editor.client),
+ evidence:sharedEvidence};
+const bothLinked=await Promise.all([
+ commitStagedImport(sharedPayloadA),commitStagedImport(sharedPayloadB)
+]);
+assert.ok(bothLinked.every(x=>x.businessId===existingId&&x.resumed));
+const savedShared=expectOk(await admin.from('business_sources')
+ .select('id').eq('organization_id',orgA).eq('business_id',existingId),
+ 'shared evidence after parallel linked imports');
+assert.equal(savedShared.length,1,'cross-row imports may not duplicate shared source');
+const savedStatuses=expectOk(await admin.from('lead_import_rows')
+ .select('id,review_status,matched_business_id').in('id',[linkedA.id,linkedB.id]),
+ 'linked staging statuses');
+assert.equal(savedStatuses.length,2);
+assert.ok(savedStatuses.every(x=>x.review_status==='imported'&&x.matched_business_id===existingId));
+label('two distinct authenticated staged rows sharing one CRM business serialize source provenance');
+
+const denied=await staged('Viewer cannot invoke atomic import');
+await assert.rejects(commitStagedImport(payload(denied,viewer.client)),
+ /Atomic staged import rejected|Authenticated organization editor/);
+const deniedState=await countRecords(denied);
+assert.equal(deniedState.business.length,0);
+assert.equal(deniedState.queue.review_status,'pending');
+assert.equal(deniedState.queue.matched_business_id,null);
+label('viewer cannot directly call atomic import RPC or modify pending row');
+
 // True Postgres RLS under different signed-in roles and organizations.
 const cannotWrite=await viewer.client.from('businesses').insert({
  organization_id:orgA,name:'Viewer cannot create'
