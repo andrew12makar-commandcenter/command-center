@@ -129,7 +129,7 @@ export function composePage(f:BusinessFacts,c:DesignCandidate):PagePlan{
    const left=remaining(offerRoles);
    // A side image needs enough text beside it, or it leaves an empty block.
    const tallEnough=Math.ceil(Math.min(cap,f.offerings.length)/offerCols)>=4;
-   const imgs=tallEnough&&((cursor===0&&left>=1&&(c.imageryDensity==='accent'||left>=3))||(c.imageryDensity==='immersive'&&left>=3))?take(1,offerRoles):[];
+   const imgs=tallEnough&&((heroImages.length===0&&left>=1&&(c.imageryDensity==='accent'||left>=3))||(c.imageryDensity==='immersive'&&left>=3))?take(1,offerRoles):[];
    sections.push({id:'offer',kind,heading:label('What we offer'),body:[],items:f.offerings.slice(0,cap).map(fact),images:imgs,
     columnsDesktop:offerCols,columnsMobile:offerCols===3&&f.offerings.every(o=>o.length<=22)?2:1,reveal:reveal(kind,imgs.length>0),
     ctas:inline(primary.href,primary.label)});
