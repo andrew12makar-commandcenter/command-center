@@ -2,9 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {importRecoveryDecision,missingImportEvidence} from '../lib/staged-import-recovery.ts';
 
-const pending={name:'Brighton Dental, LLC',matched_business_id:null,review_status:'pending'};
+const pending={id:'staged-1',name:'Brighton Dental, LLC',matched_business_id:null,review_status:'pending'};
 test('new pending staging row creates once; linked row resumes its exact matching business',()=>{
  assert.equal(importRecoveryDecision(pending,null),'create');
+ // If the staging link could not be stamped after inserting the CRM record,
+ // the matching deterministic UUID still lets a later request resume safely.
+ assert.equal(importRecoveryDecision(pending,{id:'staged-1',name:'Brighton Dental LLC'}),'resume');
+ assert.equal(importRecoveryDecision(pending,{id:'staged-1',name:'Unrelated Company'}),'blocked');
+
  assert.equal(importRecoveryDecision({...pending,matched_business_id:'crm-1'},
    {id:'crm-1',name:'Brighton Dental LLC'}),'resume');
  assert.equal(importRecoveryDecision({...pending,matched_business_id:'crm-1'},null),'blocked');
