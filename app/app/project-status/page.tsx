@@ -13,7 +13,8 @@ export default function ProjectStatusPage(){
  return <main className="max-w-6xl">
   <p className="kicker">Shared implementation tracker · read-only</p>
   <h1 className="mt-3 text-4xl font-semibold">{s.project}</h1>
-  <p className="muted mt-3 max-w-3xl text-sm leading-6">Claude and ChatGPT coordinate through <code>docs/prospect-discovery-status.json</code> and <code>docs/prospect-discovery-handoff.md</code>. This page mirrors the committed file at build time.</p>
+  <p className="muted mt-3 max-w-3xl text-sm leading-6">This is a snapshot of <code>docs/prospect-discovery-status.json</code> from the currently checked-out build. Updates made on another branch do not appear here until pulled and rebuilt. The shared GitHub agent ledger is the branch-independent handoff record.</p>
+  <a className="mt-4 inline-flex text-sm font-semibold text-cyan-200 underline" href="https://github.com/andrew12makar-commandcenter/command-center/issues/3" target="_blank" rel="noopener noreferrer">Open cross-agent checkpoint ledger ↗</a>
   <section className="panel mt-7 grid gap-5 p-6 sm:grid-cols-2 lg:grid-cols-4">
    <div><p className="muted text-xs">Overall status</p><p className={'mt-2 text-lg font-semibold '+tone[s.overall_status]}>{statusLabel(s.overall_status)}</p></div>
    <div><p className="muted text-xs">Current milestone</p><p className="mt-2 text-lg font-semibold">{s.current_milestone||'—'}</p></div>
