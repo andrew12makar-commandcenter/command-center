@@ -103,7 +103,8 @@ label('normal import completes and completed row is not importable twice');
 // evidence payload. This proves the normal PostgREST error branch.
 const constraintRow=await staged('Source check constraint failure');
 const validConstraint=payload(constraintRow);
-const badConstraint={...validConstraint,evidence:validConstraint.evidence.map(x=>({...x,confidence:'rejected_not_allowed'}))};
+const badConstraint={...validConstraint,onPhase:()=>{},
+ evidence:validConstraint.evidence.map(x=>({...x,confidence:'rejected_not_allowed'}))};
 await assert.rejects(commitStagedImport(badConstraint),/source evidence remains incomplete/);
 const constraintPartial=await countRecords(constraintRow);
 assert.equal(constraintPartial.business.length,1);
@@ -113,7 +114,25 @@ assert.equal(constraintPartial.queue.matched_business_id,constraintRow.id);
 const constraintFixed=await commitStagedImport(validConstraint);
 assert.equal(constraintFixed.resumed,true);
 await assertCompletedExactlyOnce(constraintRow);
-label('actual PostgreSQL evidence CHECK-constraint failure recovers without duplicate CRM or sources');
+label('legacy REST recovery from real PostgreSQL CHECK failure retains exactly one CRM record');
+
+// The atomic SQL function executes business insert, evidence and final staging
+// status in one transaction. A *real* invalid source triggers rollback of
+// ALL those writes (rather than leaving a linked pending CRM record).
+const rollbackRow=await staged('Atomic database rollback on rejected evidence');
+const rollbackPayload=payload(rollbackRow);
+await assert.rejects(commitStagedImport({...rollbackPayload,
+ evidence:rollbackPayload.evidence.map(x=>({...x,confidence:'rejected_not_allowed'}))}),
+ /Atomic staged import rejected/);
+const rolled=await countRecords(rollbackRow);
+assert.equal(rolled.business.length,0,'failed atomic insert must not persist business');
+assert.equal(rolled.sources.length,0,'failed atomic insert must not persist evidence');
+assert.equal(rolled.queue.review_status,'pending','failed transaction preserves original staging');
+assert.equal(rolled.queue.matched_business_id,null,'failed transaction rolls back the CRM link');
+const rollbackSuccess=await commitStagedImport(rollbackPayload);
+assert.equal(rollbackSuccess.resumed,false);
+await assertCompletedExactlyOnce(rollbackRow);
+label('atomic SQL RPC rolls back real source rejection and retries as a fresh import');
 
 // Two authenticated editors submitting the exact same row in parallel.
 const shared=await staged('Concurrency probe');
@@ -153,7 +172,7 @@ label('PostgreSQL RLS blocks viewer writes, unauthenticated reads and cross-orga
 // An authorized user must not be allowed to spoof a different organization.
 const otherRow=await staged('Other organization',orgB,outside.id);
 await assert.rejects(commitStagedImport(payload(otherRow,owner.client,orgB)),
- /CRM insert failed|permission|row-level security|blocked|Cannot verify/i);
+ /Atomic staged import rejected|Authenticated organization editor|permission|row-level security|blocked|Cannot verify/i);
 const outsiderOwn=await commitStagedImport({...payload(otherRow,outside.client,orgB)});
 assert.equal(outsiderOwn.businessId,otherRow.id);
 label('org A editor cannot write org B while org B owner can');
