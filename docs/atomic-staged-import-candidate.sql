@@ -1,6 +1,6 @@
--- ISOLATED TEST FIXTURE ONLY. NOT A PRODUCTION MIGRATION.
--- Used by CI on a disposable local Supabase database. The tested SQL must be
--- separately reviewed and explicitly approved before a production migration.
+-- PRODUCTION SQL REVIEW CANDIDATE. DO NOT APPLY WITHOUT EXPLICIT APPROVAL.
+-- This file is not in supabase/migrations and is not deployed. CI tests it
+-- against isolated local Supabase using real authenticated PostgREST calls.
 --
 -- SECURITY INVOKER means the caller's JWT, table grants, and RLS apply.
 -- A single PostgreSQL function call is a single transaction. Row locks
@@ -139,19 +139,3 @@ $$;
 revoke all on function public.commit_staged_import_atomic(uuid,uuid,jsonb,jsonb,jsonb) from public, anon;
 grant execute on function public.commit_staged_import_atomic(uuid,uuid,jsonb,jsonb,jsonb) to authenticated;
 
--- TEST-ONLY fault injector. Simulates an error at the very LAST DB write,
--- after both CRM and evidence inserts have executed. The RPC must roll them
--- all back in a single database transaction. Never ship this trigger.
-create function public.isolated_abort_import_completion()
-returns trigger language plpgsql security invoker set search_path=pg_catalog,public
-as $$
-begin
- if new.review_status='imported' and new.name like 'Atomic final failure %' then
-   raise exception 'Isolated final staging update failure';
- end if;
- return new;
-end;
-$$;
-create trigger isolated_abort_import_completion
-before update of review_status on public.lead_import_rows
-for each row execute function public.isolated_abort_import_completion();

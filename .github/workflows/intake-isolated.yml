@@ -51,7 +51,10 @@ jobs:
           if ! command -v psql >/dev/null; then
             sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
           fi
-          psql "$DB_URL" -v ON_ERROR_STOP=1 -f tests/isolated/atomic-intake.sql
+          # Reviewed SQL candidate (without any deliberate fault trigger)
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f docs/atomic-staged-import-candidate.sql
+          # Fault injection belongs only to the disposable CI database
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f tests/isolated/atomic-final-stage-fault.sql
           psql "$DB_URL" -v ON_ERROR_STOP=1 -c "NOTIFY pgrst, 'reload schema';"
       - name: Run authenticated fault, concurrency, and RLS tests
         shell: bash
