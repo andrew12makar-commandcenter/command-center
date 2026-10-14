@@ -191,3 +191,13 @@ test('the campaign lane drives the score while a better-supported service is fla
  assert.ok(q.reasons.some(r=>/outside the campaign focus/.test(r)));
  assert.ok(!q.unmet.includes('Service need not supported by evidence'));
 });
+
+test('a Google Maps search is not a recorded GBP listing, but a CID link is still unreviewed',()=>{
+ const search=qualifyProspect(base({gbpUrl:'https://www.google.com/maps/search/?api=1&query=Nakhon',targetService:'gbp'}));
+ assert.equal(search.gbpStatus,'unconfirmed');
+ assert.equal(search.gbpState,'unknown');
+ assert.match(search.reasons.join(' '),/search link|not a confirmed/i);
+ const specific=qualifyProspect(base({gbpUrl:'https://maps.google.com/?cid=4',targetService:'gbp'}));
+ assert.equal(specific.gbpStatus,'recorded');
+ assert.equal(specific.gbpState,'unknown');
+});
