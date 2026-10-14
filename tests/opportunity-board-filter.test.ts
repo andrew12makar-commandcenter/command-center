@@ -38,3 +38,9 @@ test('test-toggle restores test business without altering production population'
  assert.equal(counts.technical_review,1);
  assert.equal(searched.filter(x=>x.meta.isTest).length,1);
 });
+
+test('hidden test count honors selected search and opportunity filters',()=>{
+ assert.equal(run({q:'Nakhon'}).testCount,0);
+ assert.equal(run({opportunity:'gbp'}).testCount,0);
+ assert.equal(run({campaignFilter:'test'}).testCount,1);
+});
