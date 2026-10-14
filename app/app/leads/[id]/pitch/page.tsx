@@ -4,7 +4,8 @@ import {requireWorkspace} from '@/lib/workspace';
 import type {AuditRecord} from '@/lib/opportunity-board';
 import {buildSalesBrief} from '@/lib/sales-brief';
 import type {AuditFindings} from '@/lib/website-intelligence';
-import {qualifyCrmBusiness,readCampaign} from '@/lib/business-qualification-server';
+import {qualifyCrmBusiness,readCampaign,readOriginRaw} from '@/lib/business-qualification-server';
+import {isTestCampaign} from '@/lib/discovery-campaigns';
 import {buildPitchBrief} from '@/lib/pitch-brief';
 import PitchBriefActions from '@/components/pitch-brief-actions';
 
@@ -29,7 +30,8 @@ export default async function PitchBriefPage({params}:{params:Promise<{id:string
    .order('created_at',{ascending:false}).limit(1),
   readCampaign(supabase,organizationId,b.campaign_id)
  ]);
- const {q,audit}=qualifyCrmBusiness(b,(audits??[]) as AuditRecord[],sources??[],campaign);
+ const origin=await readOriginRaw(supabase,organizationId,id);
+ const {q,audit}=qualifyCrmBusiness(b,(audits??[]) as AuditRecord[],sources??[],campaign,{staged:origin,hasDemo:Boolean(demos?.length)});
  const sales=buildSalesBrief(b.name,audit?{status:audit.status,website_url:audit.website_url,assessed_at:audit.assessed_at,
   findings:audit.findings as Partial<AuditFindings>}:null);
  const demo=demos?.[0];
@@ -39,18 +41,22 @@ export default async function PitchBriefPage({params}:{params:Promise<{id:string
  return <main className="pitch-brief max-w-4xl">
   <Link className="no-print muted text-sm" href={'/app/leads/'+id}>← {b.name} · CRM</Link>
   <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
-   <div><p className="kicker">Internal pitch brief · not for sending</p><h1 className="mt-2 text-3xl font-semibold">{b.name}</h1>
+   <div><p className="kicker">Internal pitch brief · not for sending{campaign&&isTestCampaign(campaign)?' · TEST RECORD':''}</p><h1 className="mt-2 text-3xl font-semibold">{b.name}</h1>
     <p className="muted mt-2 text-sm">{brief.location}</p><p className="muted text-sm">{b.category||'Category not recorded'}</p></div>
    <PitchBriefActions markdown={brief.markdown}/>
   </div>
   <section className="panel mt-6 grid gap-4 p-6 text-sm sm:grid-cols-2">
    <div><p className="muted text-xs">Campaign</p><p className="mt-1 font-semibold">{brief.campaign}</p></div>
    <div><p className="muted text-xs">Primary opportunity</p><p className="mt-1 font-semibold">{brief.opportunity}</p></div>
+   <div><p className="muted text-xs">Secondary opportunity</p><p className="mt-1 font-semibold">{brief.secondary}</p></div>
+   <div><p className="muted text-xs">Qualification score</p><p className="mt-1 font-semibold">{brief.score} · {brief.progress}</p></div>
    <div><p className="muted text-xs">Evidence confidence</p><p className="mt-1 font-semibold">{brief.confidence}</p></div>
    <div><p className="muted text-xs">Recommended next action</p><p className="mt-1 font-semibold">{brief.nextAction}</p></div>
   </section>
   <Section title="Recommended opening offer"><p>{brief.openingOffer}</p></Section>
+  <Section title="Verify before contacting"><List items={brief.verifyFirst}/></Section>
   <Section title="Supporting evidence"><List items={brief.evidence}/></Section>
+  <Section title="Score breakdown"><List items={brief.scoreLines}/></Section>
   <Section title="Important unknowns"><List items={brief.unknowns}/></Section>
   <Section title="Website audit summary"><List items={brief.auditSummary}/></Section>
   <Section title="Existing website, GBP and demo">

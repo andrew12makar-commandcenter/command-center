@@ -30,15 +30,22 @@ test('pitch brief is evidence-bounded and lists claims that must not be made',()
 });
 test('markdown is copyable and contains every required section',()=>{
  const m=buildPitchBrief(input({demoUrl:'/app/demos/abc'})).markdown;
- for(const h of ['Recommended opening offer','Supporting evidence','Important unknowns','Website audit summary','Existing links','Website demo','Claims that must not be made','Sources'])
+ for(const h of ['Recommended opening offer','Verify before contacting','Score breakdown','Supporting evidence','Important unknowns','Website audit summary','Existing links','Website demo','Claims that must not be made','Sources'])
   assert.match(m,new RegExp('## '+h));
  assert.match(m,/Campaign:\*\* Allston landscapers/);
  assert.match(m,/Internal demo draft: \/app\/demos\/abc/);
- assert.doesNotMatch(m.replace(/## Claims that must not be made[\s\S]*?## Sources/,''),/\b(revenue|traffic|ranking)\b/i);
+ assert.doesNotMatch(m.replace(/## Claims that must not be made[\s\S]*?## Sources/,'').replace(/not a revenue estimate/g,''),/\b(revenue|traffic|ranking)\b/i);
 });
 test('verified, measured business has fewer unknowns and keeps recorded links',()=>{
  const b=buildPitchBrief(input({},null,{website_url:'https://yard.example/',google_business_url:'https://maps.google.com/?cid=4',verification_status:'verified',operational_status:'operating'}));
  assert.equal(b.locationVerified,true);
  assert.deepEqual(b.links.map(l=>l.label),['Website','Google Business Profile']);
  assert.ok(!b.unknowns.some(x=>/currently operating/.test(x)));
+});
+
+test('location is not repeated when the street already holds the full address',()=>{
+ const b=buildPitchBrief(input({},null,{street_address:'72 Saybrook Street, #3, Boston, MA 02135',city:'Boston',state:'MA',postal_code:'02135'}));
+ assert.equal(b.location,'72 Saybrook Street, #3, Boston, MA 02135 (as recorded; not verified)');
+ assert.match(b.score,/^\d+\/100$/);
+ assert.ok(b.verifyFirst.length>0);
 });

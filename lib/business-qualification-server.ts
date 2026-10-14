@@ -14,12 +14,20 @@ export function sourceEvidence(sources:SourceRow[]){
  return {sourceUrl:best?.source_url??null,sourceType:best?.source_type??null,profileUrl:profile?.source_url??null,independent};
 }
 export function qualifyCrmBusiness(
- b:BusinessForQualification&{id:string},audits:AuditRecord[],sources:SourceRow[],campaign:Campaign|null
+ b:BusinessForQualification&{id:string},audits:AuditRecord[],sources:SourceRow[],campaign:Campaign|null,
+ extra:{staged?:Record<string,unknown>|null;hasDemo?:boolean}={}
 ):{q:Qualification;audit:AuditRecord|null}{
  const audit=currentAudit(b as unknown as OpportunityBusiness,audits);
  const ev=sourceEvidence(sources);
  return {audit,q:qualifyBusiness(b,{audit:auditSummary(audit),sourceUrl:ev.sourceUrl,sourceType:ev.sourceType,
-  profileUrl:ev.profileUrl,targetService:campaign?.target_service??null})};
+  profileUrl:ev.profileUrl,targetService:campaign?.target_service??null,targetArea:campaign?.target_area??null,
+  staged:extra.staged??null,hasDemo:extra.hasDemo})};
+}
+// The staged candidate a CRM record was imported from keeps its source and review evidence.
+export async function readOriginRaw(supabase:SupabaseClient,organizationId:string,businessId:string):Promise<Record<string,unknown>|null>{
+ const {data}=await supabase.from('lead_import_rows').select('raw_data').eq('organization_id',organizationId)
+  .eq('matched_business_id',businessId).in('review_status',['imported','duplicate']).order('created_at',{ascending:false}).limit(1);
+ return (data?.[0]?.raw_data as Record<string,unknown>|undefined)??null;
 }
 export async function readCampaign(supabase:SupabaseClient,organizationId:string,id:string|null|undefined):Promise<Campaign|null>{
  if(!id)return null;

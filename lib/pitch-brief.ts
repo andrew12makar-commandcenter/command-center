@@ -1,4 +1,4 @@
-import {opportunityLabels,strengthLabels,confidenceLabels,nextActionLabels,websitePresenceLabels,type Qualification,type Opportunity} from './prospect-qualification.ts';
+import {opportunityLabels,strengthLabels,confidenceLabels,nextActionLabels,evidenceStateLabels,progressLabels,formatLocation,type Qualification,type Opportunity} from './prospect-qualification.ts';
 import {targetServiceLabels,type Campaign} from './discovery-campaigns.ts';
 import type {SalesBrief} from './sales-brief.ts';
 
@@ -12,7 +12,8 @@ export type PitchInput={
  sources:{url:string;label:string}[];demoUrl:string|null;generatedAt:string;
 };
 export type PitchBrief={
- title:string;location:string;locationVerified:boolean;campaign:string;opportunity:string;
+ title:string;location:string;locationVerified:boolean;campaign:string;opportunity:string;secondary:string;
+ score:string;scoreLines:string[];verifyFirst:string[];progress:string;
  evidence:string[];confidence:string;unknowns:string[];openingOffer:string;
  links:{label:string;url:string}[];auditSummary:string[];nextAction:string;demoUrl:string|null;
  doNotClaim:string[];sources:{label:string;url:string}[];markdown:string;
@@ -29,15 +30,15 @@ const safeUrl=(v:string|null|undefined)=>{try{const u=new URL(v||'');return ['ht
 export function buildPitchBrief(i:PitchInput):PitchBrief{
  const b=i.business,q=i.q;
  const locationVerified=b.verification_status==='verified'&&b.operational_status==='operating';
- const place=[b.street_address,[b.city,b.state].filter(Boolean).join(', '),b.postal_code].filter(Boolean).join(' · ')||'No address recorded';
+ const place=formatLocation(b.street_address,b.city,b.state,b.postal_code);
  const location=place+(locationVerified?' (verified, operating)':' (as recorded; not verified)');
- const evidence=[...q.reasons.filter(r=>!r.startsWith('Manually set')),
-  `Website: ${websitePresenceLabels[q.websitePresence]}. GBP: ${q.gbpStatus==='recorded'?'link recorded':'not confirmed'}.`,
+ const evidence=[...q.reasons.filter(r=>!r.startsWith('Manually set')&&!r.startsWith('Secondary')),
+  `Website: ${evidenceStateLabels[q.websiteState]}. GBP: ${evidenceStateLabels[q.gbpState]}.`,
   ...i.sales.observations.filter(o=>o.kind==='measured').slice(0,4).map(o=>`${o.label}: ${o.value} (${i.sales.sourceLabel}${i.sales.assessedAt?', '+i.sales.assessedAt.slice(0,10):''}).`)];
  const unknowns:string[]=[];
  if(!locationVerified)unknowns.push('Whether the business is currently operating at this location (not yet verified).');
- if(q.websitePresence!=='official_site_recorded')unknowns.push('Whether an official website exists that is not yet recorded.');
- if(q.gbpStatus==='unconfirmed')unknowns.push('Whether a Google Business Profile exists and who manages it.');
+ if(q.websiteState==='unknown')unknowns.push(q.websitePresence==='official_site_recorded'?'The current state of the recorded website (not yet checked).':'Whether an official website exists that is not yet recorded.');
+ if(q.gbpState==='unknown')unknowns.push('Whether a Google Business Profile exists and who manages it.');
  if(i.sales.confidence==='unmeasured')unknowns.push('Website performance and SEO (no audit recorded).');
  if(i.sales.confidence==='inconclusive')unknowns.push('Website performance and SEO (latest audit inconclusive).');
  if(q.contactReadiness!=='ready')unknowns.push('Who the decision maker is and how to reach them.');
@@ -47,8 +48,9 @@ export function buildPitchBrief(i:PitchInput):PitchBrief{
  if(q.primaryOpportunity==='website_design'&&q.websitePresence==='social_only')
   offer='Ask whether they have a website they control. If not, offer a simple concept site built from their real details, shown for feedback only.';
  const doNotClaim=['Do not estimate revenue, traffic, rankings, leads or return on investment.','Do not guarantee results or timelines.'];
- if(q.websitePresence!=='official_site_recorded')doNotClaim.push('Do not say the business has no website; none is recorded, which is not proof.');
- if(q.gbpStatus==='unconfirmed')doNotClaim.push('Do not say the business has no Google Business Profile; it has not been confirmed either way.');
+ if(q.websiteState!=='verified_missing'&&q.websitePresence!=='official_site_recorded')doNotClaim.push('Do not say the business has no website; none is recorded, which is not proof.');
+ if(q.gbpState!=='verified_missing'&&q.gbpState!=='verified_present')doNotClaim.push('Do not say the business has no Google Business Profile; it has not been confirmed either way.');
+ if(q.legalStructure)doNotClaim.push('Do not describe their industry from the legal structure ('+q.legalStructure+').');
  if(q.websitePresence==='social_only')doNotClaim.push('Do not criticize their social page as a substitute for a website.');
  if(i.sales.confidence!=='measured')doNotClaim.push('Do not make performance or SEO claims; no reliable measurement is recorded.');
  if(!locationVerified)doNotClaim.push('Do not state the business is operating at this address until verified.');
@@ -66,17 +68,23 @@ export function buildPitchBrief(i:PitchInput):PitchBrief{
   .map(s=>({label:s.label,url:safeUrl(s.url)})).filter((s):s is {label:string;url:string}=>Boolean(s.url)&&!seen.has(s.url!)&&Boolean(seen.add(s.url!)));
  const campaign=i.campaign?`${i.campaign.name} (${targetServiceLabels[i.campaign.target_service]}${i.campaign.target_area?', '+i.campaign.target_area:''})`:'No campaign recorded';
  const opportunity=`${opportunityLabels[q.primaryOpportunity]} · ${strengthLabels[q.opportunityStrength]}`;
+ const secondary=q.secondary.length?q.secondary.map(l=>opportunityLabels[l]).join(', '):'None supported by evidence yet';
+ const score=q.score+'/100';
+ const scoreLines=[...q.parts.map(p=>`${p.label}: ${p.points}/${p.max} (${p.why.join(' ')})`),...q.penalties.map(p=>`Penalty, ${p.label}: ${p.points}`)];
+ const verifyFirst=q.tasks.length?q.tasks:['Nothing outstanding in recorded evidence; still confirm details on first contact.'];
  const title=b.name+': pitch brief';
  const list=(xs:string[])=>xs.map(x=>'- '+x).join('\n');
  const markdown=[`# ${title}`,`_Internal only. Prepared ${i.generatedAt.slice(0,10)}. Not a proposal._`,'',
   `**Location:** ${location}`,`**Category:** ${b.category||'Not recorded'}`,`**Campaign:** ${campaign}`,
-  `**Primary opportunity:** ${opportunity}`,`**Evidence confidence:** ${confidenceLabels[q.evidenceConfidence]}`,
+  `**Primary opportunity:** ${opportunity}`,`**Secondary opportunity:** ${secondary}`,
+  `**Qualification score:** ${score} (${progressLabels[q.progress]})`,`**Evidence confidence:** ${confidenceLabels[q.evidenceConfidence]}`,
   `**Recommended next action:** ${nextActionLabels[q.nextAction]}`,'',
-  '## Recommended opening offer',offer,'','## Supporting evidence',list(evidence),'','## Important unknowns',list(unknowns),'',
+  '## Recommended opening offer',offer,'','## Verify before contacting',list(verifyFirst),'','## Supporting evidence',list(evidence),'',
+  '## Score breakdown',list(scoreLines),'','## Important unknowns',list(unknowns),'',
   '## Website audit summary',list(auditSummary),'','## Existing links',links.length?list(links.map(l=>`${l.label}: ${l.url}`)):'- None recorded','',
   '## Website demo',i.demoUrl?`- Internal demo draft: ${i.demoUrl} (not shared publicly)`:'- No demo yet','',
   '## Claims that must not be made',list(doNotClaim),'','## Sources',sources.length?list(sources.map(s=>`${s.label}: ${s.url}`)):'- None recorded'
  ].join('\n');
- return {title,location,locationVerified,campaign,opportunity,evidence,confidence:confidenceLabels[q.evidenceConfidence],
+ return {title,location,locationVerified,campaign,opportunity,secondary,score,scoreLines,verifyFirst,progress:progressLabels[q.progress],evidence,confidence:confidenceLabels[q.evidenceConfidence],
   unknowns,openingOffer:offer,links,auditSummary,nextAction:nextActionLabels[q.nextAction],demoUrl:i.demoUrl,doNotClaim,sources,markdown};
 }

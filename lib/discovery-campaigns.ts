@@ -60,3 +60,7 @@ export function matchesTargetIndustry(
 export function campaignLabel(c:Pick<Campaign,'name'|'target_service'>|null|undefined):string{
  return c?c.name+' · '+targetServiceLabels[c.target_service]:'No campaign';
 }
+// Test campaigns stay visible on request but out of the default real-prospect workflow.
+export function isTestCampaign(c:Pick<Campaign,'name'>|null|undefined):boolean{
+ return Boolean(c&&/^\s*test\b/i.test(c.name));
+}

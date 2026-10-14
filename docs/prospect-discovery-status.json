@@ -2,16 +2,16 @@
   "project": "Prospect Discovery MVP",
   "branch": "codex/generator-intelligence-checkpoints-oct12",
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
-  "current_milestone": "Preview validation complete (localhost:3107, signed in); awaiting final approval",
-  "overall_status": "ready_for_review",
-  "last_updated": "2026-10-14T07:04:41Z",
+  "current_milestone": "M6 Campaign-aligned scoring and first real Brighton batch",
+  "overall_status": "in_progress",
+  "last_updated": "2026-10-14T08:39:31Z",
   "responsible_agent": "Claude",
-  "safe_for_other_agent_to_edit": true,
+  "safe_for_other_agent_to_edit": false,
   "latest_commit": {
     "sha": "3e2f75738a016bead7084eefaea96001345bd974",
     "message": "REVIEW CHECKPOINT: merge of origin 235f637 (Overture cache) into Prospect Discovery; all checks run on this commit. Later commits, if any, are tracker-only docs changes."
   },
-  "next_action": "Owner: review browser evidence and observations, then decide on production integration. Do not merge or deploy production, apply 0008, publish, share or contact anyone without separate approval.",
+  "next_action": "Claude: re-run the signed-in browser flow on localhost:3107, then build the first real Brighton batch (10 reviewed, 5 qualified, 3 demos, 5 pitch briefs).",
   "blockers": [],
   "known_limitations": [
     "Browser validation ran on a local dev server against the single live Supabase project; there is no separate preview database.",
@@ -27,31 +27,6 @@
     "Review prepared but unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql separately after the Prospect Discovery validation."
   ],
   "tests": [
-    {
-      "command": "npx tsc --noEmit + eslint app/app/leads",
-      "result": "passed",
-      "ran_at": "2026-10-13T22:37:38Z"
-    },
-    {
-      "command": "node --experimental-strip-types --test tests/*.test.ts",
-      "result": "186 passed, 0 failed",
-      "ran_at": "2026-10-13T22:40:31Z"
-    },
-    {
-      "command": "npx tsc --noEmit + eslint (M4 files)",
-      "result": "passed",
-      "ran_at": "2026-10-13T22:40:31Z"
-    },
-    {
-      "command": "node --test tests/pitch-brief.test.ts",
-      "result": "3 passed, 0 failed",
-      "ran_at": "2026-10-13T22:42:28Z"
-    },
-    {
-      "command": "npm test (.ts suite)",
-      "result": "189 passed, 0 failed (incl. 20 qualification, 3 pitch-brief, 3 campaign/tracker tests)",
-      "ran_at": "2026-10-13T22:45:21Z"
-    },
     {
       "command": "npm test (.mjs suite, Linux copy after npm ci)",
       "result": "40 passed, 0 failed",
@@ -176,6 +151,31 @@
       "command": "Post-test DB integrity",
       "result": "Original 7 businesses and 25 staged rows: fingerprints identical to pre-migration baseline (new columns excluded); totals now 8 businesses, 41 staged rows, 1 campaign, 1 new demo draft by this test; no activities, no outreach",
       "ran_at": "2026-10-14T07:04:41Z"
+    },
+    {
+      "command": "npm test (.ts) after M6 refactor",
+      "result": "196 passed, 0 failed",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npm test (.mjs)",
+      "result": "41 passed, 0 failed",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "result": "passed",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npx eslint .",
+      "result": "0 errors, 14 pre-existing warnings",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npx next build",
+      "result": "succeeded",
+      "ran_at": "2026-10-14T08:39:31Z"
     }
   ],
   "milestones": [
@@ -314,6 +314,49 @@
         "app/globals.css"
       ],
       "commit": "24ed0d0"
+    },
+    {
+      "id": "M6",
+      "title": "Campaign-aligned scoring, source semantics, daily workflow",
+      "status": "in_progress",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Campaign service is always the primary lane; website design, GBP, local SEO and geolocation scored independently (0-30 need each)",
+        "Transparent 100-point model: need 30, fit 20, observable value 20, reachability 15, evidence confidence 15, with documented penalties (identity, inactivity, unit-number ambiguity, no contact, duplicate, conflict)",
+        "Evidence states: verified present / verified missing / likely weak / unknown / conflicting; missing GBP or website stays unknown",
+        "Legal structure (LLC, Corporation...) no longer treated as industry; Boston mapping stores it as legal_structure; 'Industry not yet verified' shown",
+        "Free website check (one page + robots.txt + sitemap.xml, DNS-guarded) and manual review form stored under raw_data.review (source keys untouched)",
+        "Queue: 'Your next 10 prospects' with score, service, strength, confidence, one-sentence reason, tasks, next action and progress; filters, score breakdown, source record and advanced controls collapsed; test campaigns excluded by default",
+        "Inline server-action errors; pitch-brief location no longer repeats; pitch brief adds score breakdown and verify-before-contact list"
+      ],
+      "in_progress": [
+        "Browser re-validation on localhost:3107",
+        "First real Brighton prospect batch"
+      ],
+      "remaining": [],
+      "files_changed": [
+        "lib/prospect-qualification.ts",
+        "lib/website-evidence.ts",
+        "lib/website-evidence-server.ts",
+        "lib/action-errors.ts",
+        "lib/business-classification.ts",
+        "lib/discovery.ts",
+        "lib/discovery-campaigns.ts",
+        "lib/business-qualification-server.ts",
+        "lib/pitch-brief.ts",
+        "components/prospect-ui.tsx",
+        "app/app/leads/import/page.tsx",
+        "app/app/leads/actions.ts",
+        "app/app/leads/[id]/page.tsx",
+        "app/app/leads/[id]/pitch/page.tsx",
+        "app/app/opportunities/page.tsx",
+        "tests/prospect-qualification.test.ts",
+        "tests/website-evidence.test.ts",
+        "tests/action-errors.test.ts",
+        "tests/pitch-brief.test.ts"
+      ],
+      "commit": null
     }
   ],
   "review_checkpoint": {

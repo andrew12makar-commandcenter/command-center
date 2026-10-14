@@ -8,9 +8,11 @@ import {scoreOpportunity,sortOpportunities,stageLabels,
 
 import {qualifyCrmBusiness,type SourceRow} from '@/lib/business-qualification-server';
 import {listCampaigns} from '@/lib/discovery-campaigns-server';
+import {isTestCampaign} from '@/lib/discovery-campaigns';
+import {progressLabels} from '@/lib/prospect-qualification';
 import {OPPORTUNITIES,opportunityLabels,strengthLabels,confidenceLabels,nextActionLabels,type Opportunity} from '@/lib/prospect-qualification';
 
-type Params={stage?:string;q?:string;page?:string;opportunity?:string;campaign?:string};
+type Params={stage?:string;q?:string;page?:string;opportunity?:string;campaign?:string;tests?:string};
 type BoardBusiness=OpportunityBusiness&{
  campaign_id?:string|null;primary_opportunity?:string|null;evidence_confidence?:string|null;next_action?:string|null;
  qualification_rationale?:string|null;google_business_url?:string|null;street_address?:string|null;postal_code?:string|null;contact_name?:string|null;
@@ -28,7 +30,7 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
     .order('id',{ascending:true}).range(from,to);
    return {data:data as unknown as BoardBusiness[]|null,error};
   });
- const [businesses,audits,sources,{campaigns}]=await Promise.all([
+ const [businesses,audits,sources,{campaigns},origins,demoRows]=await Promise.all([
   readBusinesses(BOARD_COLUMNS+QUALIFICATION_COLUMNS).catch(()=>readBusinesses(BOARD_COLUMNS)),
   collectAllPages<AuditRecord>(async(from,to)=>{
    const {data,error}=await supabase.from('website_assessments')
@@ -42,8 +44,17 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
     .eq('organization_id',organizationId).order('recorded_at',{ascending:true}).order('id',{ascending:true}).range(from,to);
    return {data,error};
   }),
-  listCampaigns(supabase,organizationId)
+  listCampaigns(supabase,organizationId),
+  collectAllPages<{matched_business_id:string|null;raw_data:Record<string,unknown>|null}>(async(from,to)=>{
+   const {data,error}=await supabase.from('lead_import_rows').select('matched_business_id,raw_data')
+    .eq('organization_id',organizationId).in('review_status',['imported','duplicate']).not('matched_business_id','is',null)
+    .order('created_at',{ascending:true}).order('id',{ascending:true}).range(from,to);
+   return {data,error};
+  }).catch(()=>[]),
+  supabase.from('demo_sites').select('business_id').eq('organization_id',organizationId).limit(2000)
  ]);
+ const originByBusiness=new Map(origins.map(o=>[o.matched_business_id as string,o.raw_data]));
+ const withDemo=new Set((demoRows.data??[]).map(d=>d.business_id as string));
  const campaignById=new Map(campaigns.map(c=>[c.id,c]));
  const sourcesById=new Map<string,SourceRow[]>();
  for(const src of sources){const l=sourcesById.get(src.business_id)||[];l.push(src);sourcesById.set(src.business_id,l);}
@@ -56,13 +67,16 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
  const all=sortOpportunities(businesses.map(b=>scoreOpportunity(b,auditsById.get(b.id)||[])));
  const qualification=new Map(businesses.map(b=>{
   const campaign=b.campaign_id?campaignById.get(b.campaign_id)??null:null;
-  return [b.id,{campaign,q:qualifyCrmBusiness(b,auditsById.get(b.id)||[],sourcesById.get(b.id)||[],campaign).q}];
+  return [b.id,{campaign,q:qualifyCrmBusiness(b,auditsById.get(b.id)||[],sourcesById.get(b.id)||[],campaign,
+   {staged:originByBusiness.get(b.id)??null,hasDemo:withDemo.has(b.id)}).q}];
  }));
  const opportunity=OPPORTUNITIES.includes(p.opportunity as Opportunity)?p.opportunity as Opportunity:'';
  const campaignFilter=campaignById.has(p.campaign||'')?p.campaign!:'';
  const stage=stages.includes(p.stage as BoardStage)?p.stage as BoardStage|null:null;
  const q=(p.q||'').trim().slice(0,100);
- const searched=all.filter(x=>(!stage||x.stage===stage)&&
+ const showTests=p.tests==='1';
+ const testCount=all.filter(x=>isTestCampaign(qualification.get(x.business.id)?.campaign)).length;
+ const searched=all.filter(x=>(showTests||!isTestCampaign(qualification.get(x.business.id)?.campaign))&&(!stage||x.stage===stage)&&
    (!opportunity||qualification.get(x.business.id)?.q.primaryOpportunity===opportunity)&&
    (!campaignFilter||qualification.get(x.business.id)?.campaign?.id===campaignFilter)&&(!q||
    [x.business.name,x.business.city,x.business.category,x.business.service_area]
@@ -128,6 +142,7 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
       <option value="">All campaigns</option>{campaigns.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
     <div className="flex items-end gap-4"><button className="btn" type="submit">Filter</button><Link href="/app/opportunities" className="text-sm text-cyan-300 underline">Clear</Link></div>
    </form>
+   <p className="mt-3 text-xs"><Link className="text-cyan-300 underline" href={showTests?'/app/opportunities':'/app/opportunities?tests=1'}>{showTests?'Hide test records':'Show test records ('+testCount+')'}</Link></p>
    <p className="muted mt-4 text-xs">Sorted by actionability, recent measured technical improvement, then research priority. No invented revenue estimates or commercial scores. PageSpeed results older than 90 days or for a different website are not treated as current.</p>
   </section>
   <section id="opportunity-results" tabIndex={-1} aria-label="Filtered opportunity results" className="panel mt-7 scroll-mt-6 overflow-x-auto">
@@ -154,7 +169,8 @@ export default async function OpportunitiesPage({searchParams}:{searchParams:Pro
      <td className="max-w-sm text-sm leading-6">{(()=>{const qq=qualification.get(x.business.id);return qq&&<p className="mb-2 text-xs">
        <strong className="text-cyan-100">{opportunityLabels[qq.q.primaryOpportunity]} · {strengthLabels[qq.q.opportunityStrength]}</strong>
        <span className="muted"> · {confidenceLabels[qq.q.evidenceConfidence]} confidence · Next: {nextActionLabels[qq.q.nextAction]}</span>
-       {qq.campaign&&<span className="muted block">Campaign: {qq.campaign.name}</span>}
+       <span className="muted block">Score {qq.q.score}/100 · {progressLabels[qq.q.progress]}</span>
+       {qq.campaign&&<span className="muted block">Campaign: {qq.campaign.name}{isTestCampaign(qq.campaign)?' (TEST RECORD)':''}</span>}
       </p>;})()}{x.reason}</td>
      <td><div className="flex flex-col gap-2 text-sm">
       <Link className="text-cyan-300 underline" href={'/app/leads/'+x.business.id}>Review company →</Link>

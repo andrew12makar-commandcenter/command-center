@@ -2,7 +2,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireWorkspace } from '@/lib/workspace';
 import { addActivity,addSource,confirmSource,markVerified,moveProfileFromWebsite,updateLead,updateBusinessQualification } from '../actions';
-import {qualifyCrmBusiness,readCampaign} from '@/lib/business-qualification-server';
+import {qualifyCrmBusiness,readCampaign,readOriginRaw} from '@/lib/business-qualification-server';
+import {EvidenceChip,ProgressChip,ScoreBadge,ScoreBreakdown,Fold} from '@/components/prospect-ui';
+import {isTestCampaign} from '@/lib/discovery-campaigns';
 import type {AuditRecord} from '@/lib/opportunity-board';
 import {targetServiceLabels} from '@/lib/discovery-campaigns';
 import {OPPORTUNITIES,CONFIDENCES,NEXT_ACTIONS,opportunityLabels,strengthLabels,confidenceLabels,readinessLabels,nextActionLabels,websitePresenceLabels} from '@/lib/prospect-qualification';
@@ -28,7 +30,8 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
     supabase.from('website_assessments').select('business_id,website_url,status,assessed_at,findings').eq('organization_id',organizationId).eq('business_id',id).order('assessed_at',{ascending:false}).limit(25),
     readCampaign(supabase,organizationId,b.campaign_id),
   ]);
-  const {q}=qualifyCrmBusiness(b,(audits??[]) as AuditRecord[],sources??[],campaign);
+  const origin=await readOriginRaw(supabase,organizationId,id);
+  const {q}=qualifyCrmBusiness(b,(audits??[]) as AuditRecord[],sources??[],campaign,{staged:origin,hasDemo:Boolean(demos?.length)});
   const hasStoredQualification=Boolean(b.primary_opportunity||b.evidence_confidence||b.next_action);
   return <main className="max-w-6xl">
     <Link href="/app/leads" className="muted text-sm">← All prospects</Link>
@@ -43,7 +46,8 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div><p className="kicker">Prospect qualification{campaign?' · '+campaign.name:''}</p>
           <h2 className="mt-2 text-lg font-semibold">{opportunityLabels[q.primaryOpportunity]} · {strengthLabels[q.opportunityStrength]}</h2>
-          <p className="muted mt-1 text-xs">{campaign?targetServiceLabels[campaign.target_service]+' campaign · '+(campaign.target_area||'any area'):'No discovery campaign recorded'}</p></div>
+          <p className="muted mt-1 text-xs">{campaign?targetServiceLabels[campaign.target_service]+' campaign · '+(campaign.target_area||'any area')+(isTestCampaign(campaign)?' · TEST RECORD':''):'No discovery campaign recorded'}</p>
+          <p className="mt-2 flex flex-wrap items-center gap-2"><ScoreBadge q={q}/><ProgressChip progress={q.progress}/><EvidenceChip label="Website" state={q.websiteState}/><EvidenceChip label="GBP" state={q.gbpState}/></p></div>
         <div className="flex flex-wrap gap-3">
           <Link href={'/app/leads/'+id+'/pitch'} className="btn">Pitch brief →</Link>
           <a href="#website-demo" className="btn">Website demo ↓</a>
@@ -57,7 +61,10 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
         <div><dt className="muted text-xs">Website</dt><dd className="mt-1 font-semibold">{websitePresenceLabels[q.websitePresence]}</dd></div>
         <div><dt className="muted text-xs">GBP</dt><dd className="mt-1 font-semibold">{q.gbpStatus==='recorded'?'Recorded':'Not confirmed'}</dd></div>
       </dl>
-      <p className="mt-4 text-sm leading-6 text-[#c4d6dd]">{b.qualification_rationale||q.reasons.join(' ')}</p>
+      <p className="mt-4 text-sm leading-6 text-[#c4d6dd]">{q.summary}</p>
+      {b.qualification_rationale&&<p className="muted mt-1 text-xs">Recorded at import: {b.qualification_rationale}</p>}
+      {q.tasks.length>0&&<p className="mt-2 text-xs"><span className="muted">Still to verify: </span>{q.tasks.join(' · ')}</p>}
+      <div className="mt-3"><Fold title={'Score breakdown ('+q.score+'/100)'}><ScoreBreakdown q={q}/></Fold></div>
       {hasStoredQualification&&<p className="muted mt-1 text-xs">Opportunity, confidence and next action were recorded at import or set manually. Clear them below to recompute from current evidence.</p>}
       <details className="mt-4 border-t border-[#243745] pt-3">
         <summary className="cursor-pointer text-xs font-semibold text-cyan-200">Update qualification</summary>
