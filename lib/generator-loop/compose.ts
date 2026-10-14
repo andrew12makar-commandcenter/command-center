@@ -53,6 +53,39 @@ export function permittedBusinessImages(f:BusinessFacts){
  return {ok,rejected};
 }
 
+// Use the operator's image subject roles rather than arbitrary input ordering.
+// Generated concepts may illustrate general sections but never depict staff.
+type ImageRole=BusinessImage['role']|'concept';
+type TaggedImage=PlanImage&{role:ImageRole};
+const heroRoles=['hero','detail','gallery','concept'] as const;
+const offerRoles=['detail','gallery','hero','concept'] as const;
+const galleryRoles=['gallery','detail','hero','concept'] as const;
+const storyRoles=['detail','hero','gallery','concept'] as const;
+const teamRoles=['team'] as const;
+function allocateImages(f:BusinessFacts,density:DesignCandidate['imageryDensity']){
+ const {ok:business,rejected}=permittedBusinessImages(f);
+ const generated=f.imagery.generatedAllowed?f.imagery.generated:[];
+ const pool:TaggedImage[]=[
+  ...business.map(b=>({src:b.url,alt:b.alt,origin:'business' as const,disclosure:null,role:b.role})),
+  ...generated.map(g=>({src:g.src,alt:g.alt,origin:'generated' as const,disclosure:g.disclosure,role:'concept' as const})),
+ ];
+ const requested=slots[density],used=new Set<number>();
+ const remaining=(roles:readonly ImageRole[])=>Math.min(Math.max(0,requested-used.size),
+  pool.reduce((n,image,i)=>n+(!used.has(i)&&roles.includes(image.role)?1:0),0));
+ const take=(n:number,roles:readonly ImageRole[]):PlanImage[]=>{
+  const out:PlanImage[]=[];
+  if(n<=0)return out;
+  for(const role of roles)for(let i=0;i<pool.length&&out.length<n&&used.size<requested;i++){
+   if(used.has(i)||pool[i].role!==role)continue;
+   used.add(i);
+   const {role:_subjectRole,...image}=pool[i];
+   out.push(image);
+  }
+  return out;
+ };
+ return {requested,rejected,remaining,take};
+}
+
 function primaryCta(f:BusinessFacts):PlanCta{
  const labels:Record<BusinessFacts['conversion'],string>={book:'Book an appointment',call:f.phone?`Call ${f.phone}`:'Call us',order:'Order online',
   visit:'Plan your visit',donate:'Donate',enroll:'Enroll',quote:'Request a quote',contact:'Get in touch',consult:'Book a consultation'};
@@ -64,15 +97,7 @@ function primaryCta(f:BusinessFacts):PlanCta{
 export function composePage(f:BusinessFacts,c:DesignCandidate):PagePlan{
  const t=deriveTraits(f);
  const cap=itemCap[c.copyDepth],sCap=sentenceCap[c.copyDepth];
- const {ok:business,rejected}=permittedBusinessImages(f);
- const generated=f.imagery.generatedAllowed?f.imagery.generated:[];
- const pool:PlanImage[]=[
-  ...business.map(b=>({src:b.url,alt:b.alt,origin:'business' as const,disclosure:null})),
-  ...generated.map(g=>({src:g.src,alt:g.alt,origin:'generated' as const,disclosure:g.disclosure})),
- ];
- const requested=slots[c.imageryDensity];
- const images=pool.slice(0,requested);
- let cursor=0;const take=(n:number)=>{const out=images.slice(cursor,cursor+n);cursor+=out.length;return out;};
+ const {requested,rejected,remaining,take}=allocateImages(f,c.imageryDensity);
 
  const primary=primaryCta(f);
  const secondary:PlanCta|null=f.phone&&!primary.href.startsWith('tel:')?{label:`Call ${f.phone}`,href:'tel:'+f.phone.replace(/[^\d+]/g,''),role:'secondary',placement:'hero'}:
@@ -82,7 +107,7 @@ export function composePage(f:BusinessFacts,c:DesignCandidate):PagePlan{
   c.motionSystem==='calm'?'rise':c.motionSystem==='precise'?'indexed':hasImages||kind==='hero'?'wipe':'rise';
  const offerCols=c.composition==='bento'?3:c.composition==='service-index'?1:2;
 
- const heroImages=['immersive','split-editorial','asymmetric'].includes(c.composition)?take(1):[];
+ const heroImages=['immersive','split-editorial','asymmetric'].includes(c.composition)?take(1,heroRoles):[];
  const lead=f.offerings.slice(0,2);
  const sections:PlanSection[]=[{
   id:'top',kind:'hero',
@@ -96,24 +121,24 @@ export function composePage(f:BusinessFacts,c:DesignCandidate):PagePlan{
   if(kind==='offer'&&f.offerings.length){
    // A gallery needs two images; an inline offer image only uses a spare one.
    // When the hero carries no image, the first image anchors the offer.
-   const left=images.length-cursor;
+   const left=remaining(offerRoles);
    // A side image needs enough text beside it, or it leaves an empty block.
    const tallEnough=Math.ceil(Math.min(cap,f.offerings.length)/offerCols)>=4;
-   const imgs=tallEnough&&((cursor===0&&left>=1&&(c.imageryDensity==='accent'||left>=3))||(c.imageryDensity==='immersive'&&left>=3))?take(1):[];
+   const imgs=tallEnough&&((cursor===0&&left>=1&&(c.imageryDensity==='accent'||left>=3))||(c.imageryDensity==='immersive'&&left>=3))?take(1,offerRoles):[];
    sections.push({id:'offer',kind,heading:label('What we offer'),body:[],items:f.offerings.slice(0,cap).map(fact),images:imgs,
     columnsDesktop:offerCols,columnsMobile:offerCols===3&&f.offerings.every(o=>o.length<=22)?2:1,reveal:reveal(kind,imgs.length>0),
     ctas:inline(primary.href,primary.label)});
   }
   if(kind==='gallery'&&(c.imageryDensity==='balanced'||c.imageryDensity==='immersive')){
-   const want=Math.min(c.imageryDensity==='immersive'?3:2,images.length-cursor);
-   const imgs=want>=2?take(want):[];
-   if(imgs.length>=2)sections.push({id:'gallery',kind,heading:label(t.visualProof?'Recent work':'A closer look'),body:[],items:[],images:imgs,
+   const want=Math.min(c.imageryDensity==='immersive'?3:2,remaining(galleryRoles));
+   const imgs=want>=2?take(want,galleryRoles):[];
+   if(imgs.length>=2)sections.push({id:'gallery',kind,heading:label(imgs.every(i=>i.origin==='generated')?'Visual concepts':imgs.some(i=>i.origin==='generated')?'Photos and visual concepts':t.visualProof?'Recent work':'A closer look'),body:[],items:[],images:imgs,
     columnsDesktop:imgs.length,columnsMobile:1,reveal:reveal(kind,true),ctas:[]});
   }
   if(kind==='proof'&&f.proof?.length)sections.push({id:'proof',kind,heading:label('Credentials and affiliations'),body:[],
    items:f.proof.slice(0,cap).map(fact),images:[],columnsDesktop:Math.min(3,f.proof.length),columnsMobile:1,reveal:reveal(kind,false),ctas:[]});
   if(kind==='team'&&f.team?.length){
-   const imgs=c.imageryDensity==='immersive'?take(1):[];
+   const imgs=c.imageryDensity==='immersive'?take(1,teamRoles):[];
    sections.push({id:'team',kind,heading:label('The people you will work with'),body:[],
     items:f.team.slice(0,cap).map(m=>fact(`${m.name}, ${m.role}`)),images:imgs,columnsDesktop:Math.min(4,f.team.length),columnsMobile:f.team.length>1?2:1,
     reveal:reveal(kind,imgs.length>0),ctas:[]});
@@ -122,7 +147,7 @@ export function composePage(f:BusinessFacts,c:DesignCandidate):PagePlan{
    items:f.process!.slice(0,cap).map(fact),images:[],columnsDesktop:Math.min(4,f.process!.length),columnsMobile:1,reveal:reveal(kind,false),
    ctas:inline(primary.href,primary.label)});
   if(kind==='story'&&f.about.length>=40&&c.copyDepth!=='brief'){
-   const imgs=c.imageryDensity!=='none'&&c.imageryDensity!=='accent'?take(1):[];
+   const imgs=c.imageryDensity!=='none'&&c.imageryDensity!=='accent'?take(1,storyRoles):[];
    sections.push({id:'story',kind,heading:label(`About ${f.name}`),body:[fact(sentences(f.about,sCap+2))],items:[],images:imgs,
     columnsDesktop:imgs.length?2:1,columnsMobile:1,reveal:reveal(kind,imgs.length>0),ctas:[]});
   }
