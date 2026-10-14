@@ -92,11 +92,44 @@ for(const fault of ['after_business','after_claim','after_sources','before_compl
  label('fault recovery at '+fault+' without a duplicate business or source');
 }
 const normal=await staged('Successful import');
-const complete=await commitStagedImport(payload(normal));
+const campaign=expectOk(await admin.from('discovery_campaigns').insert({
+ organization_id:orgA,name:'Test Clinic Web Prospects',created_by:owner.id,
+ target_area:'Brighton',target_industry:'medical',target_service:'website_design',
+ discovery_source:'osm'
+}).select('id').single(),'campaign seed');
+expectOk(await admin.from('lead_import_rows').update({campaign_id:campaign.id})
+ .eq('id',normal.id),'campaign-stage link');
+const original=payload(normal);
+const completePayload={...original,
+ baseRecord:{...original.baseRecord,website_url:'https://isolated-example.invalid/',
+  contact_email:'frontdesk@example.invalid',contact_name:'Test contact',
+  google_business_url:'https://maps.google.com/?cid=12345',
+  service_area:'Brighton and Brookline',postal_code:'02135',
+  street_address:'21 Cambridge St',phone:'617-555-0143'},
+ qualifiedRecord:{...original.qualifiedRecord,campaign_id:campaign.id,
+  next_action:'prepare_opportunity_brief',
+  qualification_rationale:'Score 62/100: manually reviewed source evidence from public directory'}
+};
+const complete=await commitStagedImport(completePayload);
 assert.equal(complete.resumed,false);
 await assertCompletedExactlyOnce(normal);
-await assert.rejects(commitStagedImport(payload(normal)),/not pending/);
-label('normal import completes and completed row is not importable twice');
+const stored=expectOk(await admin.from('businesses').select(
+ 'website_url,contact_email,contact_name,google_business_url,service_area,postal_code,street_address,phone,campaign_id,primary_opportunity,evidence_confidence,next_action,qualification_rationale,priority_score,pipeline_status'
+ ).eq('id',normal.id).single(),'atomic preserved fields');
+for(const [key,value] of [
+ ['website_url','https://isolated-example.invalid/'],
+ ['contact_email','frontdesk@example.invalid'],
+ ['contact_name','Test contact'],
+ ['google_business_url','https://maps.google.com/?cid=12345'],
+ ['service_area','Brighton and Brookline'],['postal_code','02135'],
+ ['street_address','21 Cambridge St'],['phone','617-555-0143'],
+ ['campaign_id',campaign.id],['primary_opportunity','website_design'],
+ ['evidence_confidence','low'],['next_action','prepare_opportunity_brief'],
+ ['qualification_rationale',completePayload.qualifiedRecord.qualification_rationale],
+ ['priority_score',null],['pipeline_status','not_contacted']
+])assert.equal(stored[key],value,'preserve imported field '+key);
+await assert.rejects(commitStagedImport(completePayload),/not pending/);
+label('atomic import preserves campaign, GBP, contacts, location and scoring snapshot without a priority score');
 
 // A real database CHECK-constraint rejection, not a synthetic network throw:
 // partial CRM creation and staging claim must be recoverable after fixing the
@@ -133,6 +166,18 @@ const rollbackSuccess=await commitStagedImport(rollbackPayload);
 assert.equal(rollbackSuccess.resumed,false);
 await assertCompletedExactlyOnce(rollbackRow);
 label('atomic SQL RPC rolls back real source rejection and retries as a fresh import');
+
+// The test-only Postgres trigger fails exactly on the final status update,
+// after the business AND sources were inserted. Roll back every write.
+const finalRow=await staged('Atomic final failure '+randomUUID().slice(0,8));
+await assert.rejects(commitStagedImport(payload(finalRow)),
+ /Atomic staged import rejected.*Isolated final staging update failure/);
+const finalState=await countRecords(finalRow);
+assert.equal(finalState.business.length,0,'final-stage failure must roll back CRM');
+assert.equal(finalState.sources.length,0,'final-stage failure must roll back provenance');
+assert.equal(finalState.queue.review_status,'pending');
+assert.equal(finalState.queue.matched_business_id,null);
+label('atomic RPC rolls back CRM and source writes when FINAL staging update fails');
 
 // Two authenticated editors submitting the exact same row in parallel.
 const shared=await staged('Concurrency probe');
