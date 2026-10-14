@@ -1,0 +1,58 @@
+name: Isolated authenticated intake tests
+
+on:
+  push:
+    branches:
+      - codex/intake-auth-isolated-qa-oct14
+  workflow_dispatch:
+
+# This workflow never uses account secrets, project refs, supabase link/db push,
+# or production URLs. All keys and users belong to a Docker stack on this runner.
+permissions:
+  contents: read
+concurrency:
+  group: intake-isolated-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  authenticated-db:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install local Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 2.84.2
+      - name: Start disposable local PostgreSQL, GoTrue, PostgREST and gateway
+        shell: bash
+        run: |
+          set -euo pipefail
+          # No project link, no remote token, no remote database.
+          unset SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_ID
+          supabase init --force
+          supabase start -x realtime,storage-api,imgproxy,mailpit,studio,postgres-meta,edge-runtime,logflare,vector,supavisor
+      - name: Run authenticated fault, concurrency, and RLS tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_ID
+          # Local temporary process scope only: never upload or print secrets.
+          set -a
+          eval "$(supabase status -o env 2>/dev/null)"
+          set +a
+          test "$API_URL" = "http://127.0.0.1:54321"
+          test -n "$ANON_KEY" && test -n "$SERVICE_ROLE_KEY"
+          CC_ISOLATED_DB=YES \
+          CC_TEST_SUPABASE_URL="$API_URL" \
+          CC_TEST_SUPABASE_ANON_KEY="$ANON_KEY" \
+          CC_TEST_SUPABASE_SERVICE_KEY="$SERVICE_ROLE_KEY" \
+            node --experimental-strip-types scripts/test-intake-supabase.mjs
+      - name: Stop disposable stack
+        if: always()
+        run: supabase stop --no-backup || true
