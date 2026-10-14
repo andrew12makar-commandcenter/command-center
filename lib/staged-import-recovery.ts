@@ -3,15 +3,20 @@
 import {normalizeBusiness} from './csv.ts';
 
 export type RecoveryStage={
- name:string|null;matched_business_id:string|null;review_status:string;
+ id:string;name:string|null;matched_business_id:string|null;review_status:string;
 };
 export type RecoveryBusiness={id:string;name:string};
 
 export function importRecoveryDecision(row:RecoveryStage,business:RecoveryBusiness|null):
  'create'|'resume'|'blocked'{
  if(row.review_status!=='pending')return 'blocked';
- if(!row.matched_business_id)return 'create';
- if(!business||business.id!==row.matched_business_id)return 'blocked';
+ // New imports use the staging row UUID as their CRM UUID. PostgreSQL's
+ // existing businesses primary key then prevents two parallel inserts for one
+ // staging row, without requiring a new migration.
+ const linkedId=row.matched_business_id||(
+  business?.id===row.id?row.id:null);
+ if(!linkedId)return business?'blocked':'create';
+ if(!business||business.id!==linkedId)return 'blocked';
  const name=normalizeBusiness(row.name||''),existing=normalizeBusiness(business.name||'');
  // A stale or manually reassigned link is never permission to edit another CRM lead.
  return name.length>=3&&name===existing?'resume':'blocked';
