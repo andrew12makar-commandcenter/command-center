@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - codex/intake-auth-isolated-qa-oct14
+      - codex/intake-atomic-isolated-oct14
   workflow_dispatch:
 
 # This workflow never uses account secrets, project refs, supabase link/db push,
