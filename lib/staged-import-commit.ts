@@ -64,8 +64,10 @@ export async function commitStagedImport({
    const {data:latest,error:readError}=await supabase.from('lead_import_rows')
     .select('matched_business_id,review_status')
     .eq('id',row.id).eq('organization_id',organizationId).maybeSingle();
-   if(readError||latest?.matched_business_id!==businessId||latest?.review_status!=='pending'){
-    throw Error('CRM business '+businessId+' exists; staged link no longer matches. Reload and review.');
+   if(readError||!latest)throw Error('CRM business '+businessId+' exists; unable to verify staged recovery row.');
+   if(latest.review_status!=='pending')throw Error('Staged row is not pending; it was already reviewed or imported.');
+   if(latest.matched_business_id!==businessId){
+    throw Error('CRM business '+businessId+' exists; staged link points elsewhere. Reload and review.');
    }
   }
  }
