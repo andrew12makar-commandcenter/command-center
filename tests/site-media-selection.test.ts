@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {selectSiteMedia} from '../lib/site-media-selection.ts';
+import {selectSiteMedia,galleryMediaDescription} from '../lib/site-media-selection.ts';
 import {buildSiteBlueprint,cleanSiteContent,type SiteBlueprint} from '../lib/site-blueprint.ts';
 import {createDraft} from '../lib/demo-engine.ts';
 import type {GeneratedConceptSet} from '../lib/concept-imagery.ts';
@@ -49,4 +49,13 @@ test('minimal imagery and disabled concept generation suppress all unused images
  assert.deepEqual(noConcept.gallery.map(x=>x.src),[host+'/work.jpg']);
  const minimal={...site,design:{...site.design,imageTreatment:'minimal' as const}};
  assert.deepEqual(selectSiteMedia(minimal,concepts),{displayHero:null,gallery:[]});
+});
+
+test('gallery description matches concept-only, approved-only and mixed provenance',()=>{
+ assert.equal(galleryMediaDescription([{concept:true}]),
+  'Illustrative AI-generated concepts, not photographs of this business.');
+ assert.equal(galleryMediaDescription([{concept:false}]),
+  'Approved business photography presented as visual reference.');
+ assert.match(galleryMediaDescription([{concept:false},{concept:true}]),/alongside/);
+ assert.equal(galleryMediaDescription([]),'');
 });
