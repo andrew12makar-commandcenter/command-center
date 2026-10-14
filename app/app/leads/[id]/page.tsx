@@ -9,6 +9,7 @@ import type {AuditRecord} from '@/lib/opportunity-board';
 import {targetServiceLabels} from '@/lib/discovery-campaigns';
 import {OPPORTUNITIES,CONFIDENCES,NEXT_ACTIONS,opportunityLabels,strengthLabels,confidenceLabels,readinessLabels,nextActionLabels,websitePresenceLabels} from '@/lib/prospect-qualification';
 import {classifyWebPresence} from '@/lib/web-presence';
+import {classifyGoogleListingLink} from '@/lib/google-listing-link';
 import { createDemo } from '@/app/app/demos/actions';
 import {classifyIndustry,industryLabel} from '@/lib/business-classification';
 
