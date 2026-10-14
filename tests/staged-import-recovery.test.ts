@@ -5,6 +5,8 @@ import {importRecoveryDecision,missingImportEvidence} from '../lib/staged-import
 const pending={id:'staged-1',name:'Brighton Dental, LLC',matched_business_id:null,review_status:'pending'};
 test('new pending staging row creates once; linked row resumes its exact matching business',()=>{
  assert.equal(importRecoveryDecision(pending,null),'create');
+ assert.equal(importRecoveryDecision({...pending,name:'Mi',matched_business_id:'crm-1'},
+  {id:'crm-1',name:'Mi'}),'resume');
  // If the staging link could not be stamped after inserting the CRM record,
  // the matching deterministic UUID still lets a later request resume safely.
  assert.equal(importRecoveryDecision(pending,{id:'staged-1',name:'Brighton Dental LLC'}),'resume');
