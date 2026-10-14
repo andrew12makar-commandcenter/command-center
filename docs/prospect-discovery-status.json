@@ -4,16 +4,16 @@
   "worktree": "~/Documents/GitHub/command-center-checkpoint-test (do not edit ~/Documents/GitHub/command-center)",
   "current_milestone": "Preview validation: applying migrations 0005-0007",
   "overall_status": "blocked",
-  "last_updated": "2026-10-14T04:51:57Z",
+  "last_updated": "2026-10-14T05:47:24Z",
   "responsible_agent": "Claude",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
     "sha": "3e2f75738a016bead7084eefaea96001345bd974",
     "message": "REVIEW CHECKPOINT: merge of origin 235f637 (Overture cache) into Prospect Discovery; all checks run on this commit. Later commits, if any, are tracker-only docs changes."
   },
-  "next_action": "Owner: approve the 0006 migration prompt (or re-authorize), then Claude applies 0006 once, verifies, and continues to 0007.",
+  "next_action": "Owner: approve the Supabase connector prompt when 0006 is retried (or apply 0006 in the SQL editor). Separately review prepared, unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql.",
   "blockers": [
-    "0005_project_roadmap APPLIED and verified (tracked in Supabase migration history). 0006_roadmap_execution_log was NOT applied: the apply_migration call returned status cancelled (the approval for its DROP CONSTRAINT / DROP TRIGGER IF EXISTS statements was not granted). Verified afterwards: nothing from 0006 exists (no project_roadmap_activity, status check unchanged, no function/trigger); history = 0004, 0005. 0007 not attempted. businesses=7, lead_import_rows=25 unchanged."
+    "0005_project_roadmap APPLIED and verified. 0006_roadmap_execution_log NOT applied: apply_migration returned status cancelled twice (2026-10-14 ~00:55 and ~01:50 ET); the Supabase connector approval prompt for its DROP ... IF EXISTS statements was not completed in the client. Verified after each attempt: nothing from 0006 exists; history = 0004, 0005; businesses=7 and lead_import_rows=25 with unchanged full-row fingerprints. 0007 not attempted."
   ],
   "known_limitations": [
     "Browser verification not performed: requires Supabase env, a signed-in session and migration 0007.",
@@ -161,6 +161,11 @@
       "command": "apply 0006_roadmap_execution_log",
       "result": "cancelled before execution; verified nothing applied",
       "ran_at": "2026-10-14T04:51:57Z"
+    },
+    {
+      "command": "apply 0006_roadmap_execution_log (retry)",
+      "result": "cancelled again before execution; verified nothing applied; fingerprints unchanged",
+      "ran_at": "2026-10-14T05:47:24Z"
     }
   ],
   "milestones": [
