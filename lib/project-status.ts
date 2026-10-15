@@ -1,9 +1,9 @@
-// Read-only implementation tracker shared by Claude and ChatGPT.
+// Read-only implementation tracker shared by Claude, ChatGPT and Codex.
 // Source of truth: docs/prospect-discovery-status.json (version-controlled).
 // Never place secrets, credentials, customer data or environment values in it.
 export const TRACKER_STATUSES=['not_started','in_progress','blocked','ready_for_review','complete'] as const;
 export type TrackerStatus=typeof TRACKER_STATUSES[number];
-export const TRACKER_AGENTS=['Claude','ChatGPT'] as const;
+export const TRACKER_AGENTS=['Claude','ChatGPT','Codex'] as const;
 export type TrackerAgent=typeof TRACKER_AGENTS[number];
 export type TrackerTest={command:string;result:string;ran_at:string};
 export type TrackerMilestone={

@@ -1,17 +1,17 @@
 {
   "project": "Prospect Discovery MVP",
   "branch": "integration/release-candidate-oct14",
-  "worktree": "Local release-candidate worktree at /Users/andrewmakar/Documents/Codex/command-center-takeover-oct15; HEAD 3a97c199b629e3ecb1cf5b162c17d48ebc0a5dbd; three branch histories merged locally; unpushed; owner Mac checkout unchanged",
-  "current_milestone": "Three reviewed branches locally merged; fresh local tests, production build, generator benchmark, standalone export and eight-site responsive browser QA passed",
+  "worktree": "Local release-candidate worktree at /Users/andrewmakar/Documents/Codex/command-center-takeover-oct15; verified app source 50aa4bd; three reviewed branch heads are merge ancestors; local only, unpushed",
+  "current_milestone": "Three branches merged and locally verified; hosted CI and authenticated DB/UI checks remain open",
   "overall_status": "in_progress",
-  "last_updated": "2026-10-15",
+  "last_updated": "2026-10-15T01:58:00-04:00",
   "responsible_agent": "Codex",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "08554bb29b03785517669d695d9df0ff78f1d599",
-    "message": "docs: record verified three-branch release integration; local, unpushed"
+    "sha": "50aa4bd550a19b2a1836bd3bef7b88d0221fa8e0",
+    "message": "docs: record approved merged-software verification; source verification anchor"
   },
-  "next_action": "Keep this release candidate local until separately approved to push or merge to main. Exact-head GitHub CI and disposable authenticated Supabase recovery/concurrency/RLS/UI checks remain pending; Docker and Supabase CLI/runtime are unavailable locally. Historical CRM and production RPC/schema inspection remain separate.",
+  "next_action": "Keep the release candidate local until separately approved to push or merge to main. Run exact-head GitHub Actions and disposable authenticated Supabase recovery/concurrency/RLS/UI checks on an approved isolated runner; review historical CRM orphans and production RPC/schema only through an approved read-only connection.",
   "blockers": [
     "The merged branch is local and unpushed, so exact-head GitHub Actions results are not available. Existing passing runs apply to ancestor c8d5ef7 only.",
     "Docker and Supabase CLI/runtime are unavailable locally; disposable authenticated recovery/concurrency/RLS/UI tests were not rerun on this merged source.",
@@ -38,9 +38,10 @@
     "All three requested feature branch heads are ancestors of local release-candidate HEAD 3a97c19 via reviewed merge commits; GitHub Actions does not yet verify that unpushed HEAD."
   ],
   "manual_steps": [
+    "Open the release-candidate preview at http://localhost:3108/app or /app/roadmap; localhost:3001 was serving the older 034d167 checkout during the screenshot.",
     "Check GitHub issue #3 for cross-agent claims and exact branch checkpoints before touching related files.",
-    "Run the controlled signed-in browser test. Do not publish, share a demo, contact a prospect or deploy production during validation.",
-    "Review prepared but unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql separately after the Prospect Discovery validation."
+    "Run exact-head CI and authenticated isolated DB/UI checks before external release. Do not publish, share a demo, contact a prospect or deploy production during validation.",
+    "Review prepared but unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql separately after Prospect Discovery validation."
   ],
   "tests": [
     {
@@ -500,7 +501,7 @@
     {
       "id": "M8",
       "title": "Cross-branch intake integration and generator media verification",
-      "status": "in_progress",
+      "status": "ready_for_review",
       "responsible_agent": "ChatGPT",
       "safe_for_other_agent_to_edit": false,
       "completed": [
@@ -515,14 +516,15 @@
         "Created normal local merge commit 3427757282f4d061161b2ff93ebffe49047e96ed containing origin/codex/gbp-evidence-guardrails-oct14 at a7a11b6.",
         "Created normal local merge commit 3a97c199b629e3ecb1cf5b162c17d48ebc0a5dbd containing origin/feature/nextjs-foundation at 32374f8 while retaining newer safeguards.",
         "Restored and regression-tested safe primary contact actions: validated booking URL, telephone, or email.",
-        "On the merged source tree: full tests, typecheck, lint, webpack build, all 8 generator benchmarks, standalone cold export build, and responsive browser/Lighthouse QA passed; details below."
+        "On the merged source tree: full tests, typecheck, lint, webpack build, all 8 generator benchmarks, standalone cold export build, and responsive browser/Lighthouse QA passed; details below.",
+        "Reconciled tracker after full branch audit: all three requested branch heads are ancestors of the locally verified release candidate; screenshot mismatch traced to the older localhost:3001 checkout."
       ],
       "in_progress": [
-        "Exact-head GitHub CI and disposable authenticated DB/UI verification remain pending; local runner lacks Docker/Supabase CLI. Read-only historical orphan and production RPC/schema checks remain separate."
+        "Exact-head hosted CI and disposable authenticated Supabase recovery/concurrency/RLS/UI verification; these gates do not have results on this unpushed HEAD."
       ],
       "remaining": [
-        "Run exact-head full CI and authenticated Supabase recovery/concurrency/RLS/UI suite on an approved isolated runner.",
-        "Review historical orphan rows read-only and production RPC/schema only with an approved live connection; do not write or migrate production."
+        "Run exact-head CI and authenticated database/UI tests on an approved isolated runner.",
+        "Review historical orphan rows and production RPC/schema through an approved read-only connection."
       ],
       "files_changed": [
         "tests/prospect-intake-combined.test.ts",

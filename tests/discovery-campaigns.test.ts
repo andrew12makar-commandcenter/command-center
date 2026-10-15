@@ -28,8 +28,10 @@ test('tracker file is valid and uses only allowed statuses and agents',()=>{
  assert.ok(allowed.includes((raw as {overall_status:string}).overall_status));
  for(const m of (raw as {milestones:{status:string;responsible_agent:string}[]}).milestones){
   assert.ok(allowed.includes(m.status),m.status);
-  assert.ok(['Claude','ChatGPT'].includes(m.responsible_agent));
+ assert.ok(['Claude','ChatGPT','Codex'].includes(m.responsible_agent));
  }
+ assert.equal(s.responsible_agent,'Codex');
+ assert.equal(s.milestones.find(m=>m.id==='M8')?.status,'ready_for_review');
  assert.ok(s.milestones.length>=6);assert.ok(s.next_action.length>0);
  assert.doesNotMatch(JSON.stringify(raw),/(service_role|sk-[a-z0-9]|SUPABASE_[A-Z_]*=|password\s*[:=])/i);
 });
