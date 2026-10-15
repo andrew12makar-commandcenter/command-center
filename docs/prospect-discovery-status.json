@@ -1,21 +1,21 @@
 {
   "project": "Prospect Discovery MVP",
   "branch": "integration/release-candidate-oct14",
-  "worktree": "Local release-candidate worktree at /Users/andrewmakar/Documents/Codex/command-center-takeover-oct15; branch integration remains local and unpushed; owner Mac checkout unchanged",
-  "current_milestone": "Semantic integration of the Opportunity Board, GBP guardrails and Next.js foundation branch value; direct contact actions restored and local full-suite/browser QA passed",
+  "worktree": "Local release-candidate worktree at /Users/andrewmakar/Documents/Codex/command-center-takeover-oct15; HEAD 3a97c199b629e3ecb1cf5b162c17d48ebc0a5dbd; three branch histories merged locally; unpushed; owner Mac checkout unchanged",
+  "current_milestone": "Three requested branches locally merged into the release candidate; functional contact action restored; local automated, export and responsive benchmark QA passed",
   "overall_status": "in_progress",
   "last_updated": "2026-10-15",
   "responsible_agent": "Codex",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "4c441172c1b050a74ec717d1405b91a113e202a3",
-    "message": "fix generator trade layouts and client export; local release-candidate commit, not pushed"
+    "sha": "3a97c199b629e3ecb1cf5b162c17d48ebc0a5dbd",
+    "message": "merge: reconcile Next.js foundation branch with release safeguards; local, unpushed integration HEAD"
   },
-  "next_action": "Keep the integrated release candidate local until separately approved to push or merge to main. Exact-head authenticated Supabase recovery tests require a Docker/Supabase runner; production RPC/schema, historical CRM and owner-Mac runtime checks remain separate.",
+  "next_action": "Keep this release candidate local until separately approved to push or merge to main. Exact-head GitHub CI and disposable authenticated Supabase recovery/concurrency/RLS/UI checks remain pending; Docker and Supabase CLI/runtime are unavailable locally. Historical CRM and production RPC/schema inspection remain separate.",
   "blockers": [
-    "The current branch is local and unpushed, so exact-head GitHub Actions are not available. The previous c8d5ef7 run does not cover current local changes.",
-    "Docker and Supabase CLI/runtime are unavailable locally; disposable authenticated recovery/concurrency/RLS/UI tests were not rerun on this source.",
-    "Owner Mac runtime, production Supabase/RPC installation, historical orphan CRM rows, and the production UI were not inspected in this takeover. PR #4 remains draft; no push or main merge was made."
+    "The merged branch is local and unpushed, so exact-head GitHub Actions results are not available. Existing passing runs apply to ancestor c8d5ef7 only.",
+    "Docker and Supabase CLI/runtime are unavailable locally; disposable authenticated recovery/concurrency/RLS/UI tests were not rerun on this merged source.",
+    "Historical CRM orphan rows, production RPC/schema and owner-Mac runtime were not inspected. No production writes, migrations, deploy, push or main merge were made."
   ],
   "known_limitations": [
     "Local dev server on the owner Mac against the single live Supabase project; no separate preview database.",
@@ -32,10 +32,10 @@
     "The local default Turbopack build could not bind a port under this sandbox; a local webpack production build completed. Remote exact-c8 CI completed the configured production build.",
     "A clean temporary client-export smoke installed 48 packages from the registry and completed an optimized Next.js production build on the local integration source.",
     "The full eight-site responsive browser/Lighthouse suite passed on local integration source; design review and client approval remain separate.",
-    "M8 remains in progress pending historical orphan review and production RPC/schema inspection; isolated disposable authenticated DB/UI verification passed on exact c8.",
     "Board counts and current operational database totals were not independently rechecked in this takeover.",
     "Supabase CLI and Docker are unavailable in the local test environment; the isolated authenticated test stack was not rerun on the local integration source. Exact c8d5ef7 remote results do not cover local changes.",
-    "The holdout-plumbing visual check covered one generated trade holdout only; all other verticals still require responsive preview and owner review before client use."
+    "The holdout-plumbing visual check covered one generated trade holdout only; all other verticals still require responsive preview and owner review before client use.",
+    "All three requested feature branch heads are ancestors of local release-candidate HEAD 3a97c19 via reviewed merge commits; GitHub Actions does not yet verify that unpushed HEAD."
   ],
   "manual_steps": [
     "Check GitHub issue #3 for cross-agent claims and exact branch checkpoints before touching related files.",
@@ -272,6 +272,11 @@
       "command": "Final generator benchmark on release-candidate commit 4c44117",
       "result": "PASS: 8/8 core and holdout fixtures accepted at score 100, including holdout plumbing as universal trade-safe presentation.",
       "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Three-branch merged release-candidate verification (HEAD 3a97c199b629e3ecb1cf5b162c17d48ebc0a5dbd)",
+      "result": "PASS: merged feature heads verified as ancestors. npm test 232 TypeScript + 41 MJS tests; typecheck; lint 0 errors/14 existing warnings; npx next build --webpack; generator benchmarks 8/8 score 100; clean exported-site install (48 packages) and optimized production build; responsive browser QA for 8 fictional sites at desktop/tablet/mobile with 0 blocking/0 warning findings. Lighthouse ranges: performance 76\u2013100, accessibility 98\u2013100, best practices 100, SEO 100. Authenticated Supabase recovery/concurrency/RLS/UI NOT RUN locally (Docker/Supabase CLI unavailable); exact-head CI NOT RUN because local branch remains unpushed.",
+      "ran_at": "2026-10-15"
     }
   ],
   "milestones": [
@@ -458,7 +463,7 @@
     {
       "id": "M7",
       "title": "Cross-agent build ledger and accurate Opportunity Board counts",
-      "status": "completed",
+      "status": "complete",
       "responsible_agent": "ChatGPT",
       "safe_for_other_agent_to_edit": false,
       "completed": [
@@ -467,11 +472,11 @@
         "Aligned Opportunity Board tile totals and filtered list using a shared visibility helper; navigation preserves test record toggle",
         "Added four source-level regression tests for stage totals, filters and test visibility",
         "Filtered test-count indicator now reflects search/opportunity/campaign; fifth regression case added.",
-        "Current local integration passed npm test, typecheck, lint (0 errors; 14 existing warnings), webpack build and all 8 responsive browser QA fixtures with no blocking or warning findings."
+        "Five shared-filter regression tests and full local eight-site responsive browser QA passed; merged release tree test results are recorded below."
       ],
       "in_progress": [],
       "remaining": [
-        "Exact-head CI and authenticated Supabase tests require publishing to an approved isolated runner; no push or main merge is included",
+        "Exact-head CI and authenticated Supabase tests require an approved isolated runner; the merged branch remains unpushed.",
         "Do not deploy, migrate production, publish demos or contact prospects"
       ],
       "files_changed": [
@@ -500,15 +505,19 @@
         "Added cross-module intake regression and prevented scan area from being stored as service area",
         "Recorded source audit and blockers in docs/prospect-discovery-integration-audit-oct14.md",
         "Full automated integrated CI at 61aa593 verified: 221 TS + 41 MJS, typecheck, lint, build, export and zero-warning eight-site browser QA.",
-        "Isolated staged-import recovery with deterministic CRM and provenance IDs, resume UI, error handling, manual GBP guardrails and regression tests committed for review."
+        "Isolated staged-import recovery with deterministic CRM and provenance IDs, resume UI, error handling, manual GBP guardrails and regression tests committed for review.",
+        "Created normal local merge commit 15d8e5476d4b43bf459e4e88cd488e6297232b41 containing origin/codex/agent-ledger-board-counts-oct14 at b9881e2.",
+        "Created normal local merge commit 3427757282f4d061161b2ff93ebffe49047e96ed containing origin/codex/gbp-evidence-guardrails-oct14 at a7a11b6.",
+        "Created normal local merge commit 3a97c199b629e3ecb1cf5b162c17d48ebc0a5dbd containing origin/feature/nextjs-foundation at 32374f8 while retaining newer safeguards.",
+        "Restored and regression-tested safe primary contact actions: validated booking URL, telephone, or email.",
+        "On the merged source tree: full tests, typecheck, lint, webpack build, all 8 generator benchmarks, standalone cold export build, and responsive browser/Lighthouse QA passed; details below."
       ],
       "in_progress": [
-        "Exact-c8 isolated authenticated DB/UI, concurrency, recovery and RLS workflow passed; inspect historical CRM orphans and production RPC/schema separately"
+        "Exact-head GitHub CI and disposable authenticated DB/UI verification remain pending; local runner lacks Docker/Supabase CLI. Read-only historical orphan and production RPC/schema checks remain separate."
       ],
       "remaining": [
-        "Review historical orphan rows read-only",
-        "Verify production RPC/schema only with an approved live connection; no production writes or migration",
-        "Review divergent older feature branch and obtain explicit approval for any history/main merge"
+        "Run exact-head full CI and authenticated Supabase recovery/concurrency/RLS/UI suite on an approved isolated runner.",
+        "Review historical orphan rows read-only and production RPC/schema only with an approved live connection; do not write or migrate production."
       ],
       "files_changed": [
         "tests/prospect-intake-combined.test.ts",
