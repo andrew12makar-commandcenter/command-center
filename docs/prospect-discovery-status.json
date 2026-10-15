@@ -1,21 +1,21 @@
 {
   "project": "Prospect Discovery MVP",
   "branch": "integration/release-candidate-oct14",
-  "worktree": "GitHub connector integration branch only; Mac worktree not accessed or changed",
-  "current_milestone": "Phase 3: release-candidate branch preservation and reconciliation; earlier isolated CI passed, latest documentation-only HEAD CI unverified",
+  "worktree": "Local release-candidate worktree at /Users/andrewmakar/Documents/Codex/command-center-takeover-oct15; code committed at 4c44117, not pushed; owner Mac checkout unchanged",
+  "current_milestone": "Phase 3: semantic branch audit and trade-safe generator/export integration committed locally at 4c44117; automated, export-build and targeted responsive checks passed",
   "overall_status": "in_progress",
   "last_updated": "2026-10-15",
-  "responsible_agent": "ChatGPT",
+  "responsible_agent": "Codex",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "9ea724f79a7a515356a4368d34c9d90f60c9ca92",
-    "message": "Phase 3 branch reconciliation report; roadmap SQL archival; exact HEAD CI not yet verified"
+    "sha": "4c441172c1b050a74ec717d1405b91a113e202a3",
+    "message": "fix generator trade layouts and client export; local release-candidate commit, not pushed"
   },
-  "next_action": "Run exact-head CI for phase-3 release candidate, reconcile remaining renderer/export UI semantics, verify isolated authenticated intake and historical CRM orphans read-only before any production action. Do not merge main, migrate, deploy, publish, or contact prospects.",
+  "next_action": "Before using this release outside the local worktree, publish the reviewed commit for exact-head CI with owner approval; resolve production RPC/schema, historical CRM and owner-Mac runtime checks separately. Keep PR #4 draft and do not merge, deploy, migrate production, publish demos or contact prospects.",
   "blockers": [
-    "Current phase-3 HEAD exact-run CI not yet verified; previous release candidate da817a9 had reported successful full CI and authenticated isolated DB/UI runs.",
-    "Production atomic RPC installation, existing historical orphan CRM rows, and Mac-local runtime are not verified in this GitHub audit.",
-    "Older divergent branch differences require semantic review; source-file presence alone is not runtime verification."
+    "The local trade-safe generator correction is uncommitted and has no GitHub Actions run; exact c8d5ef7 CI does not validate this patch.",
+    "Owner Mac runtime, production Supabase/RPC installation, historical orphan CRM rows, and a live authenticated browser session were not inspected in this takeover.",
+    "PR #4 remains draft and unmerged; divergent older branches were reviewed, but no branch history was merged."
   ],
   "known_limitations": [
     "Local dev server on the owner Mac against the single live Supabase project; no separate preview database.",
@@ -23,14 +23,19 @@
     "Decision makers were not identified for any prospect; contact readiness is Partial (phone only).",
     "The existing demo generator produced generic shells; demo copy was filled from business-published facts and must be confirmed with each owner (fact status left unreviewed).",
     "Free website check reads one page, robots.txt and sitemap.xml only; no Lighthouse run for the batch, so no speed claims.",
-    "Opportunity Board stage tiles still count test records; the list hides them by default.",
     "Operator review evidence is stored under lead_import_rows.raw_data.review (no new migration); source keys are untouched.",
     "Migration 0008 (privilege hardening) prepared, not applied.",
-    "M7 source changes were committed remotely; runtime checks, browser validation and production effects are not verified. Existing CI workflow does not trigger on the M7 branch.",
     "Test exclusion identifies campaigns whose name starts with 'Test'; untagged historical test data may still affect totals until explicitly classified.",
-    "Push-triggered CI branch was added, but the GitHub connector did not return workflow-run results. No checks are marked passed on this branch.",
     "M8 integration branch copies exact Board/GBP source files without rewriting the source branches or claiming a Git history merge.",
-    "Imported scan-area and GBP-search contamination is now prevented in integration code but previous live rows have not been read, repaired or asserted clean."
+    "Imported scan-area and GBP-search contamination is now prevented in integration code but previous live rows have not been read, repaired or asserted clean.",
+    "Exact release candidate c8d5ef7 has successful remote full CI and isolated authenticated intake runs. The current local working-tree patch has no remote CI result.",
+    "The local default Turbopack build could not bind a port under this sandbox; a local webpack production build completed. Remote exact-c8 CI completed the configured production build.",
+    "The exported standalone site built with the installed dependency tree; a clean registry install was not exercised because package metadata was unavailable offline.",
+    "M7 remains in progress pending browser validation of the current patched build and accurate tracker checkpoint; exact-c8 remote browser QA is not evidence for this uncommitted patch.",
+    "M8 remains in progress pending historical orphan review and production RPC/schema inspection; isolated disposable authenticated DB/UI verification passed on exact c8.",
+    "Board counts and current operational database totals were not independently rechecked in this takeover.",
+    "Supabase CLI and Docker are unavailable in the local test environment; the isolated authenticated test stack was not rerun on the local patch. Exact c8d5ef7 remote test results do not cover local changes.",
+    "The holdout-plumbing visual check covered one generated trade holdout only; all other verticals still require responsive preview and owner review before client use."
   ],
   "manual_steps": [
     "Check GitHub issue #3 for cross-agent claims and exact branch checkpoints before touching related files.",
@@ -195,7 +200,7 @@
     },
     {
       "command": "Integration CI / authenticated lead-intake QA",
-      "result": "NOT VERIFIED. Scoped branch push workflow configured, but no accessible run log identified; localhost and live DB not used.",
+      "result": "Exact-head runs verified via GitHub Actions API: full CI run 38681092310 and isolated authenticated intake run 38681092336 both SUCCESS at c8d5ef7. Details recorded below.",
       "ran_at": "2026-10-14T21:37:41.176Z"
     },
     {
@@ -216,6 +221,56 @@
     {
       "command": "Phase 3 documentation commits 27b2e2e, 17da2cc, 9ea724f",
       "result": "Source commits confirmed; exact-head CI NOT VERIFIED; no database, Mac, or deployment tests performed",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "GitHub Actions full CI run 38681092310 at c8d5ef7",
+      "result": "PASS: unit tests, typecheck, lint, Next.js build, clean client export; Chromium browser QA and local Lighthouse passed. Exact SHA c8d5ef7b55cd984a0f2f96cc06c24a57909282e7.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "GitHub Actions isolated authenticated intake run 38681092336 at c8d5ef7",
+      "result": "PASS: disposable Supabase stack, concurrency/fault recovery/RLS tests, signed-in Next.js import UI QA and cleanup. Exact SHA c8d5ef7b55cd984a0f2f96cc06c24a57909282e7.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Local isolated-copy generator correction checks",
+      "result": "PASS on commit 4c441172c1b050a74ec717d1405b91a113e202a3: 270 tests, typecheck, lint (0 errors, 14 existing warnings), 8/8 generator benchmarks at score 100. Plumbing uses a universal trade-safe presentation and estimate path.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Local production build and client export smoke",
+      "result": "PASS on commit 4c44117: webpack production build and exported standalone client build using the installed dependency tree. The clean registry install was not exercised because package metadata was unavailable offline. Targeted responsive browser/Lighthouse QA passed separately.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Owner-Mac localhost tracker read-only check",
+      "result": "Mission Control and /app/roadmap loaded in the authenticated browser; /app/project-status returned 404. No writes were made. Current isolated repo production build lists the project-status route; the owner-Mac server may be stale or differ from the checkout.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Semantic comparison of active branches against c8d5ef7",
+      "result": "PASS: Opportunity Board changes are already present; the GBP branch is an older subset and the release retains the exact-link and import-recovery guards; intake-auth/recovery branches are ancestors of c8. Foundation renderer/sidebar deltas were rejected where they remove approved-media selection, roadmap evidence or newer routes. No blind cherry-picks or branch-history merges were made.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Final local tests after exported-client manifest fix",
+      "result": "PASS on commit 4c44117: npm test 270/270 (229 TypeScript, 41 MJS), typecheck, lint (0 errors, 14 existing warnings), npx next build --webpack.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Targeted holdout-plumbing responsive browser/Lighthouse QA",
+      "result": "PASS on commit 4c44117: exported plumbing holdout at desktop 1440x900, tablet 834x1112 and mobile 390x844 had 0 blocking and 0 warning findings. Lighthouse: performance 100, accessibility 98, best practices 100, SEO 100. A neutral concept favicon fixed the initial desktop 404. This covers one holdout, not owner sign-off.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Local isolated Supabase recovery/concurrency/RLS/UI stack",
+      "result": "NOT RUN: Supabase CLI and Docker are not installed in this environment. GitHub Actions isolated intake run 38681092336 passed on exact c8d5ef7; it does not cover the local generator/export patch.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Final generator benchmark on release-candidate commit 4c44117",
+      "result": "PASS: 8/8 core and holdout fixtures accepted at score 100, including holdout plumbing as universal trade-safe presentation.",
       "ran_at": "2026-10-15"
     }
   ],
@@ -414,10 +469,10 @@
         "Filtered test-count indicator now reflects search/opportunity/campaign; fifth regression case added."
       ],
       "in_progress": [
-        "Run npm test, typecheck, lint, build and nonmutating signed-in browser QA from an isolated checkout"
+        "Run browser QA against the patched local build and reconcile tracker evidence with exact branch/patch state"
       ],
       "remaining": [
-        "Reconcile and review tests, post verified result on issue #3",
+        "Record the patch verification result on issue #3; keep changes uncommitted unless a commit is explicitly approved",
         "Do not merge or deploy without explicit approval"
       ],
       "files_changed": [
@@ -449,13 +504,11 @@
         "Isolated staged-import recovery with deterministic CRM and provenance IDs, resume UI, error handling, manual GBP guardrails and regression tests committed for review."
       ],
       "in_progress": [
-        "Run latest recovery-branch CI; required actual job logs before ready_for_review",
-        "Validate actual signed-in staging, race and partial-failure behavior in independent test DB; not live Supabase"
+        "Exact-c8 isolated authenticated DB/UI, concurrency, recovery and RLS workflow passed; inspect historical CRM orphans and production RPC/schema separately"
       ],
       "remaining": [
-        "Verify retries and concurrent duplicate inserts under isolated DB fault injection",
-        "Evaluate atomic PostgreSQL function/unique evidence index if approved for future migration; no migration now",
-        "Review and reconcile historical orphan rows read-only",
+        "Review historical orphan rows read-only",
+        "Verify production RPC/schema only with an approved live connection; no production writes or migration",
         "Review divergent older feature branch and obtain explicit approval for any history/main merge"
       ],
       "files_changed": [
