@@ -25,3 +25,9 @@ Verified from GitHub branch file contents on 2026-10-15. This is a repository au
 3. Run exact-head tests, typecheck, lint, production build, standalone export, browser/Lighthouse checks, and disposable authenticated database tests. A prior passing ancestor does not prove the new HEAD passes.
 4. Validate on owner's Mac separately; this GitHub connector does not inspect localhost or live Supabase.
 5. No `main` merge, migration, deployment, publish, prospect contact or roadmap completion without explicit approval and evidence.
+
+## CI configuration audit (2026-10-15)
+- `.github/workflows/ci.yml` push trigger includes release branch. `typecheck-build` runs npm test, typecheck, lint, build and isolated exported-site build. `browser-qa` runs Playwright Chromium and local Lighthouse against benchmark exports.
+- `.github/workflows/intake-isolated.yml` push trigger includes release branch and uses disposable Supabase CLI stack, reviewed atomic SQL candidate, test-only fault trigger, JWT/RLS/concurrency tests and signed-in Next.js import UI QA. It explicitly unsets remote Supabase credentials.
+- These are **workflow source checks, not proof of successful runs** on latest phase-3 HEAD. The connected GitHub workflow-run lookup is PR-only and cannot reliably enumerate push runs; verify Actions results separately before signoff.
+- The standalone export test asserts research-only assets are blocked, sensitive research notes stripped, no CRM/Supabase in exported scaffold, and no existing destination overwritten.
