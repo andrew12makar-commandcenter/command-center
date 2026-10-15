@@ -15,6 +15,7 @@ on:
       - codex/intake-recovery-guard-oct14
       - codex/intake-auth-isolated-qa-oct14
       - codex/intake-atomic-isolated-oct14
+      - integration/release-candidate-oct14
   pull_request:
     branches:
       - main
