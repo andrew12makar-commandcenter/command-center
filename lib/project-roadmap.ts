@@ -26,6 +26,7 @@ export const ROADMAP:RoadmapProject[]=[
   {id:'foundation',title:'01 · Working foundation',summary:'Keep private infrastructure operational without rebuilding it.',steps:[
    step('seo-app','Private Command Center and source control','Authenticated Next.js workspace and development branch with successful CI.','/app','completed','Code and GitHub CI verified.'),
    step('seo-database','Business CRM and Supabase foundation','Persist real business records, contacts, sources and pipeline activity.','/app/leads','completed','Code implemented; prior local CRM test confirmed.'),
+   step('seo-release-branch-integration','Integrate the three release feature branches','Preserve Opportunity Board counts, exact GBP evidence, the progress roadmap and functional client contact actions in one verified release candidate.','/app/roadmap','completed','Semantic integration and regression checks recorded in docs/phase-3-integration-audit.md and canonical GitHub issue #3.'),
   ]},
   {id:'discovery',title:'02 · Credible business research',summary:'Prioritize real companies, not generated prospect counts.',steps:[
    step('seo-collector','Manual Brighton / Allston / Brookline discovery','Public-source collection stages candidates without claiming they are operating businesses.','/app/discovery','completed','Collectors tested; Brighton pilot previously staged 25 candidates.'),

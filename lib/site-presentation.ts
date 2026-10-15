@@ -1,4 +1,4 @@
-import type {SiteBlueprint} from './site-blueprint.ts';
+import {safePublicUrl,type SiteBlueprint} from './site-blueprint.ts';
 import {classifyIndustry} from './business-classification.ts';
 
 // A composition is a design-system decision, not just a different hero grid.
@@ -28,6 +28,21 @@ export function selectSectionPresentation(site:Pick<SiteBlueprint,'template'|'se
 }
 
 export type ContactStep={title:string;description:string};
+export type PrimaryContactAction={href:string;label:string;target?:'_blank';rel?:'noopener noreferrer'};
+
+/** Give the main demo CTA a real, confirmed contact destination when one exists. */
+export function primaryContactAction(site:Pick<SiteBlueprint,'primaryAction'|'contact'|'content'>):PrimaryContactAction|null{
+ const appointment=safePublicUrl(site.content.appointmentUrl);
+ if(appointment)return {href:appointment,label:site.primaryAction,target:'_blank',rel:'noopener noreferrer'};
+ const phone=site.contact.phone?.trim()||'';
+ const digits=phone.replace(/[^+0-9]/g,'');
+ if(/\d/.test(digits))return {href:'tel:'+digits,label:'Call us'};
+ const email=site.contact.email?.trim()||'';
+ if(email&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  return {href:'mailto:'+encodeURIComponent(email),label:'Email us'};
+ return null;
+}
+
 export function contactJourney(kind:SectionPresentation['journey'],hasAppointment:boolean):[ContactStep,ContactStep,ContactStep]{
  if(kind==='care-path')return [
   {title:'Explore care',description:'Review the listed services and available practice information.'},

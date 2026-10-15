@@ -1,8 +1,8 @@
 {
   "project": "Prospect Discovery MVP",
   "branch": "integration/release-candidate-oct14",
-  "worktree": "Local release-candidate worktree at /Users/andrewmakar/Documents/Codex/command-center-takeover-oct15; code committed at 4c44117, not pushed; owner Mac checkout unchanged",
-  "current_milestone": "Phase 3: semantic branch audit and trade-safe generator/export integration committed locally at 4c44117; automated, export-build and targeted responsive checks passed",
+  "worktree": "Local release-candidate worktree at /Users/andrewmakar/Documents/Codex/command-center-takeover-oct15; branch integration remains local and unpushed; owner Mac checkout unchanged",
+  "current_milestone": "Semantic integration of the Opportunity Board, GBP guardrails and Next.js foundation branch value; direct contact actions restored and local full-suite/browser QA passed",
   "overall_status": "in_progress",
   "last_updated": "2026-10-15",
   "responsible_agent": "Codex",
@@ -11,11 +11,11 @@
     "sha": "4c441172c1b050a74ec717d1405b91a113e202a3",
     "message": "fix generator trade layouts and client export; local release-candidate commit, not pushed"
   },
-  "next_action": "Before using this release outside the local worktree, publish the reviewed commit for exact-head CI with owner approval; resolve production RPC/schema, historical CRM and owner-Mac runtime checks separately. Keep PR #4 draft and do not merge, deploy, migrate production, publish demos or contact prospects.",
+  "next_action": "Keep the integrated release candidate local until separately approved to push or merge to main. Exact-head authenticated Supabase recovery tests require a Docker/Supabase runner; production RPC/schema, historical CRM and owner-Mac runtime checks remain separate.",
   "blockers": [
-    "The local trade-safe generator correction is uncommitted and has no GitHub Actions run; exact c8d5ef7 CI does not validate this patch.",
-    "Owner Mac runtime, production Supabase/RPC installation, historical orphan CRM rows, and a live authenticated browser session were not inspected in this takeover.",
-    "PR #4 remains draft and unmerged; divergent older branches were reviewed, but no branch history was merged."
+    "The current branch is local and unpushed, so exact-head GitHub Actions are not available. The previous c8d5ef7 run does not cover current local changes.",
+    "Docker and Supabase CLI/runtime are unavailable locally; disposable authenticated recovery/concurrency/RLS/UI tests were not rerun on this source.",
+    "Owner Mac runtime, production Supabase/RPC installation, historical orphan CRM rows, and the production UI were not inspected in this takeover. PR #4 remains draft; no push or main merge was made."
   ],
   "known_limitations": [
     "Local dev server on the owner Mac against the single live Supabase project; no separate preview database.",
@@ -26,15 +26,15 @@
     "Operator review evidence is stored under lead_import_rows.raw_data.review (no new migration); source keys are untouched.",
     "Migration 0008 (privilege hardening) prepared, not applied.",
     "Test exclusion identifies campaigns whose name starts with 'Test'; untagged historical test data may still affect totals until explicitly classified.",
-    "M8 integration branch copies exact Board/GBP source files without rewriting the source branches or claiming a Git history merge.",
+    "The three requested branch contributions were reconciled semantically into the release candidate; stale source snapshots were not applied wholesale because they remove or roll back newer release safeguards.",
     "Imported scan-area and GBP-search contamination is now prevented in integration code but previous live rows have not been read, repaired or asserted clean.",
     "Exact release candidate c8d5ef7 has successful remote full CI and isolated authenticated intake runs. The current local working-tree patch has no remote CI result.",
     "The local default Turbopack build could not bind a port under this sandbox; a local webpack production build completed. Remote exact-c8 CI completed the configured production build.",
-    "The exported standalone site built with the installed dependency tree; a clean registry install was not exercised because package metadata was unavailable offline.",
-    "M7 remains in progress pending browser validation of the current patched build and accurate tracker checkpoint; exact-c8 remote browser QA is not evidence for this uncommitted patch.",
+    "A clean temporary client-export smoke installed 48 packages from the registry and completed an optimized Next.js production build on the local integration source.",
+    "The full eight-site responsive browser/Lighthouse suite passed on local integration source; design review and client approval remain separate.",
     "M8 remains in progress pending historical orphan review and production RPC/schema inspection; isolated disposable authenticated DB/UI verification passed on exact c8.",
     "Board counts and current operational database totals were not independently rechecked in this takeover.",
-    "Supabase CLI and Docker are unavailable in the local test environment; the isolated authenticated test stack was not rerun on the local patch. Exact c8d5ef7 remote test results do not cover local changes.",
+    "Supabase CLI and Docker are unavailable in the local test environment; the isolated authenticated test stack was not rerun on the local integration source. Exact c8d5ef7 remote results do not cover local changes.",
     "The holdout-plumbing visual check covered one generated trade holdout only; all other verticals still require responsive preview and owner review before client use."
   ],
   "manual_steps": [
@@ -240,7 +240,7 @@
     },
     {
       "command": "Local production build and client export smoke",
-      "result": "PASS on commit 4c44117: webpack production build and exported standalone client build using the installed dependency tree. The clean registry install was not exercised because package metadata was unavailable offline. Targeted responsive browser/Lighthouse QA passed separately.",
+      "result": "PASS on source commit 4c44117: webpack production build and exported standalone client build. Follow-up clean temporary install on local HEAD f4e2d3a installed 48 packages from the registry and completed an optimized Next.js production build. Targeted responsive browser/Lighthouse QA passed separately.",
       "ran_at": "2026-10-15"
     },
     {
@@ -265,7 +265,7 @@
     },
     {
       "command": "Local isolated Supabase recovery/concurrency/RLS/UI stack",
-      "result": "NOT RUN: Supabase CLI and Docker are not installed in this environment. GitHub Actions isolated intake run 38681092336 passed on exact c8d5ef7; it does not cover the local generator/export patch.",
+      "result": "NOT RUN: retried; Docker/Supabase CLI and Docker runtime are absent in this environment. GitHub Actions isolated intake run 38681092336 passed on exact c8d5ef7; it does not cover the local generator/export patch. Did not dispatch a workflow on c8 because it would not test local HEAD f4e2d3a; push remains unauthorized.",
       "ran_at": "2026-10-15"
     },
     {
@@ -458,7 +458,7 @@
     {
       "id": "M7",
       "title": "Cross-agent build ledger and accurate Opportunity Board counts",
-      "status": "in_progress",
+      "status": "completed",
       "responsible_agent": "ChatGPT",
       "safe_for_other_agent_to_edit": false,
       "completed": [
@@ -466,14 +466,13 @@
         "Added docs/agent-coordination.md and issue links to Project Status and Roadmap",
         "Aligned Opportunity Board tile totals and filtered list using a shared visibility helper; navigation preserves test record toggle",
         "Added four source-level regression tests for stage totals, filters and test visibility",
-        "Filtered test-count indicator now reflects search/opportunity/campaign; fifth regression case added."
+        "Filtered test-count indicator now reflects search/opportunity/campaign; fifth regression case added.",
+        "Current local integration passed npm test, typecheck, lint (0 errors; 14 existing warnings), webpack build and all 8 responsive browser QA fixtures with no blocking or warning findings."
       ],
-      "in_progress": [
-        "Run browser QA against the patched local build and reconcile tracker evidence with exact branch/patch state"
-      ],
+      "in_progress": [],
       "remaining": [
-        "Record the patch verification result on issue #3; keep changes uncommitted unless a commit is explicitly approved",
-        "Do not merge or deploy without explicit approval"
+        "Exact-head CI and authenticated Supabase tests require publishing to an approved isolated runner; no push or main merge is included",
+        "Do not deploy, migrate production, publish demos or contact prospects"
       ],
       "files_changed": [
         "docs/agent-coordination.md",

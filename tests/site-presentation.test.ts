@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {selectSectionPresentation,contactJourney} from '../lib/site-presentation.ts';
+import {selectSectionPresentation,contactJourney,primaryContactAction} from '../lib/site-presentation.ts';
 import {generatorBenchmarks,buildBenchmark} from '../lib/generator-benchmarks.ts';
 
 test('clinical, outdoor and professional examples use distinct service and journey systems',()=>{
@@ -48,4 +48,27 @@ test('few services use content-respecting layouts, rather than fabricated filler
  const base=buildBenchmark(generatorBenchmarks.find(x=>x.vertical==='landscaping')!);
  const sparse={...base,services:['Garden planning']};
  assert.equal(selectSectionPresentation({...sparse,design:{...base.design,composition:'immersive'}}).services,'craft-index');
+});
+
+test('primary demo action opens the confirmed appointment URL before other contact routes',()=>{
+ const site=buildBenchmark(generatorBenchmarks[0]);
+ const action=primaryContactAction({...site,contact:{...site.contact,phone:'617-555-0100',email:'hello@example.com'},
+  content:{...site.content,appointmentUrl:'https://example.com/book'}});
+ assert.deepEqual(action,{href:'https://example.com/book',label:site.primaryAction,target:'_blank',rel:'noopener noreferrer'});
+});
+
+test('primary demo action calls the confirmed business phone when no booking link exists',()=>{
+ const site=buildBenchmark(generatorBenchmarks[0]);
+ const action=primaryContactAction({...site,contact:{...site.contact,phone:'(617) 555-0100',email:'hello@example.com'},
+  content:{...site.content,appointmentUrl:null}});
+ assert.deepEqual(action,{href:'tel:6175550100',label:'Call us'});
+});
+
+test('primary demo action uses email as a safe fallback and rejects unsafe destinations',()=>{
+ const site=buildBenchmark(generatorBenchmarks[0]);
+ const email=primaryContactAction({...site,contact:{...site.contact,phone:null,email:'hello+demo@example.com'},
+  content:{...site.content,appointmentUrl:'javascript:alert(1)'}});
+ assert.deepEqual(email,{href:'mailto:hello%2Bdemo%40example.com',label:'Email us'});
+ assert.equal(primaryContactAction({...site,contact:{...site.contact,phone:null,email:null},
+  content:{...site.content,appointmentUrl:null}}),null);
 });

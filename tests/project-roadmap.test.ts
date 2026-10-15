@@ -15,6 +15,7 @@ test('baseline evidence is explicit and two ventures are not conflated',()=>{
  assert.equal(seo.next?.id,'seo-identity-resolution');
  assert.equal(seo.stages.flatMap(s=>s.steps).find(s=>s.id==='seo-intelligence-brief')?.status,'completed');
  assert.equal(seo.stages.flatMap(s=>s.steps).find(s=>s.id==='seo-browser-qa')?.status,'completed');assert.equal(mcat.current?.id,'mcat-method');
+ assert.equal(seo.stages.flatMap(s=>s.steps).find(s=>s.id==='seo-release-branch-integration')?.status,'completed');
  assert.ok(seo.stages.flatMap(s=>s.steps).filter(s=>s.baseline==='completed').every(s=>Boolean(s.baselineEvidence)));
  const website=seo.stages.find(stage=>stage.id==='websites');
  assert.equal(website?.steps.find(s=>s.id==='seo-site-facts')?.status,'completed');

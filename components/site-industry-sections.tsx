@@ -1,5 +1,5 @@
 import type {SiteBlueprint} from '@/lib/site-blueprint';
-import {contactJourney,selectSectionPresentation} from '@/lib/site-presentation';
+import {contactJourney,primaryContactAction,selectSectionPresentation} from '@/lib/site-presentation';
 import {reviewedSiteFeatures} from '@/lib/reviewed-business-features';
 import {galleryMediaDescription} from '@/lib/site-media-selection';
 
@@ -166,15 +166,15 @@ export function IndustryHero({site,theme,photo,compact,standalone}:{
  site:SiteBlueprint;theme:Tone&{main:string;accent:string};photo:HeroImage|null;compact:boolean;standalone:boolean
 }){
  const hasServices=site.services.length>0;
- const contact=Boolean(site.content.appointmentUrl||site.contact.email||site.contact.phone);
  const kind=site.template==='landscaping'?'outdoor-showcase':site.template==='medical'?'care-editorial':'studio-brief';
  const isOutdoor=site.template==='landscaping';
  const centered=site.design.composition==='centered';
  const hasPhoto=Boolean(photo);
+ const primaryAction=primaryContactAction(site);
  const heroMin=compact?'min-h-[490px]':'min-h-[570px]';
  const label=site.eyebrow||'LOCAL BUSINESS';
  const commonCtas=<div className="mt-9 flex flex-wrap items-center gap-5">
-  {contact?<a href="#contact" className={`inline-flex min-h-12 items-center rounded-full px-7 py-3 text-sm font-semibold ${theme.main}`}>{site.primaryAction}<span aria-hidden="true" className="ml-3">↗</span></a>:null}
+  {primaryAction?<a href={primaryAction.href} target={primaryAction.target} rel={primaryAction.rel} className={`inline-flex min-h-12 items-center rounded-full px-7 py-3 text-sm font-semibold ${theme.main}`}>{primaryAction.label}<span aria-hidden="true" className="ml-3">↗</span></a>:null}
   {hasServices?<a href="#services" className={`inline-flex min-h-12 items-center text-sm font-semibold underline underline-offset-8 ${isOutdoor?'decoration-white/50':''}`}>{site.secondaryAction}</a>:null}
  </div>;
  const media=photo?<div className="motion-hero-media motion-media relative min-h-[280px] overflow-hidden rounded-[3px] bg-current/5 sm:min-h-[390px] lg:min-h-0">
