@@ -4,7 +4,7 @@
   "worktree": "Local release-candidate worktree at /Users/andrewmakar/Documents/Codex/command-center-takeover-oct15; latest fully checked source commit f09b2ad; three reviewed branch heads are merge ancestors; local only, unpushed",
   "current_milestone": "Three branches merged and locally verified; hosted CI and authenticated DB/UI checks remain open",
   "overall_status": "in_progress",
-  "last_updated": "2026-10-15T01:58:00-04:00",
+  "last_updated": "2026-10-15T01:59:01-04:00",
   "responsible_agent": "Codex",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
@@ -18,30 +18,24 @@
     "Historical CRM orphan rows, production RPC/schema and owner-Mac runtime were not inspected. No production writes, migrations, deploy, push or main merge were made."
   ],
   "known_limitations": [
-    "Local dev server on the owner Mac against the single live Supabase project; no separate preview database.",
-    "GBP evidence comes from manual Google search/Maps panel checks; stored GBP links are Maps search URLs, not listing IDs. \"Own this business?\" appears on every listing for a signed-out viewer and is not used as claim evidence.",
-    "Decision makers were not identified for any prospect; contact readiness is Partial (phone only).",
-    "The existing demo generator produced generic shells; demo copy was filled from business-published facts and must be confirmed with each owner (fact status left unreviewed).",
-    "Free website check reads one page, robots.txt and sitemap.xml only; no Lighthouse run for the batch, so no speed claims.",
-    "Operator review evidence is stored under lead_import_rows.raw_data.review (no new migration); source keys are untouched.",
-    "Migration 0008 (privilege hardening) prepared, not applied.",
-    "Test exclusion identifies campaigns whose name starts with 'Test'; untagged historical test data may still affect totals until explicitly classified.",
-    "The three requested branch contributions were reconciled semantically into the release candidate; stale source snapshots were not applied wholesale because they remove or roll back newer release safeguards.",
-    "Imported scan-area and GBP-search contamination is now prevented in integration code but previous live rows have not been read, repaired or asserted clean.",
-    "Exact release candidate c8d5ef7 has successful remote full CI and isolated authenticated intake runs. The current local working-tree patch has no remote CI result.",
-    "The local default Turbopack build could not bind a port under this sandbox; a local webpack production build completed. Remote exact-c8 CI completed the configured production build.",
-    "A clean temporary client-export smoke installed 48 packages from the registry and completed an optimized Next.js production build on the local integration source.",
-    "The full eight-site responsive browser/Lighthouse suite passed on local integration source; design review and client approval remain separate.",
-    "Board counts and current operational database totals were not independently rechecked in this takeover.",
-    "Supabase CLI and Docker are unavailable in the local test environment; the isolated authenticated test stack was not rerun on the local integration source. Exact c8d5ef7 remote results do not cover local changes.",
-    "The holdout-plumbing visual check covered one generated trade holdout only; all other verticals still require responsive preview and owner review before client use.",
-    "All three requested feature branch heads are ancestors of local release-candidate HEAD 3a97c19 via reviewed merge commits; GitHub Actions does not yet verify that unpushed HEAD."
+    "The local preview uses the one existing Supabase project; there is no separate preview database. This audit used read-only dashboard and roadmap views.",
+    "Saved GBP links may be Maps search URLs rather than exact listing IDs. Search URLs are not treated as verified listings; business ownership is unverified.",
+    "Decision makers have not been identified for the current prospects; no outreach was performed.",
+    "Existing draft demos still require business-owner fact approval and media-rights decisions before client presentation or publication.",
+    "The free website check reads one page plus robots.txt and sitemap.xml; it does not establish site-wide performance or SEO results.",
+    "Operator review evidence is stored under lead_import_rows.raw_data.review; source keys remain unchanged.",
+    "Migration 0008 privilege hardening is prepared but unapplied.",
+    "Test exclusion is based on campaign names beginning with Test; untagged historical test data may affect counts until classified.",
+    "Integration code prevents the known scan-area and GBP-search contamination paths, but historical rows were not inspected or repaired in this audit.",
+    "Exact-head hosted CI and disposable authenticated Supabase recovery/concurrency/RLS/UI tests remain unverified on the current local branch. Previous green Actions runs apply to ancestor c8d5ef7.",
+    "Current dashboard business, intake and demo counts were read from the UI but not independently reconciled against direct database queries.",
+    "Automated responsive QA passed for eight fictional benchmark sites across desktop, tablet and mobile. Human visual review and client-approved content remain open."
   ],
   "manual_steps": [
-    "Open the release-candidate preview at http://localhost:3108/app or /app/roadmap; localhost:3001 was serving the older 034d167 checkout during the screenshot.",
-    "Check GitHub issue #3 for cross-agent claims and exact branch checkpoints before touching related files.",
-    "Run exact-head CI and authenticated isolated DB/UI checks before external release. Do not publish, share a demo, contact a prospect or deploy production during validation.",
-    "Review prepared but unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql separately after Prospect Discovery validation."
+    "Use the audited local preview at http://localhost:3001/app or /app/roadmap; this address now serves the release-candidate checkout.",
+    "Run exact-head GitHub Actions and disposable authenticated recovery/concurrency/RLS/UI checks on an approved isolated runner before external release.",
+    "Inspect historical orphan rows and production RPC/schema through an approved read-only connection; do not write or migrate production.",
+    "Review prepared but unapplied supabase/migrations/0008_revoke_inherited_table_privileges.sql separately."
   ],
   "tests": [
     {
@@ -283,6 +277,21 @@
       "command": "Fresh merged-software verification on local HEAD 08554bb29b03785517669d695d9df0ff78f1d599",
       "result": "PASS: npm test 232 TypeScript + 41 MJS; npm run typecheck; npm run lint (0 errors, 14 existing warnings); npx next build --webpack; generator benchmark 8/8 score 100; clean exported-client install (48 packages) and production build; responsive Chromium/Chrome QA on 8 exported sites x desktop/tablet/mobile (24 viewports), 0 blocking and 0 warning findings. Browser QA used installed Google Chrome because Playwright bundled Chromium is not installed. Lighthouse was not rerun in this pass; earlier responsive/Lighthouse results remain recorded above. Exact-head GitHub Actions and authenticated disposable Supabase tests NOT RUN; local Docker/Supabase CLI unavailable and branch remains unpushed.",
       "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Full local checks after tracker audit and recent-history fix (source based on f09b2ad)",
+      "result": "PASS: npm test 232 TypeScript + 41 MJS; typecheck; lint 0 errors/14 warnings; webpack production build. Includes Codex owner, latest-40 ordering and latest-visible checkpoint regression assertions.",
+      "ran_at": "2026-10-15T01:58:00-04:00"
+    },
+    {
+      "command": "Branch ancestry audit (local release candidate)",
+      "result": "PASS: remote tips b9881e2, a7a11b6 and 32374f8 are ancestors via reviewed merge commits 15d8e54, 3427757 and 3a97c19. No branch tip is missing from local history.",
+      "ran_at": "2026-10-15T01:59:00-04:00"
+    },
+    {
+      "command": "Local merged dashboard and tracker verification (localhost:3001)",
+      "result": "PASS: authenticated /app/roadmap sidebar shows 10/32 (31%); branch-integration checkpoint is complete. /app/project-status shows M8 Ready for review, responsible agent Codex, and the correct 10/15 date. Read-only; no DB writes.",
+      "ran_at": "2026-10-15T01:59:00-04:00"
     }
   ],
   "milestones": [

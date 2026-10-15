@@ -33,7 +33,7 @@ export function normalizeProjectStatus(raw:unknown):ProjectStatus{
   latest_commit:commit&&text(commit.sha,40)?{sha:text(commit.sha,40),message:text(commit.message,200)}:null,
   next_action:text(r.next_action,800),blockers:list(r.blockers),known_limitations:list(r.known_limitations),
   manual_steps:list(r.manual_steps),
-  tests:Array.isArray(r.tests)?r.tests.slice(0,40).map(t=>{
+  tests:Array.isArray(r.tests)?r.tests.slice(-40).map(t=>{
    const x=(t&&typeof t==='object'?t:{}) as Record<string,unknown>;
    return {command:text(x.command,300),result:text(x.result,400),ran_at:text(x.ran_at,40)};
   }):[],
