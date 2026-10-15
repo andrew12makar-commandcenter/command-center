@@ -1,12 +1,13 @@
 import type {SiteBlueprint} from './site-blueprint.ts';
+import {classifyIndustry} from './business-classification.ts';
 
 // A composition is a design-system decision, not just a different hero grid.
 // The same vertical has multiple credible families. The service count matters
 // because empty/filler cards are worse than a clean service index.
 export type ServicePresentation='clinical-index'|'care-editorial'|'project-panels'|'craft-index'|'advisory-grid'|'professional-index';
-export type SectionPresentation={services:ServicePresentation;journey:'care-path'|'quote-path'|'consult-path';gallery:'editorial'|'project-grid'|'quiet'};
+export type SectionPresentation={services:ServicePresentation;journey:'care-path'|'quote-path'|'estimate-path'|'consult-path';gallery:'editorial'|'project-grid'|'quiet'};
 
-export function selectSectionPresentation(site:Pick<SiteBlueprint,'template'|'services'|'design'>):SectionPresentation{
+export function selectSectionPresentation(site:Pick<SiteBlueprint,'template'|'services'|'design'|'businessName'|'category'>):SectionPresentation{
  const family=site.design.composition;
  const count=site.services.length;
  if(site.template==='medical')return {
@@ -16,6 +17,9 @@ export function selectSectionPresentation(site:Pick<SiteBlueprint,'template'|'se
  if(site.template==='landscaping')return {
   services:(family==='immersive'||family==='bento')&&count>=3?'project-panels':'craft-index',
   journey:'quote-path',gallery:'project-grid'
+ };
+ if(classifyIndustry(site.businessName,site.category).sector==='trades')return {
+  services:'craft-index',journey:'estimate-path',gallery:'quiet'
  };
  return {
   services:(family==='bento'||family==='centered')&&count>=3?'advisory-grid':'professional-index',
@@ -31,9 +35,14 @@ export function contactJourney(kind:SectionPresentation['journey'],hasAppointmen
   {title:'Get in touch',description:hasAppointment?'Use the listed appointment request when ready.':'Use the confirmed contact details to ask about an appointment.'}
  ];
  if(kind==='quote-path')return [
-  {title:'Explore services',description:'Review the types of outdoor work listed for the company.'},
+  {title:'Explore services',description:'Review the listed landscape services and project options.'},
   {title:'Discuss your project',description:'Share the property needs and timing with the business.'},
   {title:'Request details',description:'Use the confirmed contact method to ask about an estimate.'}
+ ];
+ if(kind==='estimate-path')return [
+  {title:'Review capabilities',description:'Explore the home-service work listed for the company.'},
+  {title:'Discuss the scope',description:'Share the project details and timing with the business.'},
+  {title:'Request an estimate',description:'Use the confirmed contact method to discuss pricing and next steps.'}
  ];
  return [
   {title:'Discover',description:'Read the listed services and the business overview.'},

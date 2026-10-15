@@ -35,6 +35,15 @@ test('process copy is industry-specific without invented business policies or se
  assert.notDeepEqual(health,landscape);
 });
 
+test('trade concepts use an estimate journey without borrowing outdoor service copy',()=>{
+ const plumbing=buildBenchmark(generatorBenchmarks.find(x=>x.id==='holdout-plumbing')!);
+ const presentation=selectSectionPresentation(plumbing);
+ const steps=contactJourney(presentation.journey,false);
+ assert.equal(presentation.journey,'estimate-path');
+ assert.match(steps[2].title,/estimate/i);
+ assert.ok(steps.every(x=>!/outdoor|landscape|property needs/i.test(x.description)));
+});
+
 test('few services use content-respecting layouts, rather than fabricated filler cards',()=>{
  const base=buildBenchmark(generatorBenchmarks.find(x=>x.vertical==='landscaping')!);
  const sparse={...base,services:['Garden planning']};

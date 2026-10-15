@@ -164,7 +164,7 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
           <p className="muted mt-3 text-sm">Industry suggestion: <strong>{industryLabel(industry)}</strong>. {industry.explanation}. Check or correct the industry category above before creating a draft. Old mismatched drafts are not silently overwritten.</p>
           <form action={createDemo} className="mt-5 grid gap-3"><input type="hidden" name="business_id" value={id}/>
           <div className="flex flex-wrap gap-3">
-          <select name="template" aria-label="Website industry template"><option value="auto">Auto-match industry (recommended)</option>{[['landscaping','Home services if unclassified'],['medical','Medical / dental if unclassified'],['universal','Professional / general if unclassified']].map(([key,name])=><option key={key} value={key}>{name}</option>)}</select>
+          <select name="template" aria-label="Website industry template"><option value="auto">Auto-match industry (recommended)</option>{[['landscaping','Landscaping if unclassified'],['medical','Medical / dental if unclassified'],['universal','General / trade-safe if unclassified']].map(([key,name])=><option key={key} value={key}>{name}</option>)}</select>
           <select name="visual_variant" aria-label="Design style">
             <option value="auto">Auto style</option>
             <option value="editorial">Editorial</option>

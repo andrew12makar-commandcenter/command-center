@@ -1,4 +1,5 @@
 import {cleanSiteContent, type SiteContent} from './site-blueprint.ts';
+import {classifyIndustry} from './business-classification.ts';
 // Deterministic per-user, per-industry preference adaptation. No LLM training or external API calls.
 export const templates = ['landscaping','medical','universal'] as const;
 export type Template = typeof templates[number];
@@ -207,6 +208,7 @@ export function planGeneration(name:string,template:Template,preferences:DesignP
  };
 }
 export function createDraft(name:string,city:string|null,category:string|null,template:Template,preferences=defaultPreferences()):DemoCopy {
+  const trade=classifyIndustry(name,category).sector==='trades';
   const headlines:Record<Template,string>={
     landscaping:'Outdoor spaces worth coming home to.',
     medical:'Care starts with a clearer first step.',
@@ -227,14 +229,16 @@ export function createDraft(name:string,city:string|null,category:string|null,te
     medical:'Find essential information first. Clinical services require confirmation.',
     universal:'Meet the business and explore its services. Details require confirmation.',
   };
-  const generationSpec=planGeneration(name,template,preferences);
+  const planned=planGeneration(name,template,preferences);
+  const generationSpec=trade?{...planned,conversionGoal:'estimate' as const,
+   rationale:[...planned.rationale,'Trade-safe conversion path: request an estimate without using landscaping copy.']}:planned;
   return {
     brand:name,
     eyebrow:city?`SERVING ${city.toUpperCase()}`:'LOCAL BUSINESS',
-    headline:preferences.conciseCopy?shortHeadlines[template]:headlines[template],
-    description:preferences.conciseCopy?shortIntros[template]:intros[template],
+    headline:trade?'A clear starting point for your project.':preferences.conciseCopy?shortHeadlines[template]:headlines[template],
+    description:trade?'Review the listed capabilities, then contact the team to discuss your project and request an estimate.':preferences.conciseCopy?shortIntros[template]:intros[template],
     services:[],category:category||'Services',
-    primaryAction:template==='medical'?'Get in touch':'Request information',
+    primaryAction:trade?'Request an estimate':template==='medical'?'Get in touch':'Request information',
     secondaryAction:'Explore services',
     disclaimer:'Independent design concept. Not affiliated with or endorsed by this business. Details require owner confirmation.',
     design:preferences,

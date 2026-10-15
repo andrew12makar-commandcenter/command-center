@@ -54,8 +54,10 @@ export function scoreOpportunity(
  const industry=classifyIndustry(business.name,business.category);
  const webPresence=classifyWebPresence(business.website_url);
  const researchScore=researchPriority(business.name,business.category,independentWebsite(business.website_url),null,business.city);
- const sector=industry.confidence==='unknown'?'Industry not classified':industry.template==='medical'?
-  'Medical/clinical sector hint':industry.template==='landscaping'?'Home/field-services sector hint':'Other recorded industry';
+ const sector=industry.confidence==='unknown'?'Industry not classified':industry.sector==='medical'?
+  'Medical/clinical sector hint':industry.sector==='landscaping'?'Landscaping sector hint':
+  industry.sector==='trades'?'Contractor/home-service sector hint':industry.sector==='professional'?
+  'Professional/retail sector hint':'Other recorded industry';
  let stage:BoardStage,reason:string;
  if(business.operational_status==='closed'||business.pipeline_status==='won'||business.pipeline_status==='lost'){
   stage='inactive';

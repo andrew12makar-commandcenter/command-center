@@ -10,6 +10,7 @@ const files={
  'components/site-renderer.tsx':'components/site-renderer.tsx',
  'components/site-industry-sections.tsx':'components/site-industry-sections.tsx',
  'lib/site-blueprint.ts':'lib/site-blueprint.ts',
+ 'lib/business-classification.ts':'lib/business-classification.ts',
  'lib/business-specific-copy.ts':'lib/business-specific-copy.ts',
  'lib/site-section-order.ts':'lib/site-section-order.ts',
  'lib/site-presentation.ts':'lib/site-presentation.ts',
@@ -148,6 +149,7 @@ export default function RootLayout({children}:{children:React.ReactNode}){
  return <html lang="en"><body className="m-0 min-h-screen antialiased">{children}</body></html>;
 }
 `);
+  await writeFile(join(target,'app','icon.svg'),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="18" fill="#25384b"/><circle cx="32" cy="32" r="13" fill="none" stroke="#d4e0e7" stroke-width="5"/><path d="M32 10v8M54 32h-8M32 54v-8M10 32h8" stroke="#d4e0e7" stroke-width="4" stroke-linecap="round"/></svg>\n`);
   await writeFile(join(target,'app','globals.css'),'@import "tailwindcss";\n@import "../styles/site-motion.css";\n');
   await writeFile(join(target,'package.json'),asJson({
    name:'client-site-blueprint',version:'0.1.0',private:true,
@@ -181,6 +183,7 @@ Standalone Next.js site scaffold exported from Command Center Site Blueprint v1.
 ## Before any live launch
 The content pack records owner approval, but that is not a substitute for a written client sign-off.
 - Review all services, provider claims and final copy on the rendered pages.
+- Replace the neutral concept favicon with the client's approved brand mark before launch.
 - Confirm all photos and logos are licensed for reuse. Prefer copied/optimized assets hosted under the client's control, not third-party hotlinks.
 - Test navigation, phone/email, external appointment booking, accessibility, mobile appearance and SEO metadata.
 - Configure actual contact/booking forms separately; the scaffold intentionally has NO form that collects user data.

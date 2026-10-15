@@ -90,7 +90,7 @@ test('end to end against an Overture-shaped parquet: bounded, attributed, flagge
   assert.ok(!a.possibleDuplicateOf.some(x=>x.startsWith('c')),'same name far away is not flagged');
   const d=result.candidates.find(c=>c.externalId==='d');
   assert.ok(d.flags.includes('no_street_address_possible_service_area_business'));
-  assert.equal(d.templateHint,'landscaping');
+  assert.equal(d.templateHint,'universal','plumbing uses the trade-safe general layout, not outdoor landscaping');
   assert.equal(result.status,'unverified_discovery_candidates');
   const files=await writeOutputs(result,join(dir,'out'));
   const csv=await readFile(join(dir,'out',files[0]),'utf8');

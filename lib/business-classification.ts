@@ -4,11 +4,13 @@ import type {Template} from './demo-engine.ts';
 // Prefer a recorded category over a business name; do not infer a medical specialty.
 export type IndustryDecision={
   template:Template|null;
+  sector:'medical'|'landscaping'|'trades'|'professional'|'other'|null;
   confidence:'category'|'name_hint'|'unknown';
   explanation:string;
 };
 const medical=/\b(?:doctor|doctors|medical|healthcare|health care|physician|physicians|dentist|dentists|dental|orthodont\w*|optometr\w*|ophthalm\w*|clinic|clinics|hospital|primary care|family medicine|pediatr\w*|dermatolog\w*|psychiatr\w*|psycholog\w*|chiropract\w*|podiatr\w*|physical therapy|urgent care|veterinar\w*|vet clinic|nursing)\b/i;
-const home=/\b(?:landscap\w*|hardscap\w*|lawn\w*|outdoor service\w*|garden\w*|arborist\w*|tree service\w*|irrigation|roof\w*|hvac|plumb\w*|electrician\w*|electrical|contract\w*|construction|remodel\w*|renovat\w*|carpent\w*|mason\w*|fenc\w*|floor\w*|house paint\w*|home improvement|pressure wash\w*|handyman)\b/i;
+const landscaping=/\b(?:landscap\w*|hardscap\w*|lawn\w*|outdoor service\w*|garden\w*|arborist\w*|tree service\w*|irrigation)\b/i;
+const trades=/\b(?:roof\w*|hvac|plumb\w*|electrician\w*|electrical|contract\w*|construction|remodel\w*|renovat\w*|carpent\w*|mason\w*|fenc\w*|floor\w*|house paint\w*|home improvement|pressure wash\w*|handyman|cleaning|pest control)\b/i;
 const generic=/^(?:services?|business|unknown|general|uncategorized|unclassified|certified business|local business|other|office|shop|organization|n\/a|none)$/i;
 const professional=/\b(?:legal|lawyer|attorney|account\w*|finance|architect\w*|consult\w*|insurance|real estate|broker|salon|restaurant|cafe|retail|bakery)\b/i;
 
@@ -22,15 +24,16 @@ export function isLegalStructure(value:string|null|undefined):boolean{
 export function classifyIndustry(name:string, category:string|null|undefined):IndustryDecision{
  const cat=isLegalStructure(category)?'':(category||'').trim();
  if(cat && !generic.test(cat)){
-   if(medical.test(cat))return {template:'medical',confidence:'category',explanation:'Medical/clinical category recorded in the CRM'};
-   if(home.test(cat))return {template:'landscaping',confidence:'category',explanation:'Home/field-services category recorded in the CRM'};
-   // A real category that is neither medical nor home services should never default to landscaping.
-   return {template:'universal',confidence:'category',explanation:'Other recorded industry; general business template'};
+   if(medical.test(cat))return {template:'medical',sector:'medical',confidence:'category',explanation:'Medical/clinical category recorded in the CRM'};
+   if(landscaping.test(cat))return {template:'landscaping',sector:'landscaping',confidence:'category',explanation:'Landscaping category recorded in the CRM'};
+   if(trades.test(cat))return {template:'universal',sector:'trades',confidence:'category',explanation:'Home-service or trade category recorded; using the general trade-safe layout'};
+   return {template:'universal',sector:professional.test(cat)?'professional':'other',confidence:'category',explanation:'Other recorded industry; general business template'};
  }
- if(medical.test(name))return {template:'medical',confidence:'name_hint',explanation:'Possible medical service inferred from business name; verify'};
- if(home.test(name))return {template:'landscaping',confidence:'name_hint',explanation:'Possible home service inferred from business name; verify'};
- if(professional.test(name))return {template:'universal',confidence:'name_hint',explanation:'Possible professional/retail business inferred from name; verify'};
- return {template:null,confidence:'unknown',explanation:'No reliable industry indicator; review before selecting specialized template'};
+ if(medical.test(name))return {template:'medical',sector:'medical',confidence:'name_hint',explanation:'Possible medical service inferred from business name; verify'};
+ if(landscaping.test(name))return {template:'landscaping',sector:'landscaping',confidence:'name_hint',explanation:'Possible landscaping service inferred from business name; verify'};
+ if(trades.test(name))return {template:'universal',sector:'trades',confidence:'name_hint',explanation:'Possible home-service or trade business inferred from name; verify'};
+ if(professional.test(name))return {template:'universal',sector:'professional',confidence:'name_hint',explanation:'Possible professional/retail business inferred from name; verify'};
+ return {template:null,sector:null,confidence:'unknown',explanation:'No reliable industry indicator; review before selecting specialized template'};
 }
 
 // Known-category evidence always wins over a form default or an accidental mismatch.
@@ -49,7 +52,7 @@ export function resolveDemoTemplate(
 export function researchPriority(name:string,category:string|null|undefined,website:string|null|undefined,source:string|null|undefined,city:string|null|undefined):number{
  const decision=classifyIndustry(name,category);
  let score=0;
- if(decision.template==='medical'||decision.template==='landscaping')score+=40;
+ if(['medical','landscaping','trades'].includes(decision.sector||''))score+=40;
  else if(decision.template==='universal')score+=20;
  if(decision.confidence==='category')score+=15;
  if(website)score+=15;
@@ -59,7 +62,9 @@ export function researchPriority(name:string,category:string|null|undefined,webs
 }
 
 export function industryLabel(decision:IndustryDecision):string{
- return decision.template==='medical'?'Medical / dental':
-  decision.template==='landscaping'?'Home & field services':
-  decision.template==='universal'?'Other business':'Industry not yet verified';
+ return decision.sector==='medical'?'Medical / dental':
+  decision.sector==='landscaping'?'Landscaping':
+  decision.sector==='trades'?'Contractor / home service':
+  decision.sector==='professional'?'Professional / retail':
+  decision.sector==='other'?'Other business':'Industry not yet verified';
 }
