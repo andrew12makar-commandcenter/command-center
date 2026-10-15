@@ -1,21 +1,21 @@
 {
   "project": "Prospect Discovery MVP",
-  "branch": "codex/intake-recovery-guard-oct14",
+  "branch": "integration/release-candidate-oct14",
   "worktree": "GitHub connector integration branch only; Mac worktree not accessed or changed",
-  "current_milestone": "M8: combined prospect discovery integration verified in CI; staged-import recovery guards in isolated branch review",
+  "current_milestone": "Phase 3: release-candidate branch preservation and reconciliation; earlier isolated CI passed, latest documentation-only HEAD CI unverified",
   "overall_status": "in_progress",
-  "last_updated": "2026-10-14T22:18:00Z",
+  "last_updated": "2026-10-15",
   "responsible_agent": "ChatGPT",
   "safe_for_other_agent_to_edit": false,
   "latest_commit": {
-    "sha": "e6b85e2b4851ba0913d43ca2ab084b9ad423e97e",
-    "message": "Recovery + deterministic source ids + manual Google listing guards; latest branch CI still pending"
+    "sha": "9ea724f79a7a515356a4368d34c9d90f60c9ca92",
+    "message": "Phase 3 branch reconciliation report; roadmap SQL archival; exact HEAD CI not yet verified"
   },
-  "next_action": "Run exact HEAD recovery branch CI (tests, typecheck, lint, production build, exported client and browser QA). Then test signed-in staged-import failure and simultaneous requests in a disposable, isolated DB with RLS. Do not merge main, deploy, publish, or migrate; preserve original branches and live Brighton data.",
+  "next_action": "Run exact-head CI for phase-3 release candidate, reconcile remaining renderer/export UI semantics, verify isolated authenticated intake and historical CRM orphans read-only before any production action. Do not merge main, migrate, deploy, publish, or contact prospects.",
   "blockers": [
-    "Recovery branch exact-head CI and authenticated import failure-injection QA not yet independently verified; prior integrated checkpoint 61aa593 fully passed CI.",
-    "Separate REST writes across businesses, business_sources and lead_import_rows are not a single DB transaction. Same-row duplicates are guarded by deterministic IDs, but cross-row source races and edge-case partial import recovery require isolated database verification.",
-    "Older historical orphan CRM records without staging links need an evidence-based read-only audit; feature/nextjs-foundation divergent history requires semantic review before any formal merge."
+    "Current phase-3 HEAD exact-run CI not yet verified; previous release candidate da817a9 had reported successful full CI and authenticated isolated DB/UI runs.",
+    "Production atomic RPC installation, existing historical orphan CRM rows, and Mac-local runtime are not verified in this GitHub audit.",
+    "Older divergent branch differences require semantic review; source-file presence alone is not runtime verification."
   ],
   "known_limitations": [
     "Local dev server on the owner Mac against the single live Supabase project; no separate preview database.",
@@ -207,6 +207,16 @@
       "command": "Recovery branch deterministic staged/CRM and source UUID + manual GBP guardrails",
       "result": "SOURCE COMMITTED; latest CI still pending; no staging row or CRM record imported or altered, no migration.",
       "ran_at": "2026-10-14T22:18:00Z"
+    },
+    {
+      "command": "Release-candidate GitHub Actions full CI #38660487729 and authenticated isolated DB/UI #38660487749 at da817a9",
+      "result": "PASS as verified in previous checkpoint; applies to da817a9, not current phase-3 HEAD",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Phase 3 documentation commits 27b2e2e, 17da2cc, 9ea724f",
+      "result": "Source commits confirmed; exact-head CI NOT VERIFIED; no database, Mac, or deployment tests performed",
+      "ran_at": "2026-10-15"
     }
   ],
   "milestones": [
@@ -480,6 +490,7 @@
       "90dd90b",
       "235f637"
     ],
-    "tested_at": "2026-10-13T23:34:40Z"
+    "tested_at": "2026-10-13T23:34:40Z",
+    "phase3_note": "Historical roadmap migrations are already present under canonical 0005/0006; original 0004/0005 copies archived as non-deployable documentation. See docs/phase-3-integration-audit.md. Do not infer roadmap status completion."
   }
 }
