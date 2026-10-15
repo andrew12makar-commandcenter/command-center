@@ -33,6 +33,7 @@ test('tracker file is valid and uses only allowed statuses and agents',()=>{
  assert.equal(s.responsible_agent,'Codex');
  assert.equal(s.milestones.find(m=>m.id==='M8')?.status,'ready_for_review');
  assert.equal(s.tests.at(-1)?.command,'Local merged dashboard and tracker verification (localhost:3001)');
+ assert.ok(s.tests.some(t=>t.command==='Full local tracker checks after recent-history fix (5f3433f)'));
  const longHistory=normalizeProjectStatus({...raw,tests:Array.from({length:45},(_,i)=>({command:String(i),result:'record',ran_at:''}))});
  assert.equal(longHistory.tests.length,40);
  assert.equal(longHistory.tests[0].command,'5');
