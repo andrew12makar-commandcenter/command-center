@@ -88,6 +88,9 @@ test('rate limiting, DNS resolution, network failures and unsafe redirects are s
  const request=async()=>{throw TypeError('TLS handshake unavailable');};
  await assert.rejects(preflightPublicWebsite('https://example.org/',{resolver,request}),
   error=>error.code==='local-network');
+ const badCertificate=Object.assign(new Error('certificate mismatch'),{code:'ERR_TLS_CERT_ALTNAME_INVALID'});
+ await assert.rejects(preflightPublicWebsite('https://example.org/',{resolver,request:async()=>{throw badCertificate;}}),
+  error=>error.code==='local-tls'&&/certificate/i.test(error.message));
  const redirect=async()=>new Response(null,{status:302,headers:{location:'http://127.0.0.1/admin'}});
  await assert.rejects(preflightPublicWebsite('https://example.org/',{resolver,request:redirect}),
   error=>error.code==='local-unsafe');

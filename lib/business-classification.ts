@@ -4,15 +4,17 @@ import type {Template} from './demo-engine.ts';
 // Prefer a recorded category over a business name; do not infer a medical specialty.
 export type IndustryDecision={
   template:Template|null;
-  sector:'medical'|'landscaping'|'trades'|'professional'|'other'|null;
+  sector:'medical'|'landscaping'|'trades'|'food'|'retail'|'professional'|'other'|null;
   confidence:'category'|'name_hint'|'unknown';
   explanation:string;
 };
 const medical=/\b(?:doctor|doctors|medical|healthcare|health care|physician|physicians|dentist|dentists|dental|orthodont\w*|optometr\w*|ophthalm\w*|clinic|clinics|hospital|primary care|family medicine|pediatr\w*|dermatolog\w*|psychiatr\w*|psycholog\w*|chiropract\w*|podiatr\w*|physical therapy|urgent care|veterinar\w*|vet clinic|nursing)\b/i;
 const landscaping=/\b(?:landscap\w*|hardscap\w*|lawn\w*|outdoor service\w*|garden\w*|arborist\w*|tree service\w*|irrigation)\b/i;
 const trades=/\b(?:roof\w*|hvac|plumb\w*|electrician\w*|electrical|contract\w*|construction|remodel\w*|renovat\w*|carpent\w*|mason\w*|fenc\w*|floor\w*|house paint\w*|home improvement|pressure wash\w*|handyman|cleaning|pest control)\b/i;
+const food=/\b(?:restaurant|cafe|coffee shop|coffee house|bakery|butcher|deli|pub|bar|brewery|food market|eatery|pizzeria|takeout|takeaway|cater\w*)\b/i;
+const retail=/\b(?:retail|shop|store|boutique|bookstore|bookshop|booksmith|fashion|gallery|florist|gift shop|market|convenience store|convenience|wine and spirits)\b/i;
 const generic=/^(?:services?|business|unknown|general|uncategorized|unclassified|certified business|local business|other|office|shop|organization|n\/a|none)$/i;
-const professional=/\b(?:legal|lawyer|attorney|account\w*|finance|architect\w*|consult\w*|insurance|real estate|broker|salon|restaurant|cafe|retail|bakery)\b/i;
+const professional=/\b(?:legal|lawyer|attorney|account\w*|finance|architect\w*|consult\w*|insurance|real estate|broker|salon)\b/i;
 
 // A legal structure (LLC, Corporation, Sole Proprietorship...) describes how a company is
 // registered, not what it does. It must never become an industry conclusion.
@@ -27,12 +29,16 @@ export function classifyIndustry(name:string, category:string|null|undefined):In
    if(medical.test(cat))return {template:'medical',sector:'medical',confidence:'category',explanation:'Medical/clinical category recorded in the CRM'};
    if(landscaping.test(cat))return {template:'landscaping',sector:'landscaping',confidence:'category',explanation:'Landscaping category recorded in the CRM'};
    if(trades.test(cat))return {template:'universal',sector:'trades',confidence:'category',explanation:'Home-service or trade category recorded; using the general trade-safe layout'};
+   if(food.test(cat))return {template:'universal',sector:'food',confidence:'category',explanation:'Food and hospitality category recorded; using a menu-first layout'};
+   if(retail.test(cat))return {template:'universal',sector:'retail',confidence:'category',explanation:'Retail category recorded; using a storefront-first layout'};
    return {template:'universal',sector:professional.test(cat)?'professional':'other',confidence:'category',explanation:'Other recorded industry; general business template'};
  }
  if(medical.test(name))return {template:'medical',sector:'medical',confidence:'name_hint',explanation:'Possible medical service inferred from business name; verify'};
  if(landscaping.test(name))return {template:'landscaping',sector:'landscaping',confidence:'name_hint',explanation:'Possible landscaping service inferred from business name; verify'};
  if(trades.test(name))return {template:'universal',sector:'trades',confidence:'name_hint',explanation:'Possible home-service or trade business inferred from name; verify'};
- if(professional.test(name))return {template:'universal',sector:'professional',confidence:'name_hint',explanation:'Possible professional/retail business inferred from name; verify'};
+ if(food.test(name))return {template:'universal',sector:'food',confidence:'name_hint',explanation:'Possible food or hospitality business inferred from name; verify'};
+ if(retail.test(name))return {template:'universal',sector:'retail',confidence:'name_hint',explanation:'Possible retail business inferred from name; verify'};
+ if(professional.test(name))return {template:'universal',sector:'professional',confidence:'name_hint',explanation:'Possible professional service inferred from name; verify'};
  return {template:null,sector:null,confidence:'unknown',explanation:'No reliable industry indicator; review before selecting specialized template'};
 }
 
@@ -65,6 +71,8 @@ export function industryLabel(decision:IndustryDecision):string{
  return decision.sector==='medical'?'Medical / dental':
   decision.sector==='landscaping'?'Landscaping':
   decision.sector==='trades'?'Contractor / home service':
+  decision.sector==='food'?'Food / hospitality':
+  decision.sector==='retail'?'Retail / storefront':
   decision.sector==='professional'?'Professional / retail':
   decision.sector==='other'?'Other business':'Industry not yet verified';
 }

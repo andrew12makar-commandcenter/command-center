@@ -1,7 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {interpretLocalLighthouseJson} from '../lib/lighthouse-import.ts';
+import {interpretLocalLighthouseExecution,interpretLocalLighthouseJson,sameLighthousePage} from '../lib/lighthouse-import.ts';
 const now=new Date('2026-10-10T22:00:00.000Z');
+test('Lighthouse evidence matches the same page across www and trailing-slash aliases only',()=>{
+ assert.equal(sameLighthousePage('https://www.example.com/','https://example.com'),true);
+ assert.equal(sameLighthousePage('https://example.com/old','https://example.com/new'),false);
+ assert.equal(sameLighthousePage('https://other.example/','https://example.com/'),false);
+});
 const make=(extra:Record<string,unknown>={})=>JSON.stringify({
  lighthouseVersion:'13.0.0',requestedUrl:'https://www.example.com/',
  finalUrl:'https://example.com/',fetchTime:'2026-10-10T21:45:00.000Z',
@@ -21,6 +26,13 @@ test('fresh local Lighthouse report matches prospect homepage with www redirect'
  assert.equal(result.findings.provider,'Local Chrome Lighthouse');
  assert.ok(result.findings.note.includes('Operator-imported'));
  assert.equal(result.evidence.length,4);
+});
+test('app-executed local Lighthouse preserves execution provenance for intake qualification',()=>{
+ const result=interpretLocalLighthouseExecution(make(),'https://example.com/',now);
+ assert.equal(result.findings.source_method,'local_lighthouse_execution');
+ assert.equal(result.findings.provider,'Local Chrome Lighthouse');
+ assert.match(result.findings.note,/executed on the authenticated local development server/);
+ assert.doesNotMatch(result.findings.note,/Operator-imported/);
 });
 test('cannot import another business domain or a different subpage',()=>{
  for(const url of ['https://other.example.com/','https://example.com/about']){

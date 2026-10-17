@@ -28,6 +28,14 @@ test('cannot audit Instagram, Facebook or a Google Maps listing as company site'
   assert.throws(()=>validateBusinessWebsite(url),/not a business website/);
  }
 });
+test('third-party ordering pages stay separate from independent websites',()=>{
+ const url='https://order.toasttab.com/online/nakhon-brighton';
+ assert.equal(classifyWebPresence(url).kind,'ordering');
+ assert.equal(classifyWebPresence(url).provider,'Toast ordering');
+ assert.equal(independentWebsite(url),null);
+ assert.throws(()=>publicWebsite(url),/not first-party business websites/);
+ assert.throws(()=>validateBusinessWebsite(url),/third-party ordering evidence/);
+});
 test('independent domains remain auditable; avoid suffix false positives',()=>{
  const valid=['https://www.example.org/','https://instagram.com.evil.example.org/',
   'https://brand.wixsite.com/home','https://clinic.example.org/'];
@@ -45,6 +53,8 @@ test('staged social evidence survives website separation',()=>{
  const value='https://www.instagram.com/zscapesoutdoorservices/';
  assert.equal(discoveredProfile({discovered_social_profile_url:value},null),value);
  assert.equal(discoveredProfile(null,value),value);
+ const order='https://order.toasttab.com/online/nakhon-brighton';
+ assert.equal(discoveredProfile({third_party_urls:order},null),order);
 });
 test('OpenStreetMap preserves Instagram link but leaves official site empty',()=>{
  const records=parseOsm([{type:'node',id:101,tags:{name:'Zscapes Outdoor Services',

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {qualifyProspect,qualifyStagedRow,qualifyBusiness,serviceAreaEvidence,auditSummary,formatLocation,
+import {qualifyProspect,qualifyStagedRow,qualifyBusiness,serviceAreaEvidence,auditSummary,formatLocation,compareQualificationNeed,employeeCountOf,
  type QualificationInput} from '../lib/prospect-qualification.ts';
 import type {WebsiteCheck} from '../lib/website-evidence.ts';
 
@@ -44,6 +44,30 @@ test('website design, GBP and local SEO receive independent lane scores',()=>{
  assert.equal(lane('local_seo').need,26);
  assert.deepEqual(q.secondary,['local_seo']);
 });
+test('directory websites in raw source remain visible to qualification when mapped field is empty',()=>{
+ const q=qualifyStagedRow({name:'Brighton Bookshop',city:'Brighton',category:'Bookstore',website_url:null,phone:null,
+  source_url:'https://data.example/business',source_type:'boston-certified',review_status:'pending',raw_data:{website:'https://bookshop.example/'}},
+  {targetService:'website_design',duplicateWarning:false,targetArea:'Brighton',now});
+ assert.equal(q.websitePresence,'official_site_recorded');
+ assert.match(q.tasks.join(' '),/Run the free website check/);
+});
+test('a third-party ordering URL is research evidence, not the business website',()=>{
+ const q=qualifyStagedRow({name:'Nakhon',city:'Brighton',category:'restaurant',website_url:'',phone:'617',
+  source_url:'https://data.example/business',source_type:'public directory',review_status:'pending',
+  raw_data:{third_party_urls:'https://order.toasttab.com/online/nakhon-brighton'}},
+  {targetService:'website_design',duplicateWarning:false,targetArea:'Brighton',now});
+ assert.equal(q.websitePresence,'ordering_only');
+ assert.equal(q.websiteState,'unknown','an ordering platform does not prove an independent site is missing');
+ assert.equal(q.lanes.find(l=>l.lane==='website_design')?.need,12,'third-party-only presence is a research clue, not verified need');
+ assert.equal(q.nextAction,'find_official_website');
+});
+test('employee bands use conservative counts and never turn less-than ten into ten',()=>{
+ assert.equal(employeeCountOf('Less than 10'),9);
+ assert.equal(employeeCountOf('Under 10 employees'),9);
+ assert.equal(employeeCountOf('10 to 19'),10);
+ assert.equal(employeeCountOf('5'),5);
+ assert.equal(employeeCountOf('unknown'),null);
+});
 test('an unknown GBP URL never becomes "GBP missing"',()=>{
  const q=qualifyProspect(base({targetService:'gbp'}));
  assert.equal(q.gbpState,'unknown');
@@ -69,7 +93,37 @@ test('website check evidence sets explicit evidence states',()=>{
  assert.equal(qualifyProspect(base({websiteUrl:'https://dental.example/',review:{website_check:weakCheck}})).websiteState,'likely_weak');
  assert.equal(qualifyProspect(base({websiteUrl:'https://dental.example/',review:{website_check:check({name_match:false,issues:['name_not_found']})}})).websiteState,'conflicting');
  assert.equal(qualifyProspect(base({websiteUrl:'https://dental.example/',review:{website_check:check({status:'unreachable'})}})).websiteState,'conflicting');
+ const tls=qualifyProspect(base({websiteUrl:'https://dental.example/',review:{website_check:check({status:'tls_error',
+  error_code:'local-tls',issues:['tls_certificate_error']})}}));
+ assert.equal(tls.websiteState,'likely_weak');
+ assert.match(tls.reasons.join(' '),/TLS certificate/i);
  assert.equal(qualifyProspect(base({websiteUrl:'https://dental.example/',review:{website_check:check({status:'denied'})}})).websiteState,'unknown');
+});
+test('fresh matching local Lighthouse evidence improves staged prospect qualification',()=>{
+ const local={website_url:'https://dental.example/',assessed_at:'2026-10-14T11:55:00Z',status:'verified_gaps' as const,
+  findings:{version:1 as const,provider:'Local Chrome Lighthouse' as const,strategy:'mobile' as const,
+   analyzed_url:'https://dental.example/',final_url:'https://dental.example/',measured_at:'2026-10-14T11:55:00Z',
+   performance_score:42,seo_score:73,technical_opportunity_score:58,measured_checks:4,flagged_checks:2,
+   note:'Local mobile lab result.',source_method:'local_lighthouse_execution' as const,
+   technical_signals:{metrics:{fcp_ms:1600,lcp_ms:4200,speed_index_ms:2100,blocking_time_ms:120,layout_shift:0.1},insights:[]}},
+  evidence:[]};
+ const row={name:'Brighton Dental Associates',city:'Brighton',category:'Dentist',website_url:'https://dental.example/',phone:null,
+  source_url:'https://data.example/business',source_type:'public directory',review_status:'pending',raw_data:{review:{local_lighthouse:local}}};
+ const q=qualifyStagedRow(row,{targetService:'website_design',duplicateWarning:false,targetArea:'Brighton',now});
+ assert.equal(q.websiteState,'likely_weak');
+ assert.equal(q.lanes.find(l=>l.lane==='local_seo')?.need,28);
+});
+test('staged Lighthouse evidence for a different website or operator upload cannot affect ranking',()=>{
+ const local={website_url:'https://other.example/',assessed_at:'2026-10-14T11:55:00Z',status:'verified_gaps' as const,
+  findings:{version:1 as const,provider:'Local Chrome Lighthouse' as const,strategy:'mobile' as const,
+   analyzed_url:'https://other.example/',final_url:'https://other.example/',measured_at:'2026-10-14T11:55:00Z',
+   performance_score:10,seo_score:20,technical_opportunity_score:90,measured_checks:4,flagged_checks:2,
+   note:'Local mobile lab result.',source_method:'local_lighthouse_upload' as const},evidence:[]};
+ const q=qualifyStagedRow({name:'Brighton Dental Associates',city:'Brighton',category:'Dentist',website_url:'https://dental.example/',phone:null,
+  source_url:'https://data.example/business',source_type:'public directory',review_status:'pending',raw_data:{review:{local_lighthouse:local}}},
+  {targetService:'website_design',duplicateWarning:false,targetArea:'Brighton',now});
+ assert.equal(q.websiteState,'unknown');
+ assert.equal(q.lanes.find(l=>l.lane==='local_seo')?.need,6);
 });
 test('an address or unit number never becomes a storefront or home-office conclusion',()=>{
  const q=qualifyProspect(base({street:'72 Saybrook Street, #3'}));
@@ -135,7 +189,7 @@ test('qualification requires identity, activity, contact, need, geography and no
  const q=qualifyProspect(base());
  assert.equal(q.qualified,false);
  assert.ok(q.unmet.includes('Identity not confirmed'));
- assert.ok(q.unmet.includes('Service need not supported by evidence'));
+ assert.ok(q.unmet.some(item=>item.startsWith('Service need not supported by evidence')));
 });
 test('progress states move from discovered to outreach ready',()=>{
  assert.equal(qualifyProspect(base()).progress,'discovered');
@@ -189,15 +243,79 @@ test('the campaign lane drives the score while a better-supported service is fla
  assert.equal(q.parts[0].points,4);
  assert.equal(q.recommended,'gbp');assert.equal(q.recommendedOutsideCampaign,true);
  assert.ok(q.reasons.some(r=>/outside the campaign focus/.test(r)));
- assert.ok(!q.unmet.includes('Service need not supported by evidence'));
+ assert.ok(q.unmet.some(r=>/Service need not supported by evidence for Website design/.test(r)));
+ assert.equal(q.qualified,false,'an alternative opportunity cannot qualify a weak campaign fit');
+ const withDemo=qualifyProspect(base({websiteUrl:'https://d.example/',imported:true,hasDemo:true,
+  review:{website_check:check(),manual:{gbp:'likely_weak',identity:'confirmed',active:'confirmed',reviewed_at:'2026-10-14'}}}));
+ assert.notEqual(withDemo.progress,'pitch_ready','a demo cannot make an unsupported campaign opportunity pitch-ready');
+});
+
+test('a scan target area is not treated as the business neighborhood or a geographic match',()=>{
+ const q=qualifyStagedRow({name:'Dash Cafe',city:'Boston',category:'amenity: cafe',website_url:'https://dash.example/',phone:'617',
+  source_url:'https://www.openstreetmap.org/node/1',source_type:'openstreetmap',review_status:'pending',
+  raw_data:{postcode:'02134',search_area:'Brighton'}},{targetService:'website_design',duplicateWarning:false,targetArea:'Brighton',now});
+ assert.ok(!q.parts.find(part=>part.key==='fit')!.why.some(reason=>/In Brighton \(postcode or neighborhood\)/.test(reason)));
+ assert.ok(q.parts.find(part=>part.key==='fit')!.why.some(reason=>/Not confirmed inside Brighton/.test(reason)));
+});
+
+test('evidence-backed service need ranks ahead of reachability penalties',()=>{
+ const noSite=qualifyProspect(base({name:'ABC',category:null,city:null,street:null,postcode:null,phone:null,
+  sourceUrl:null,sourceType:null,duplicateWarning:true,review:{manual:{website:'verified_missing'}}}));
+ const weakNeed=qualifyProspect(base({websiteUrl:'https://d.example/',review:{website_check:check()}}));
+ assert.ok(noSite.score<weakNeed.score,'total score may reward reachability and site presence');
+ assert.ok(compareQualificationNeed(noSite,weakNeed)<0,'higher need is ordered first independent of total score');
+});
+
+test('a verified gap ranks ahead of an unchecked website',()=>{
+ const unknown=qualifyProspect(base({name:'Brighton Family Dentistry',category:'dentist',websiteUrl:null}));
+ const gap=qualifyProspect(base({name:'Brighton Family Dentistry',category:'dentist',websiteUrl:'https://d.example/',
+  review:{website_check:weakCheck}}));
+ assert.equal(unknown.websiteState,'unknown');
+ assert.equal(gap.websiteState,'likely_weak');
+ assert.equal(gap.isPriorityLead,true);
+ assert.ok(compareQualificationNeed(gap,unknown)<0,'an observed gap should outrank an unchecked site');
+});
+
+test('target-fit clues lift local customer businesses while flagging out-of-scope records for review',()=>{
+ const local=qualifyProspect(base({name:'Brighton Family Dentistry',category:'dentist'}));
+ const agency=qualifyProspect(base({name:'Brighton Digital Marketing Agency',category:'marketing agency'}));
+ const unknown=qualifyProspect(base({name:'ABC Holdings',category:null}));
+ const chain=qualifyProspect(base({name:'National Coffee Chain Branch',category:'coffee shop'}));
+ assert.equal(local.targetFit,'likely_target');
+ assert.equal(agency.targetFit,'possible_out_of_scope');
+ assert.equal(unknown.targetFit,'review_fit');
+ assert.equal(chain.targetFit,'review_fit');
+ assert.match(chain.targetFitReason,/local owner can choose/);
+ assert.equal(agency.researchStatus,'review_needed','fit signals never auto-disqualify a lead');
+ assert.match(local.targetFitReason,/ownership still need review/);
+});
+test('strong technical need from an obvious out-of-scope business is not a priority lead',()=>{
+ const agency=qualifyProspect(base({name:'Brighton Digital Marketing Agency',category:'marketing agency',
+  websiteUrl:'https://agency.example/',review:{website_check:weakCheck}}));
+ assert.equal(agency.targetFit,'possible_out_of_scope');
+ assert.equal(agency.opportunityStrength,'strong');
+ assert.equal(agency.isPriorityLead,false);
+});
+
+test('government registration supports entity evidence but never proves the shop is open or qualified',()=>{
+ const unregistered=qualifyProspect(base({name:'Brighton Bakery',category:'bakery'}));
+ const registered=qualifyProspect(base({name:'Brighton Bakery',category:'bakery',review:{manual:{
+  registry_result:'found_match',registry_url:'https://corp.sec.state.ma.us/CorpWeb/CorpSearch/CorpSummary.aspx?FEIN=123',
+  registry_note:'Legal entity name matches; registered office address only'
+ }}}));
+ assert.equal(registered.identityConfirmed,false);
+ assert.equal(registered.activeConfirmed,false);
+ assert.equal(registered.qualified,false);
+ assert.equal(registered.parts.find(part=>part.key==='confidence')?.points,unregistered.parts.find(part=>part.key==='confidence')!.points+2);
+ assert.match(registered.parts.find(part=>part.key==='confidence')!.why.join(' '),/does not confirm current operation or the storefront/);
 });
 
 test('a Google Maps search is not a recorded GBP listing, but a CID link is still unreviewed',()=>{
  const search=qualifyProspect(base({gbpUrl:'https://www.google.com/maps/search/?api=1&query=Nakhon',targetService:'gbp'}));
- assert.equal(search.gbpStatus,'unconfirmed');
+ assert.equal(search.gbpLinkStatus,'unconfirmed');
  assert.equal(search.gbpState,'unknown');
  assert.match(search.reasons.join(' '),/search link|not a confirmed/i);
  const specific=qualifyProspect(base({gbpUrl:'https://maps.google.com/?cid=4',targetService:'gbp'}));
- assert.equal(specific.gbpStatus,'recorded');
+ assert.equal(specific.gbpLinkStatus,'recorded');
  assert.equal(specific.gbpState,'unknown');
 });

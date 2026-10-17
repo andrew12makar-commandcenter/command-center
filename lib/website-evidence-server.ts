@@ -26,8 +26,9 @@ export async function checkWebsiteEvidence(input:string,businessName:string):Pro
   // Only DNS or connection failure counts as "unreachable". An HTTP error page or bot
   // protection is not evidence of inactivity; it needs manual verification.
   const status:WebsiteCheckStatus=code==='local-unsafe'?'unsafe':code==='local-denied'||code==='local-rate-limited'?'denied':
-   code==='local-dns'||code==='local-network'?'unreachable':'error';
-  return {checked_at,url:input,status,error_code:code,...empty};
+   code==='local-tls'?'tls_error':code==='local-dns'||code==='local-network'?'unreachable':'error';
+  return {checked_at,url:input,status,error_code:code,...empty,
+   ...(status==='tls_error'?{issues:['tls_certificate_error' as const]}:{})};
  }
  const page=await smallGet(finalUrl,1_500_000,'text/html');
  if(!page||page.status>=400||!page.body)return {checked_at,url:input,status:'error',error_code:page?'http-'+page.status:'fetch',...empty,final_url:finalUrl};

@@ -107,12 +107,12 @@ export default async function WebsiteIntelligence({
           <td><Link className="font-semibold text-cyan-200 underline" href={'/app/leads/'+b.id}>{b.name}</Link><small className="muted mt-1 block">{b.category||'Category unknown'}</small></td>
           <td>{b.city||'Unspecified'}</td>
           <td>{presence.url?<><a href={presence.url} className="break-all text-sm text-cyan-300 underline" target="_blank" rel="noopener noreferrer">{presence.url}</a>
-            {presence.kind!=='website'&&<span className="mt-2 block text-xs text-amber-200">{presence.provider} profile / listing, not independent website</span>}</>:
+            {presence.kind!=='website'&&<span className="mt-2 block text-xs text-amber-200">{presence.kind==='ordering'?'Third-party order page':'Profile / listing'}, not independent website</span>}</>:
             <span className="muted text-xs">{presence.kind==='invalid'?'Invalid URL: review CRM':'Not recorded (not proof of absence)'}</span>}</td>
           <td>{presence.kind==='website'?(process.env.NODE_ENV==='development'||hasApiKey?<form action={auditBusiness}><input type="hidden" name="business_id" value={b.id}/>
             <button className="btn text-xs" type="submit">{process.env.NODE_ENV==='development'?'Run local Lighthouse →':'Run PageSpeed audit →'}</button></form>:
             <a href="#lighthouse-fallback" className="text-xs text-cyan-300 underline">Import local Lighthouse report ↓</a>):
-            <Link href={'/app/leads/'+b.id} className="text-xs text-cyan-300 underline">{presence.kind==='social'||presence.kind==='listing'?'Move profile to research evidence':'Check business details'} →</Link>}</td>
+            <Link href={'/app/leads/'+b.id} className="text-xs text-cyan-300 underline">{presence.kind==='social'||presence.kind==='listing'||presence.kind==='ordering'?'Review third-party evidence':'Check business details'} →</Link>}</td>
         </tr>})}</tbody></table>
       {!businesses?.length&&!bError&&<p className="muted p-8 text-sm">The CRM has no approved prospects yet. Review your discovered candidates in Lead Intake first.</p>}
    </section>

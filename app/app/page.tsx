@@ -16,7 +16,7 @@ export default async function Dashboard(){
   ]);
   const metrics=[
     ['Business records',total,Database],['Verified evidence',verified,ShieldCheck],
-    ['Pending intake',staged,Database],['Follow-ups due',followups,Clock3],
+    ['Pending intake rows',staged,Database],['Follow-ups due',followups,Clock3],
     ['Demo drafts',demos,PanelsTopLeft],['Won clients',won,ArrowUpRight],
   ] as const;
   return <main>
@@ -30,6 +30,7 @@ export default async function Dashboard(){
         <p className="mt-6 text-4xl font-semibold">{value??'—'}</p>
       </section>)}
     </div>
+    <p className="muted mt-3 text-xs">Pending intake rows counts every campaign, including test campaigns. Review counts on Lead Intake are campaign workflow stages and may have a different scope.</p>
     <div className="mt-7 grid gap-6 xl:grid-cols-[1.25fr_1fr]">
       <section className="panel p-7"><div className="flex items-center justify-between"><div><p className="kicker">Working pipeline</p><h2 className="mt-3 text-xl font-semibold">Latest businesses</h2></div><Link href="/app/leads" className="text-sm text-cyan-300 underline">View CRM</Link></div>
         <div className="mt-5 space-y-1">{(recent.data??[]).map(b=><Link key={b.id} href={'/app/leads/'+b.id} className="flex items-center justify-between gap-3 rounded-xl border-b border-[#23343d] p-3 hover:bg-[#14242e]">

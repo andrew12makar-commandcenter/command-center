@@ -17,6 +17,16 @@ test('a dental practice uses medical even in a mixed industry batch',()=>{
  assert.deepEqual(businesses.map(b=>resolveDemoTemplate(b.name,b.category,'auto').template),
   ['medical','landscaping','universal']);
 });
+test('food and retail records stay on universal storage templates but receive distinct vertical classifications',()=>{
+ const restaurant=classifyIndustry('Nakhon','amenity: restaurant');
+ const butcher=classifyIndustry('Beef and Turkey','shop: convenience');
+ const bookstore=classifyIndustry('Brookline Booksmith',null);
+ assert.equal(restaurant.template,'universal');assert.equal(restaurant.sector,'food');
+ assert.equal(butcher.template,'universal');assert.equal(butcher.sector,'retail');
+ assert.equal(bookstore.sector,'retail');
+ assert.equal(industryLabel(restaurant),'Food / hospitality');
+ assert.equal(industryLabel(butcher),'Retail / storefront');
+});
 test('trades keep their sector identity without inheriting landscaping templates',()=>{
  const plumber=classifyIndustry('Fenway Flow Plumbing','plumber');
  const contractor=classifyIndustry('Allston Contractors','general contractor');

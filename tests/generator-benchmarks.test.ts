@@ -2,10 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildBenchmark,generatorBenchmarks,runBenchmarkCorpus} from '../lib/generator-benchmarks.ts';
 import {selectSectionPresentation} from '../lib/site-presentation.ts';
+import {classifyIndustry} from '../lib/business-classification.ts';
 
 test('benchmark corpus spans core verticals and independent holdouts',()=>{
  assert.deepEqual(new Set(generatorBenchmarks.map(x=>x.vertical)),new Set(['medical','landscaping','universal']));
  assert.ok(generatorBenchmarks.filter(x=>x.holdout).length>=2);
+ const restaurant=generatorBenchmarks.find(x=>x.id==='holdout-restaurant');
+ const retail=generatorBenchmarks.find(x=>x.id==='holdout-retail');
+ assert.ok(restaurant&&retail,'food and storefront holdouts stay in the visual review corpus');
+ assert.equal(classifyIndustry(restaurant.name,restaurant.category).sector,'food');
+ assert.equal(classifyIndustry(retail.name,retail.category).sector,'retail');
 });
 
 test('every benchmark passes the deterministic preflight and compositions vary',()=>{

@@ -22,7 +22,7 @@ export async function auditBusiness(form:FormData){
  if(loadError||!business)throw Error('CRM business not found in this workspace.');
  if(!business.website_url)redirect('/app/intelligence?error=no-website');
  const presence=classifyWebPresence(business.website_url);
- if(presence.kind==='social'||presence.kind==='listing')redirect('/app/intelligence?error=profile-not-site&business='+id);
+ if(presence.kind==='social'||presence.kind==='listing'||presence.kind==='ordering')redirect('/app/intelligence?error=profile-not-site&business='+id);
  let target:string;
  try{target=publicWebsite(business.website_url);}
  catch{redirect('/app/intelligence?error=invalid-website');}

@@ -12,7 +12,7 @@ export default async function GeneratorBenchmarkGallery(){
   <Link href="/app/demos" className="muted text-sm">← Demo Studio</Link>
   <p className="kicker mt-5">Cross-industry visual QA</p>
   <h1 className="mt-3 text-4xl font-semibold">Generator benchmark gallery</h1>
-  <p className="muted mt-3 max-w-3xl text-sm leading-6">Six fictional fixtures exercise medical, landscaping, professional-service, and holdout structures. Concept imagery is private and labeled. Passing this gallery does not verify a real company or grant publication rights.</p>
+  <p className="muted mt-3 max-w-3xl text-sm leading-6">{generatorBenchmarks.length} fictional fixtures exercise medical, landscaping, professional-service, food, retail, and holdout layouts. Concept imagery is private and labeled. Passing this gallery does not verify a real company or grant publication rights.</p>
   <div className="mt-10 space-y-16">{generatorBenchmarks.map(item=>{
    const site=buildBenchmark(item);
    return <section key={item.id} aria-labelledby={'benchmark-'+item.id}>
