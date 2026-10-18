@@ -1,10 +1,13 @@
 import Link from 'next/link';
 import { ArrowUpRight, Target } from 'lucide-react';
-import { getBrightonShortlist, TWO_NEED_PROSPECT_TARGET } from '@/lib/brighton-shortlist';
+import { getBrightonShortlist, getScreeningLedger, TWO_NEED_PROSPECT_TARGET } from '@/lib/brighton-shortlist';
+import { summarizeScreening } from '@/lib/screening-ledger';
 import { ProspectRosterBrowser } from '@/components/prospect-roster-browser';
 
 export default function TwoNeedProspectShortlist() {
   const leads = getBrightonShortlist();
+  const screened = getScreeningLedger(leads);
+  const screening = summarizeScreening(screened);
   const coreCount = leads.filter((lead) => lead.rosterStage === 'Core shortlist').length;
   const carryForwardCount = leads.filter((lead) => lead.rosterStage === 'Carry-forward · recheck').length;
   const newCount = leads.filter((lead) => lead.rosterStage === 'New addition').length;
@@ -33,5 +36,25 @@ export default function TwoNeedProspectShortlist() {
     </section>
 
     <ProspectRosterBrowser leads={leads} />
+
+    <details className="panel mt-6 overflow-hidden">
+      <summary className="cursor-pointer list-none px-6 py-5 hover:bg-[#14242e]">
+        <p className="kicker">Screening ledger</p>
+        <h2 className="mt-2 text-xl font-semibold">{screening.total} screened businesses not counted</h2>
+        <p className="muted mt-2 text-sm leading-6">{screening.excluded} excluded and {screening.held} held, each with its discovery source, check date and reason. Directory and license records are discovery sources only; nothing here is counted toward the target.</p>
+        <p className="mt-3 flex flex-wrap gap-2 text-xs">{screening.byReason.map(([label, count]) => <span key={label} className="rounded-full border border-[#394d58] px-3 py-1 text-[#b9cbd1]">{label} · {count}</span>)}</p>
+      </summary>
+      <div className="overflow-x-auto border-t border-[#263b46]">
+        <table className="w-full min-w-[720px] text-left text-sm">
+          <thead className="text-xs uppercase tracking-wider text-[#88dce7]"><tr><th className="px-6 py-3">Business</th><th className="px-3 py-3">Decision</th><th className="px-3 py-3">Reason</th><th className="px-3 py-3">Source · checked</th></tr></thead>
+          <tbody>{screened.map((entry) => <tr key={entry.business} className="border-t border-[#23343d] align-top">
+            <td className="px-6 py-3"><strong>{entry.business}</strong><span className="muted block text-xs">{entry.address}</span></td>
+            <td className="px-3 py-3 capitalize">{entry.decision}</td>
+            <td className="px-3 py-3"><span className="block">{entry.reasonLabel}</span><span className="muted block text-xs">{entry.reason}</span>{entry.evidenceUrl && <a href={entry.evidenceUrl} target="_blank" rel="noreferrer" className="text-xs text-cyan-300 underline">Evidence</a>}</td>
+            <td className="muted px-3 py-3 text-xs">{entry.discoverySource} · {entry.checked}</td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+    </details>
   </main>;
 }

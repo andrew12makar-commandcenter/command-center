@@ -1,6 +1,7 @@
 import 'server-only';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parseScreeningLedger, type ScreeningEntry } from './screening-ledger.ts';
 
 export const TWO_NEED_PROSPECT_TARGET = 100;
 
@@ -158,4 +159,9 @@ export function getBrightonShortlist(): BrightonShortlistLead[] {
   });
 
   return [...current, ...additions, ...uniqueExpansion].map((lead, index) => ({ ...lead, rank: index + 1 }));
+}
+
+export function getScreeningLedger(leads: BrightonShortlistLead[] = getBrightonShortlist()): ScreeningEntry[] {
+  const csv = readFileSync(join(process.cwd(), 'docs/brighton-candidate-screening-ledger.csv'), 'utf8');
+  return parseScreeningLedger(csv, leads.map((lead) => lead.business));
 }
