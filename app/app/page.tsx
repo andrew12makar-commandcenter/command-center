@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { requireWorkspace } from '@/lib/workspace';
-import { ArrowUpRight, Database, Clock3, ShieldCheck, PanelsTopLeft } from 'lucide-react';
+import { ArrowUpRight, Bot, Database, Clock3, ShieldCheck, PanelsTopLeft, Target } from 'lucide-react';
+import { getBrightonShortlist, TWO_NEED_PROSPECT_TARGET } from '@/lib/brighton-shortlist';
 
 export default async function Dashboard(){
   const {supabase,organizationId}=await requireWorkspace();
@@ -14,6 +15,7 @@ export default async function Dashboard(){
     supabase.from('demo_sites').select('id',{count:'exact',head:true}).eq('organization_id',organizationId),
     supabase.from('businesses').select('id,name,city,pipeline_status,verification_status').eq('organization_id',organizationId).order('created_at',{ascending:false}).limit(5),
   ]);
+  const shortlistCount=getBrightonShortlist().length;
   const metrics=[
     ['Business records',total,Database],['Verified evidence',verified,ShieldCheck],
     ['Pending intake rows',staged,Database],['Follow-ups due',followups,Clock3],
@@ -21,9 +23,27 @@ export default async function Dashboard(){
   ] as const;
   return <main>
     <div className="flex flex-wrap items-end justify-between gap-5">
-      <div><p className="kicker">Operations overview · Connected data</p><h1 className="mt-3 text-4xl font-semibold tracking-tight">Mission Control</h1><p className="muted mt-3">Your actual prospect and sales activity. No simulated scans, fabricated scores or invented sales.</p></div>
+      <div><p className="kicker">Chief operating officer · Connected data</p><h1 className="mt-3 text-4xl font-semibold tracking-tight">Jarvis COO</h1><p className="muted mt-3">Your operating home for real prospect, client and build activity.</p></div>
       <Link href="/app/leads/new" className="btn">+ New prospect</Link>
     </div>
+    <section className="jarvis-brief panel mt-7 overflow-hidden p-6 sm:p-8">
+      <div className="grid gap-7 lg:grid-cols-[1.2fr_.8fr] lg:items-center">
+        <div>
+          <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 text-cyan-100"><Bot size={22}/></span><div><p className="kicker">Jarvis · COO operating brief</p><p className="muted mt-1 text-xs">Grounded in connected workspace records and the documented shortlist</p></div></div>
+          <h2 className="mt-6 max-w-2xl text-2xl font-semibold leading-tight sm:text-3xl">Keep the lead engine focused on verified needs.</h2>
+          <p className="muted mt-3 max-w-2xl text-sm leading-6">The Brighton research roster contains {shortlistCount} documented candidates toward a {TWO_NEED_PROSPECT_TARGET}-candidate goal. Each row pairs a website gap with a distinct improvement. Owner interest and CRM qualification remain unconfirmed.</p>
+        </div>
+        <div className="rounded-2xl border border-[#31525e] bg-[#0c1a23]/75 p-5">
+          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.14em] text-[#a5e6ec]"><Target size={15}/> Current operating priorities</p>
+          <ol className="mt-4 space-y-3 text-sm">
+            <li className="flex gap-3"><span className="text-cyan-300">01</span><span>Review the two-need candidate roster and its open evidence checks.</span></li>
+            <li className="flex gap-3"><span className="text-cyan-300">02</span><span>Confirm operator and customer-path needs before CRM qualification.</span></li>
+            <li className="flex gap-3"><span className="text-cyan-300">03</span><span>Use approved evidence to prepare a private, business-specific demo.</span></li>
+          </ol>
+          <Link href="/app/leads/shortlist" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 underline">Open the two-need roster <ArrowUpRight size={15}/></Link>
+        </div>
+      </div>
+    </section>
     <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {metrics.map(([label,value,Icon])=><section key={label} className="panel relative overflow-hidden p-6">
         <div className="flex items-center justify-between"><span className="muted text-sm">{label}</span><Icon size={18} className="text-[#75d6e7]"/></div>
