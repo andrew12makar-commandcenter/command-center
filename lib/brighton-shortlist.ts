@@ -2,6 +2,7 @@ import 'server-only';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseScreeningLedger, type ScreeningEntry } from './screening-ledger.ts';
+import type { KnownBusiness } from './public-business-import.ts';
 
 export const TWO_NEED_PROSPECT_TARGET = 100;
 
@@ -177,4 +178,13 @@ export function getScreeningLedger(leads: BrightonShortlistLead[] = getBrightonS
   const csv = readFileSync(join(process.cwd(), 'docs/brighton-candidate-screening-ledger.csv'), 'utf8');
   // Held Core rows stay in the ledger; other roster rows are not listed twice.
   return parseScreeningLedger(csv, leads.filter((lead) => !lead.holdNote).map((lead) => lead.business));
+}
+
+// Roster and ledger entries in the shape used to match public-list imports.
+export function getProspectKnownBusinesses(): KnownBusiness[] {
+  const csv = readFileSync(join(process.cwd(), 'docs/brighton-candidate-screening-ledger.csv'), 'utf8');
+  return [
+    ...getBrightonShortlist().map((lead) => ({ name: lead.business, kind: 'roster' as const })),
+    ...parseScreeningLedger(csv).map((entry) => ({ name: entry.business, address: entry.address, kind: 'ledger' as const })),
+  ];
 }

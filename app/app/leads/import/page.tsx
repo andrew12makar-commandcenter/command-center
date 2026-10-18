@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import {requireWorkspace} from '@/lib/workspace';
-import {approveImportedRow,linkImportedDuplicate,skipImportedRow,stageCsv,triageStagedRow,updateStagedQualification,
+import {approveImportedRow,linkImportedDuplicate,skipImportedRow,stageCsv,stagePublicBusinessList,triageStagedRow,updateStagedQualification,
  checkCandidateWebsite,runCandidateLocalLighthouse,saveCandidateReview} from '../actions';
 import {collectAllPages,potentialMatches,phonesConflict,type BusinessIdentity,type PotentialMatch} from '@/lib/lead-identity';
 import {normalizeBusiness} from '@/lib/csv';
@@ -18,6 +18,9 @@ import {sameLighthousePage} from '@/lib/lighthouse-import';
 import type {TechnicalSignals} from '@/lib/lighthouse-signals';
 import {EvidenceChip,ProgressChip,ScoreBadge,Headline,ScoreBreakdown,Fold} from '@/components/prospect-ui';
 import PublicPresenceEvidenceCard from '@/components/public-presence-evidence-card';
+import {PublicListImport} from '@/components/public-list-import';
+import {getProspectKnownBusinesses} from '@/lib/brighton-shortlist';
+import type {KnownBusiness} from '@/lib/public-business-import';
 
 function safeExternalUrl(value:string|null|undefined):string|null{
  if(!value)return null;
@@ -25,7 +28,7 @@ function safeExternalUrl(value:string|null|undefined):string|null{
  catch{return null;}
 }
 type FilterKey='query'|'campaign'|'opportunity'|'strength'|'confidence'|'readiness'|'status'|'area'|'industry'|'website'|'target_fit'|'sort'|'page'|'tests';
-type Params=Partial<Record<FilterKey|'staged'|'error'|'err'|'row',string>>;
+type Params=Partial<Record<FilterKey|'staged'|'error'|'err'|'row'|'public_staged'|'public_skipped'|'public_rows'|'public_error',string>>;
 type StagedRow={
  id:string;name:string|null;city:string|null;category:string|null;source_url:string|null;source_type:string|null;
  website_url:string|null;phone:string|null;review_status:string;matched_business_id:string|null;row_number:number;
@@ -245,6 +248,9 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
   supabase.from('demo_sites').select('business_id').eq('organization_id',organizationId).limit(2000)
  ]);
  const withDemo=new Set((demoRows??[]).map(d=>d.business_id as string));
+ const publicListKnown:KnownBusiness[]=[...getProspectKnownBusinesses(),
+  ...all.filter(r=>r.name).map(r=>({name:r.name!,address:typeof r.raw_data?.address==='string'?r.raw_data.address:typeof r.raw_data?.street==='string'?r.raw_data.street:null,kind:'staged' as const})),
+  ...businesses.filter(b=>b.name).map(b=>({name:b.name,address:b.street_address??null,kind:'crm' as const}))];
  const campaignById=new Map(campaigns.map(c=>[c.id,c]));
  const showTests=p.tests==='1';
  const one=<T extends string>(list:readonly T[],v:string|undefined)=>list.includes(v as T)?v as T:'';
@@ -401,6 +407,13 @@ export default async function ImportPage({searchParams}:{searchParams:Promise<Pa
     <span className="muted">{page} of {pages}</span>
     {page<pages&&<Link className="text-cyan-300 underline" href={query(page+1)}>Next →</Link>}
    </nav>}
+  </details>
+  <details id="public-list" className="panel mt-6 p-5" open={Boolean(p.public_staged||p.public_error)}>
+   <summary className="cursor-pointer text-sm font-semibold">Stage a public business list (license or directory export)</summary>
+   <p className="muted mt-2 text-xs">Discovery input only. Repeated license rows for one business are combined; different businesses at one address stay separate. Candidates already in the roster, screening ledger, this queue or the CRM are skipped. Every staged row needs current-operation, exact Maps identity, a website-or-Maps gap and a separate second need before it can count.</p>
+   <PublicListImport known={publicListKnown} action={stagePublicBusinessList}/>
+   {p.public_staged&&<p className="mt-3 text-sm text-cyan-200">{p.public_staged} new candidates staged for review from {p.public_rows} rows; {p.public_skipped} skipped as already known or out of scope.</p>}
+   {p.public_error&&<p role="alert" className="mt-3 text-sm text-red-300">{p.public_error==='file'?'Select a CSV under 750 KB.':p.public_error==='headers'?'Use exactly these headers: business_name, address, category, source (1–1,000 rows).':'The CSV could not be parsed; check quoted cells.'}</p>}
   </details>
   <details className="panel mt-6 p-5">
    <summary className="cursor-pointer text-sm font-semibold">Stage a CSV file</summary>

@@ -19,6 +19,8 @@ import {completedAuditOnCooldown} from '@/lib/audit-policy';
 import {interpretLocalLighthouseExecution,sameLighthousePage} from '@/lib/lighthouse-import';
 import {errorReturnUrl,safeQueueReturn} from '@/lib/action-errors';
 import type {TargetService} from '@/lib/discovery-campaigns';
+import {parsePublicBusinessList,previewPublicBusinessList,stagedEntryFor,type KnownBusiness} from '@/lib/public-business-import';
+import {getProspectKnownBusinesses} from '@/lib/brighton-shortlist';
 // This executable is available only to authenticated local development actions.
 // @ts-expect-error: Local ESM runner is intentionally JavaScript-only.
 import {runOneLocalLighthouse} from '../../../scripts/local-lighthouse-once.mjs';
@@ -274,6 +276,53 @@ export async function stageCsv(form: FormData) {
   if(error) throw new Error('Unable to stage file: '+error.message);
   revalidatePath('/app/leads/import');
   redirect('/app/leads/import?staged='+entries.length);
+}
+
+// Stage a sanitized four-column public business list into the manual review queue.
+// Only candidates that are new to the roster, ledger, queue and CRM are staged;
+// nothing is qualified, imported to the CRM, geocoded or counted automatically.
+export async function stagePublicBusinessList(form: FormData) {
+  const {supabase,organizationId,user}=await requireWorkspace(true);
+  const file=form.get('public_list_file');
+  if(!(file instanceof File) || !file.size || file.size>750_000) redirect('/app/leads/import?public_error=file#public-list');
+  let preview;
+  try{
+    const rows=parsePublicBusinessList(await file.text());
+    const [staged,crm]=await Promise.all([
+      collectAllPages<{name:string|null;raw_data:Record<string,unknown>|null}>(async (from,to)=>{
+        const {data,error}=await supabase.from('lead_import_rows').select('name,raw_data').eq('organization_id',organizationId)
+          .in('review_status',['pending','imported','duplicate']).order('id',{ascending:true}).range(from,to);
+        return {data,error};
+      }),
+      collectAllPages<{name:string|null;street_address:string|null}>(async (from,to)=>{
+        const {data,error}=await supabase.from('businesses').select('name,street_address').eq('organization_id',organizationId)
+          .order('id',{ascending:true}).range(from,to);
+        return {data,error};
+      }),
+    ]);
+    const known:KnownBusiness[]=[
+      ...getProspectKnownBusinesses(),
+      ...staged.filter(r=>r.name).map(r=>({name:r.name!,address:typeof r.raw_data?.address==='string'?r.raw_data.address:typeof r.raw_data?.street==='string'?r.raw_data.street:null,kind:'staged' as const})),
+      ...crm.filter(b=>b.name).map(b=>({name:b.name!,address:b.street_address,kind:'crm' as const})),
+    ];
+    preview=previewPublicBusinessList(rows,known);
+  }catch(error){
+    unstable_rethrow(error);
+    const message=error instanceof Error&&/headers|empty|no rows|at most/.test(error.message)?'headers':'parse';
+    redirect('/app/leads/import?public_error='+message+'#public-list');
+  }
+  const importedAt=new Date().toISOString(),batchId=randomUUID();
+  const fresh=preview.candidates.filter(c=>c.status==='new');
+  const entries=fresh.map((candidate,i)=>({
+    organization_id:organizationId,submitted_by:user.id,batch_id:batchId,row_number:i+2,
+    ...stagedEntryFor(candidate,file.name,importedAt),review_status:'pending' as const,
+  }));
+  if(entries.length){
+    const {error}=await supabase.from('lead_import_rows').insert(entries);
+    if(error) throw new Error('Unable to stage the public list: '+error.message);
+  }
+  revalidatePath('/app/leads/import');
+  redirect(`/app/leads/import?public_staged=${entries.length}&public_skipped=${preview.candidates.length-entries.length}&public_rows=${preview.rowCount}#public-list`);
 }
 
 async function approveImportedRowImpl(form: FormData) {
