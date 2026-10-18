@@ -15,7 +15,9 @@ export default async function Dashboard(){
     supabase.from('demo_sites').select('id',{count:'exact',head:true}).eq('organization_id',organizationId),
     supabase.from('businesses').select('id,name,city,pipeline_status,verification_status').eq('organization_id',organizationId).order('created_at',{ascending:false}).limit(5),
   ]);
-  const shortlistCount=getBrightonShortlist().length;
+  const shortlist=getBrightonShortlist();
+  const heldForRecheckCount=shortlist.filter(lead=>lead.rosterStage==='Carry-forward · recheck').length;
+  const qualifiedCount=shortlist.length-heldForRecheckCount;
   const metrics=[
     ['Business records',total,Database],['Verified evidence',verified,ShieldCheck],
     ['Pending intake rows',staged,Database],['Follow-ups due',followups,Clock3],
@@ -31,7 +33,7 @@ export default async function Dashboard(){
         <div>
           <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 text-cyan-100"><Bot size={22}/></span><div><p className="kicker">Jarvis · COO operating brief</p><p className="muted mt-1 text-xs">Grounded in connected workspace records and the documented shortlist</p></div></div>
           <h2 className="mt-6 max-w-2xl text-2xl font-semibold leading-tight sm:text-3xl">Keep the lead engine focused on verified needs.</h2>
-          <p className="muted mt-3 max-w-2xl text-sm leading-6">The Brighton research roster contains {shortlistCount} documented candidates toward a {TWO_NEED_PROSPECT_TARGET}-candidate goal. Each row pairs a website gap with a distinct improvement. Owner interest and CRM qualification remain unconfirmed.</p>
+          <p className="muted mt-3 max-w-2xl text-sm leading-6">The Brighton research roster has {qualifiedCount} qualified candidates toward a {TWO_NEED_PROSPECT_TARGET}-candidate goal, with {heldForRecheckCount} more held for recheck. Each qualified row pairs a website or Maps gap with a distinct improvement. Owner interest and CRM qualification remain unconfirmed.</p>
         </div>
         <div className="rounded-2xl border border-[#31525e] bg-[#0c1a23]/75 p-5">
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.14em] text-[#a5e6ec]"><Target size={15}/> Current operating priorities</p>

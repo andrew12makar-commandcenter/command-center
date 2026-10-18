@@ -21,11 +21,16 @@ export type BrightonShortlistLead = {
   sources: { label: string; url: string }[];
 };
 
+// Names that do not reveal their category on their own.
+const LEAD_TYPE_OVERRIDES: Record<string, string> = { yucoobrighton: 'Food & retail' };
+
 function classifyLeadType(value: string): string {
   const business = value.toLowerCase();
+  const override = LEAD_TYPE_OVERRIDES[business.split(' · ')[0].replace(/[^a-z0-9]/g, '')];
+  if (override) return override;
   if (/\b(farmers market|community market|farm market)\b/.test(business)) return 'Community & events';
-  if (/\b(deli|market|convenience|produce|superette|supermarket|food|bazaar|tavern|restaurant|cellar|gourmet|variety|liquor|kwik|bubble tea|cafe|café|coffee|bakery|baker|grill|taqueria|tacos?|burrito|pizza|noodles?|pho|sushi|eatery|diner|bistro|kitchen|sandwich|grocery|ice cream|tea|juice)\b/.test(business)) return 'Food & retail';
-  if (/\b(barber|hair|salon|nail|skin care|beauty|esthetic|spa|massage)\b/.test(business)) return 'Personal care';
+  if (/\b(deli|markets?|convenience|produce|superette|supermarket|food|bazaar|tavern|restaurant|cellar|gourmet|variety|liquor|kwik|bubble tea|cafe|café|coffee|bakery|baker|grill|taqueria|tacos?|burrito|pizza|noodles?|pho|sushi|eatery|diner|bistro|kitchen|sandwich|grocery|ice cream|tea|juice)\b/.test(business)) return 'Food & retail';
+  if (/\b(barber\w*|hair\w*|salon|nails?|skin care|beauty|esthetic|spa|massage)\b/.test(business)) return 'Personal care';
   if (/\b(auto|automotive|towing|body shop|car repair)\b/.test(business)) return 'Automotive';
   if (/\b(plumb\w*|landscap\w*|construction|garage door|electric\w*|contractor|painting|painter|handyman|roofing|hvac)\b/.test(business)) return 'Home services';
   if (/\b(pet|cat connection|day ?care|daycare|pupp\w*|child ?care|preschool|dog grooming)\b/.test(business)) return 'Pet & family services';
@@ -85,7 +90,8 @@ export function getBrightonShortlist(): BrightonShortlistLead[] {
   // website/Maps issues remain visible while the newer candidates stay intact.
   const prior = readFileSync(join(process.cwd(), 'docs/brighton-prior-40-prospect-baseline-2026-10-17.md'), 'utf8');
   const heldFromCurrentReview = new Set(['lrhairsalon', 'cambridgestreetautoservice', 'mattsbarbershop']);
-  const requalifiedCarryForward = new Set(['dorrsliquormart']);
+  // Requalified rows now live in the expanded additions file with fresh evidence.
+  const requalifiedCarryForward = new Set(['dorrsliquormart', 'ykminimarket', 'yucoobrighton', 'themoodthaispa', 'dflaccobarbershop', 'brooklinebarbershop']);
   const carriedForward = prior.split(/\r?\n/)
     .filter((line) => line.startsWith('| **Shortlist** |'))
     .map((line) => line.split('|').slice(1, -1).map((cell) => cell.trim()))
