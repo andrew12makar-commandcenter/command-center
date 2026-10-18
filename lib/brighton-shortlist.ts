@@ -83,7 +83,7 @@ export function getBrightonShortlist(): BrightonShortlistLead[] {
   // Carry forward the earlier, field-researched shortlist so its verified
   // website/Maps issues remain visible while the newer candidates stay intact.
   const prior = readFileSync(join(process.cwd(), 'docs/brighton-prior-40-prospect-baseline-2026-10-17.md'), 'utf8');
-  const heldFromCurrentReview = new Set(['lrhairsalon', 'cambridgestreetautoservice']);
+  const heldFromCurrentReview = new Set(['lrhairsalon', 'cambridgestreetautoservice', 'mattsbarbershop']);
   const requalifiedCarryForward = new Set(['dorrsliquormart']);
   const carriedForward = prior.split(/\r?\n/)
     .filter((line) => line.startsWith('| **Shortlist** |'))
