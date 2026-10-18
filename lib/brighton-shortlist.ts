@@ -23,12 +23,12 @@ export type BrightonShortlistLead = {
 
 function classifyLeadType(value: string): string {
   const business = value.toLowerCase();
-  if (/deli|market|convenience|produce|superette|supermarket|food|bazaar|tavern|restaurant|cellar|gourmet|variety|liquor|kwik|bubble tea/.test(business)) return 'Food & retail';
-  if (/barber|hair|salon|nail|skin care|beauty|esthetic|spa|massage/.test(business)) return 'Personal care';
-  if (/auto|towing/.test(business)) return 'Automotive';
-  if (/plumb|landscap|construction|garage door|electric/.test(business)) return 'Home services';
-  if (/pet|cat connection|day ?care|pupp/.test(business)) return 'Pet & family services';
-  if (/clean|laund|shoe repair|tailor|alteration|upholster/.test(business)) return 'Local services';
+  if (/\b(deli|market|convenience|produce|superette|supermarket|food|bazaar|tavern|restaurant|cellar|gourmet|variety|liquor|kwik|bubble tea|cafe|café|coffee|bakery|baker|grill|taqueria|tacos?|burrito|pizza|noodles?|pho|sushi|eatery|diner|bistro|kitchen|sandwich|grocery|ice cream|tea|juice)\b/.test(business)) return 'Food & retail';
+  if (/\b(barber|hair|salon|nail|skin care|beauty|esthetic|spa|massage)\b/.test(business)) return 'Personal care';
+  if (/\b(auto|automotive|towing|body shop|car repair)\b/.test(business)) return 'Automotive';
+  if (/\b(plumb\w*|landscap\w*|construction|garage door|electric\w*|contractor|painting|painter|handyman|roofing|hvac)\b/.test(business)) return 'Home services';
+  if (/\b(pet|cat connection|day ?care|daycare|pupp\w*|child ?care|preschool|dog grooming)\b/.test(business)) return 'Pet & family services';
+  if (/\b(clean\w*|laund\w*|shoe repair|tailor|alteration|upholster\w*|appliance repair)\b/.test(business)) return 'Local services';
   return 'Local services';
 }
 
@@ -84,6 +84,7 @@ export function getBrightonShortlist(): BrightonShortlistLead[] {
   // website/Maps issues remain visible while the newer candidates stay intact.
   const prior = readFileSync(join(process.cwd(), 'docs/brighton-prior-40-prospect-baseline-2026-10-17.md'), 'utf8');
   const heldFromCurrentReview = new Set(['lrhairsalon', 'cambridgestreetautoservice']);
+  const requalifiedCarryForward = new Set(['dorrsliquormart']);
   const carriedForward = prior.split(/\r?\n/)
     .filter((line) => line.startsWith('| **Shortlist** |'))
     .map((line) => line.split('|').slice(1, -1).map((cell) => cell.trim()))
@@ -94,7 +95,7 @@ export function getBrightonShortlist(): BrightonShortlistLead[] {
       return { cells, identity, key };
     })
     .filter(({ key }) => {
-      if (heldFromCurrentReview.has(key)) return false;
+      if (heldFromCurrentReview.has(key) || requalifiedCarryForward.has(key)) return false;
       const existingNames = current.map((lead) => lead.business.toLowerCase().split(' · ')[0].replace(/[^a-z0-9]/g, ''));
       const aliasKey = key === 'ensuenobodyskincareclinic' ? 'ensuenoskincare' : key;
       return !existingNames.some((existing) => existing === aliasKey || existing === key || existing.startsWith(key) || key.startsWith(existing));
