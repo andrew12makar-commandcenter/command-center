@@ -5,16 +5,28 @@ import { ArrowUpRight, MapPin, Search } from 'lucide-react';
 import type { BrightonShortlistLead } from '@/lib/brighton-shortlist';
 
 type SortMode = 'best-evidence' | 'nearest' | 'type' | 'name';
+type RosterView = 'core' | 'all' | 'carry-forward' | 'new';
 
 export function ProspectRosterBrowser({ leads }: { leads: BrightonShortlistLead[] }) {
   const [query, setQuery] = useState('');
   const [type, setType] = useState('All types');
   const [sort, setSort] = useState<SortMode>('best-evidence');
+  const [rosterView, setRosterView] = useState<RosterView>('core');
 
-  const types = useMemo(() => ['All types', ...new Set(leads.map((lead) => lead.type).sort())], [leads]);
+  const coreCount = leads.filter((lead) => lead.rosterStage === 'Core shortlist').length;
+  const carryForwardCount = leads.filter((lead) => lead.rosterStage === 'Carry-forward · recheck').length;
+  const newCount = leads.filter((lead) => lead.rosterStage === 'New addition').length;
+  const viewLeads = useMemo(() => leads.filter((lead) => {
+    if (rosterView === 'all') return true;
+    if (rosterView === 'carry-forward') return lead.rosterStage === 'Carry-forward · recheck';
+    if (rosterView === 'new') return lead.rosterStage === 'New addition';
+    return lead.rosterStage === 'Core shortlist';
+  }), [leads, rosterView]);
+
+  const types = useMemo(() => ['All types', ...new Set(viewLeads.map((lead) => lead.type).sort())], [viewLeads]);
   const visibleLeads = useMemo(() => {
     const search = query.trim().toLowerCase();
-    const filtered = leads.filter((lead) => {
+    const filtered = viewLeads.filter((lead) => {
       const matchesType = type === 'All types' || lead.type === type;
       const matchesSearch = !search || [lead.business, lead.distance, lead.publicContact, lead.secondNeedEvidence, lead.nextOffer, lead.type]
         .join(' ').toLowerCase().includes(search);
@@ -22,16 +34,20 @@ export function ProspectRosterBrowser({ leads }: { leads: BrightonShortlistLead[
     });
 
     const distance = (value: string) => Number(value.match(/[\d.]+/)?.[0] ?? 999);
+    const grade = (value: string) => {
+      const weights: Record<string, number> = { A: 0, B: 1, C: 2, Hold: 3 };
+      return weights[value] ?? 4;
+    };
     return filtered.sort((a, b) => {
       if (sort === 'nearest') return distance(a.distance) - distance(b.distance) || a.business.localeCompare(b.business);
       if (sort === 'type') return a.type.localeCompare(b.type) || distance(a.distance) - distance(b.distance);
       if (sort === 'name') return a.business.localeCompare(b.business);
-      return a.evidenceGrade.localeCompare(b.evidenceGrade) || distance(a.distance) - distance(b.distance);
+      return grade(a.evidenceGrade) - grade(b.evidenceGrade) || distance(a.distance) - distance(b.distance);
     });
-  }, [leads, query, sort, type]);
+  }, [viewLeads, query, sort, type]);
 
   return <>
-    <section aria-label="Sort and filter prospects" className="panel mt-6 grid gap-4 p-4 md:grid-cols-[minmax(220px,1fr)_minmax(180px,0.7fr)_minmax(180px,0.7fr)] md:items-end">
+    <section aria-label="Sort and filter prospects" className="panel mt-6 grid gap-4 p-4 md:grid-cols-[minmax(220px,1fr)_minmax(155px,0.65fr)_minmax(180px,0.7fr)_minmax(180px,0.7fr)] md:items-end">
       <label className="block">
         <span className="kicker">Find a business or need</span>
         <span className="relative mt-2 block">
@@ -46,6 +62,15 @@ export function ProspectRosterBrowser({ leads }: { leads: BrightonShortlistLead[
         </select>
       </label>
       <label className="block">
+        <span className="kicker">Lead pool</span>
+        <select value={rosterView} onChange={(event) => { setRosterView(event.target.value as RosterView); setType('All types'); }} className="mt-2 w-full" aria-label="Filter by roster group">
+          <option value="core">Core 40 · {coreCount}</option>
+          <option value="all">All candidates · {leads.length}</option>
+          <option value="carry-forward">Carry-forward · recheck · {carryForwardCount}</option>
+          <option value="new">New additions · {newCount}</option>
+        </select>
+      </label>
+      <label className="block">
         <span className="kicker">Sort roster</span>
         <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)} className="mt-2 w-full" aria-label="Sort candidates">
           <option value="best-evidence">Strongest second-need evidence</option>
@@ -54,16 +79,16 @@ export function ProspectRosterBrowser({ leads }: { leads: BrightonShortlistLead[
           <option value="name">Business name A–Z</option>
         </select>
       </label>
-      <div className="md:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t border-[#263b46] pt-3">
+      <div className="md:col-span-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#263b46] pt-3">
         <div className="flex flex-wrap gap-2" aria-label="Quick lead type filters">
           {types.map((item) => {
-            const count = item === 'All types' ? leads.length : leads.filter((lead) => lead.type === item).length;
+            const count = item === 'All types' ? viewLeads.length : viewLeads.filter((lead) => lead.type === item).length;
             return <button key={item} type="button" onClick={() => setType(item)} aria-pressed={type === item} className={`rounded-full border px-3 py-1.5 text-xs transition ${type === item ? 'border-cyan-300 bg-cyan-950/70 text-cyan-100' : 'border-[#394d58] text-[#b9cbd1] hover:border-[#75d6e7]'}`}>
               {item} <span className="ml-1 opacity-70">{count}</span>
             </button>;
           })}
         </div>
-        <p className="muted text-xs" aria-live="polite">Showing {visibleLeads.length} of {leads.length} candidates</p>
+        <p className="muted text-xs" aria-live="polite">Showing {visibleLeads.length} of {viewLeads.length} in this pool · {leads.length} total candidates</p>
       </div>
     </section>
 
@@ -77,7 +102,7 @@ export function ProspectRosterBrowser({ leads }: { leads: BrightonShortlistLead[
           </span>
           <span className="rounded-full border border-[#394d58] px-3 py-1 text-xs text-[#b9cbd1]">{lead.type}</span>
           <span className="muted text-xs">Need evidence {lead.evidenceGrade}</span>
-          <span className="rounded-full border border-[#394d58] px-3 py-1 text-xs text-[#b9cbd1]">Research review</span>
+          <span className="rounded-full border border-[#394d58] px-3 py-1 text-xs text-[#b9cbd1]">{lead.rosterStage}</span>
           <span aria-hidden="true" className="shortlist-chevron px-1 text-[#88a7b2]">⌄</span>
         </summary>
         <div className="grid gap-5 border-t border-[#263b46] px-5 py-5 lg:grid-cols-2">

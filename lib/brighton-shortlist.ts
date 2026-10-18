@@ -6,6 +6,7 @@ export const TWO_NEED_PROSPECT_TARGET = 100;
 
 export type BrightonShortlistLead = {
   rank: number;
+  rosterStage: 'Core shortlist' | 'Carry-forward · recheck' | 'New addition';
   business: string;
   distance: string;
   publicContact: string;
@@ -60,6 +61,7 @@ export function getBrightonShortlist(): BrightonShortlistLead[] {
       const offerIndex = missingPitchQuestion ? 9 : 10;
       return {
         rank: Number(cells[0]),
+        rosterStage: 'Core shortlist' as const,
         business: cleanMarkdown(cells[1]),
         type: classifyLeadType(cleanMarkdown(cells[1])),
         distance: cleanMarkdown(cells[2]),
@@ -104,6 +106,7 @@ export function getBrightonShortlist(): BrightonShortlistLead[] {
     const confidence = cleanMarkdown(cells[5]);
     return {
       rank: current.length + index + 1,
+      rosterStage: 'Carry-forward · recheck' as const,
       business: fullIdentity.replace(/\s*·\s*(?:~|about\s*)?[\d.]+\s*mi.*$/i, ''),
       type: classifyLeadType(identity),
       distance,
@@ -126,6 +129,7 @@ export function getBrightonShortlist(): BrightonShortlistLead[] {
     .filter((cells) => cells.length === 11)
     .map((cells, index) => ({
       rank: current.length + additions.length + index + 1,
+      rosterStage: 'New addition' as const,
       business: cleanMarkdown(cells[1]),
       type: classifyLeadType(cleanMarkdown(cells[1])),
       distance: cleanMarkdown(cells[2]),

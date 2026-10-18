@@ -5,6 +5,9 @@ import { ProspectRosterBrowser } from '@/components/prospect-roster-browser';
 
 export default function TwoNeedProspectShortlist() {
   const leads = getBrightonShortlist();
+  const coreCount = leads.filter((lead) => lead.rosterStage === 'Core shortlist').length;
+  const carryForwardCount = leads.filter((lead) => lead.rosterStage === 'Carry-forward · recheck').length;
+  const newCount = leads.filter((lead) => lead.rosterStage === 'New addition').length;
   return <main>
     <div className="flex flex-wrap items-end justify-between gap-5">
       <div>
@@ -19,7 +22,7 @@ export default function TwoNeedProspectShortlist() {
       <div>
         <p className="kicker">Research-backed local prospects</p>
         <h2 className="mt-2 text-2xl font-semibold">{leads.length} researched candidates toward {TWO_NEED_PROSPECT_TARGET}</h2>
-        <p className="muted mt-2 text-sm leading-6">These are researched pitch candidates, not confirmed buyers or imported CRM records. Confirm current operation, listing identity, operator control, and the service need before outreach.</p>
+        <p className="muted mt-2 text-sm leading-6">The core shortlist has {coreCount} current two-need prospects. {carryForwardCount} carried-forward rows are marked for recheck, and {newCount} new additions are listed separately. Use the lead-pool selector to view all {leads.length}; this research does not confirm buyers or import CRM records.</p>
       </div>
       <div className="rounded-2xl border border-[#2a4955] bg-[#122630] px-5 py-4 text-center">
         <Target className="mx-auto text-[#75d6e7]" size={20}/>
