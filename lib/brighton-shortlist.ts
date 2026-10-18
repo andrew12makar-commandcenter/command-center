@@ -22,7 +22,7 @@ export type BrightonShortlistLead = {
 };
 
 // Names that do not reveal their category on their own.
-const LEAD_TYPE_OVERRIDES: Record<string, string> = { yucoobrighton: 'Food & retail' };
+const LEAD_TYPE_OVERRIDES: Record<string, string> = { yucoobrighton: 'Food & retail', thainorth: 'Food & retail' };
 
 function classifyLeadType(value: string): string {
   const business = value.toLowerCase();
