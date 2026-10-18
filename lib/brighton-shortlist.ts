@@ -23,6 +23,7 @@ export type BrightonShortlistLead = {
 
 function classifyLeadType(value: string): string {
   const business = value.toLowerCase();
+  if (/\b(farmers market|community market|farm market)\b/.test(business)) return 'Community & events';
   if (/\b(deli|market|convenience|produce|superette|supermarket|food|bazaar|tavern|restaurant|cellar|gourmet|variety|liquor|kwik|bubble tea|cafe|café|coffee|bakery|baker|grill|taqueria|tacos?|burrito|pizza|noodles?|pho|sushi|eatery|diner|bistro|kitchen|sandwich|grocery|ice cream|tea|juice)\b/.test(business)) return 'Food & retail';
   if (/\b(barber|hair|salon|nail|skin care|beauty|esthetic|spa|massage)\b/.test(business)) return 'Personal care';
   if (/\b(auto|automotive|towing|body shop|car repair)\b/.test(business)) return 'Automotive';
