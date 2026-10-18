@@ -19,6 +19,9 @@ export type BrightonShortlistLead = {
   evidenceGrade: string;
   type: string;
   nextOffer: string;
+  // False for carry-forward rows and for Core rows held after a later check.
+  qualified: boolean;
+  holdNote?: string;
   sources: { label: string; url: string }[];
 };
 
@@ -53,6 +56,12 @@ function linksFrom(cells: string[]) {
     .map((match) => ({ label: match[1], url: match[2] }));
   return links.filter((link, index) => links.findIndex((candidate) => candidate.url === link.url) === index);
 }
+
+// Core rows kept for continuity but excluded from the qualified count until a
+// distinct second need is re-verified from current, reliable sources.
+const HELD_CORE_ROWS: Record<string, string> = {
+  cafemirror: 'Held 2026-10-18: a later check found no independent second need; the Yellow Pages hours difference alone is not enough.',
+};
 
 export function getBrightonShortlist(): BrightonShortlistLead[] {
   const markdown = readFileSync(join(process.cwd(), 'docs/brighton-website-plus-maps-shortlist-2026-10-17.md'), 'utf8');
@@ -158,10 +167,14 @@ export function getBrightonShortlist(): BrightonShortlistLead[] {
     return !existingNames.some((existing) => existing === key || existing.startsWith(key) || key.startsWith(existing));
   });
 
-  return [...current, ...additions, ...uniqueExpansion].map((lead, index) => ({ ...lead, rank: index + 1 }));
+  return [...current, ...additions, ...uniqueExpansion].map((lead, index) => {
+    const holdNote = lead.rosterStage === 'Core shortlist' ? HELD_CORE_ROWS[lead.business.toLowerCase().split(' · ')[0].replace(/[^a-z0-9]/g, '')] : undefined;
+    return { ...lead, rank: index + 1, qualified: lead.rosterStage !== 'Carry-forward · recheck' && !holdNote, ...(holdNote ? { holdNote } : {}) };
+  });
 }
 
 export function getScreeningLedger(leads: BrightonShortlistLead[] = getBrightonShortlist()): ScreeningEntry[] {
   const csv = readFileSync(join(process.cwd(), 'docs/brighton-candidate-screening-ledger.csv'), 'utf8');
-  return parseScreeningLedger(csv, leads.map((lead) => lead.business));
+  // Held Core rows stay in the ledger; other roster rows are not listed twice.
+  return parseScreeningLedger(csv, leads.filter((lead) => !lead.holdNote).map((lead) => lead.business));
 }

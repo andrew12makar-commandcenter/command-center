@@ -16,8 +16,8 @@ export default async function Dashboard(){
     supabase.from('businesses').select('id,name,city,pipeline_status,verification_status').eq('organization_id',organizationId).order('created_at',{ascending:false}).limit(5),
   ]);
   const shortlist=getBrightonShortlist();
-  const heldForRecheckCount=shortlist.filter(lead=>lead.rosterStage==='Carry-forward · recheck').length;
-  const qualifiedCount=shortlist.length-heldForRecheckCount;
+  const qualifiedCount=shortlist.filter(lead=>lead.qualified).length;
+  const heldForRecheckCount=shortlist.length-qualifiedCount;
   const metrics=[
     ['Business records',total,Database],['Verified evidence',verified,ShieldCheck],
     ['Pending intake rows',staged,Database],['Follow-ups due',followups,Clock3],

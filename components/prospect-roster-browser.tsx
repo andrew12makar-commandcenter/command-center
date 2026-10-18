@@ -14,6 +14,7 @@ export function ProspectRosterBrowser({ leads }: { leads: BrightonShortlistLead[
   const [rosterView, setRosterView] = useState<RosterView>('core');
 
   const coreCount = leads.filter((lead) => lead.rosterStage === 'Core shortlist').length;
+  const qualifiedCoreCount = leads.filter((lead) => lead.rosterStage === 'Core shortlist' && lead.qualified).length;
   const carryForwardCount = leads.filter((lead) => lead.rosterStage === 'Carry-forward · recheck').length;
   const newCount = leads.filter((lead) => lead.rosterStage === 'New addition').length;
   const viewLeads = useMemo(() => leads.filter((lead) => {
@@ -64,7 +65,7 @@ export function ProspectRosterBrowser({ leads }: { leads: BrightonShortlistLead[
       <label className="block">
         <span className="kicker">Lead pool</span>
         <select value={rosterView} onChange={(event) => { setRosterView(event.target.value as RosterView); setType('All types'); }} className="mt-2 w-full" aria-label="Filter by roster group">
-          <option value="core">Core 40 · {coreCount}</option>
+          <option value="core">Core 40 · {coreCount}{qualifiedCoreCount < coreCount ? ` (${qualifiedCoreCount} qualified)` : ''}</option>
           <option value="all">All candidates · {leads.length}</option>
           <option value="carry-forward">Carry-forward · recheck · {carryForwardCount}</option>
           <option value="new">New additions · {newCount}</option>
@@ -103,6 +104,7 @@ export function ProspectRosterBrowser({ leads }: { leads: BrightonShortlistLead[
           <span className="rounded-full border border-[#394d58] px-3 py-1 text-xs text-[#b9cbd1]">{lead.type}</span>
           <span className="muted text-xs">Need evidence {lead.evidenceGrade}</span>
           <span className="rounded-full border border-[#394d58] px-3 py-1 text-xs text-[#b9cbd1]">{lead.rosterStage}</span>
+          {lead.holdNote && <span className="rounded-full border border-amber-300/50 bg-amber-950/40 px-3 py-1 text-xs text-amber-100">Held · not counted</span>}
           <span aria-hidden="true" className="shortlist-chevron px-1 text-[#88a7b2]">⌄</span>
         </summary>
         <div className="grid gap-5 border-t border-[#263b46] px-5 py-5 lg:grid-cols-2">
@@ -113,6 +115,7 @@ export function ProspectRosterBrowser({ leads }: { leads: BrightonShortlistLead[
           <div className="space-y-4 text-sm leading-6">
             <div><h3 className="text-xs font-bold uppercase tracking-wider text-[#88dce7]">Suggested confirmation question</h3><p className="muted mt-1">{lead.pitchQuestion}</p></div>
             <div><h3 className="text-xs font-bold uppercase tracking-wider text-[#88dce7]">Possible offer</h3><p className="muted mt-1">{lead.nextOffer}</p></div>
+            {lead.holdNote && <p className="text-xs text-amber-100">{lead.holdNote}</p>}
             <p className="text-xs text-[#91aab5]">Checked {lead.checked} · {lead.confidence}</p>
             <div className="flex flex-wrap gap-x-4 gap-y-2">
               {lead.sources.map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-cyan-300 underline">{source.label}<ArrowUpRight size={12}/></a>)}

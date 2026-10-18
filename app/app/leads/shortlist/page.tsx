@@ -11,7 +11,9 @@ export default function TwoNeedProspectShortlist() {
   const coreCount = leads.filter((lead) => lead.rosterStage === 'Core shortlist').length;
   const carryForwardCount = leads.filter((lead) => lead.rosterStage === 'Carry-forward · recheck').length;
   const newCount = leads.filter((lead) => lead.rosterStage === 'New addition').length;
-  const qualifiedCount = coreCount + newCount;
+  const qualifiedCoreCount = leads.filter((lead) => lead.rosterStage === 'Core shortlist' && lead.qualified).length;
+  const heldCoreCount = coreCount - qualifiedCoreCount;
+  const qualifiedCount = leads.filter((lead) => lead.qualified).length;
   return <main>
     <div className="flex flex-wrap items-end justify-between gap-5">
       <div>
@@ -26,7 +28,7 @@ export default function TwoNeedProspectShortlist() {
       <div>
         <p className="kicker">Research-backed local prospects</p>
         <h2 className="mt-2 text-2xl font-semibold">{qualifiedCount} qualified research candidates toward {TWO_NEED_PROSPECT_TARGET}</h2>
-        <p className="muted mt-2 text-sm leading-6">The Core shortlist has {coreCount} current two-need prospects, with {newCount} sourced additions. {carryForwardCount} carried-forward rows stay visible for recheck and do not count toward the target until requalified. Use the lead-pool selector to view all {leads.length}; this research does not confirm buyers or import CRM records.</p>
+        <p className="muted mt-2 text-sm leading-6">{qualifiedCoreCount} of the {coreCount} Core shortlist rows qualify{heldCoreCount ? ` (${heldCoreCount} held pending a verified second need)` : ''}, plus {newCount} sourced additions. {carryForwardCount} carried-forward rows stay visible for recheck and do not count toward the target until requalified. Use the lead-pool selector to view all {leads.length}; this research does not confirm buyers or import CRM records.</p>
       </div>
       <div className="rounded-2xl border border-[#2a4955] bg-[#122630] px-5 py-4 text-center">
         <Target className="mx-auto text-[#75d6e7]" size={20}/>

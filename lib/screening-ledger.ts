@@ -16,6 +16,7 @@ export const SCREENING_REASON_LABELS: Record<string, string> = {
   no_second_need: 'No independent second need',
   duplicate: 'Possible duplicate operator',
   unverified: 'Could not be re-read',
+  conflicting_evidence: 'Conflicting evidence',
 };
 
 export type ScreeningEntry = {
