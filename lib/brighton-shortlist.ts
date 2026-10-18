@@ -119,5 +119,31 @@ export function getBrightonShortlist(): BrightonShortlistLead[] {
     };
   });
 
-  return [...current, ...additions].map((lead, index) => ({ ...lead, rank: index + 1 }));
+  const expanded = readFileSync(join(process.cwd(), 'docs/brighton-expanded-100-prospect-additions-2026-10-17.md'), 'utf8');
+  const expansionRows = expanded.split(/\r?\n/)
+    .filter((line) => /^\|\s*\d+\s*\|/.test(line))
+    .map((line) => line.split('|').slice(1, -1).map((cell) => cell.trim()))
+    .filter((cells) => cells.length === 11)
+    .map((cells, index) => ({
+      rank: current.length + additions.length + index + 1,
+      business: cleanMarkdown(cells[1]),
+      type: classifyLeadType(cleanMarkdown(cells[1])),
+      distance: cleanMarkdown(cells[2]),
+      publicContact: cleanMarkdown(cells[3]),
+      websiteEvidence: cleanMarkdown(cells[4]),
+      secondNeedEvidence: cleanMarkdown(cells[5]),
+      pitchQuestion: cleanMarkdown(cells[6]),
+      checked: cleanMarkdown(cells[7]),
+      confidence: cleanMarkdown(cells[8]),
+      evidenceGrade: cleanMarkdown(cells[9]),
+      nextOffer: cleanMarkdown(cells[10]),
+      sources: linksFrom(cells.slice(3, 9)),
+    }));
+  const existingNames = [...current, ...additions].map((lead) => lead.business.toLowerCase().split(' · ')[0].replace(/[^a-z0-9]/g, ''));
+  const uniqueExpansion = expansionRows.filter((lead) => {
+    const key = lead.business.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return !existingNames.some((existing) => existing === key || existing.startsWith(key) || key.startsWith(existing));
+  });
+
+  return [...current, ...additions, ...uniqueExpansion].map((lead, index) => ({ ...lead, rank: index + 1 }));
 }
