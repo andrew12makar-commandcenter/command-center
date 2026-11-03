@@ -24,6 +24,8 @@ export type ClientSite = {
   branches: ClientSiteBranch[];
   /** Repo path of a markdown status file with tables (Area | State | Evidence). */
   statusDoc?: string;
+  /** Optional authoritative WIP checkpoint on a feature branch. */
+  checkpoint?: { branch: string; path: string; note: string };
 };
 
 export const CLIENT_SITES: ClientSite[] = [
@@ -44,6 +46,11 @@ export const CLIENT_SITES: ClientSite[] = [
       { name: 'room/speakeasy', owner: 'Legacy room branch', note: 'Historical room branch; preserve for comparison, not new work.' },
     ],
     statusDoc: 'docs/STATUS.md',
+    checkpoint: {
+      branch: 'feature/circle-hd-3d-foundation-v1',
+      path: 'docs/START_HERE_CIRCLE_HD.md',
+      note: 'Current S01 3D checkpoint. The main-branch STATUS.md is historical; use this feature-branch handoff for current implementation and blocker status.',
+    },
   },
 ];
 
