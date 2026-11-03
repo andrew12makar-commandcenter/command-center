@@ -29,6 +29,14 @@ export default async function ClientSitePage({ params }: { params: Promise<{ slu
       <a className="btn" href={repoUrl(site)} target="_blank" rel="noopener noreferrer">Repository <ExternalLink size={15} className="ml-2" /></a>
     </div>
 
+    {site.checkpoint && <section className="panel mt-6 p-5" aria-label="Current development checkpoint">
+      <p className="kicker">Current development checkpoint</p>
+      <p className="muted mt-2 text-sm">{site.checkpoint.note}</p>
+      <a className="mt-3 inline-block break-all text-sm text-cyan-200 underline" target="_blank" rel="noopener noreferrer"
+        href={`${repoUrl(site)}/blob/${site.checkpoint.branch}/${site.checkpoint.path}`}>
+        Read verified branch handoff <ExternalLink size={13} className="ml-1 inline" />
+      </a>
+    </section>}
     <section className="panel mt-7 overflow-hidden" aria-labelledby="preview-heading">
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
         <div><p id="preview-heading" className="kicker">Live preview</p><p className="muted mt-1 break-all text-xs">{site.liveUrl} · {site.hosting}</p></div>
