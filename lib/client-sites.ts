@@ -24,26 +24,33 @@ export type ClientSite = {
   branches: ClientSiteBranch[];
   /** Repo path of a markdown status file with tables (Area | State | Evidence). */
   statusDoc?: string;
+  /** Optional authoritative WIP checkpoint on a feature branch. */
+  checkpoint?: { branch: string; path: string; note: string };
 };
 
 export const CLIENT_SITES: ClientSite[] = [
   {
     slug: 'circle-tavern',
     name: 'Circle Tavern',
-    client: 'Circle Tavern · Gyro Theory',
-    summary: 'Night-panorama venue tour: Gyro Theory, the main bar and the speakeasy, with the Campus2Care × Circle event reveal.',
+    client: 'Circle Tavern · Andrew + Ryan',
+    summary: 'Three-scene immersive website: actual Circle entrance, main bar and speakeasy. Shared delivery tracks 3D scene fidelity, cinematic motion, approved events and owner review. Gyro Theory has its own website and is out of scope.',
     stage: 'In build',
     liveUrl: 'https://venu-e60.pages.dev',
-    hosting: 'Cloudflare Pages (Circle’s own account)',
+    hosting: 'Cloudflare Pages (Andrew personal Cloudflare account; Circle site remains isolated from Command Center)',
     repo: { owner: 'andrew12makar-commandcenter', name: 'venu', defaultBranch: 'main' },
     branches: [
-      { name: 'main', owner: 'Shared · reviewed', previewUrl: 'https://venu-e60.pages.dev', note: 'Changes land through reviewed PRs.' },
-      { name: 'room/bar', owner: 'Andrew', previewUrl: 'https://room-bar.venu-e60.pages.dev' },
-      { name: 'room/kitchen', owner: 'Andrew', previewUrl: 'https://room-kitchen.venu-e60.pages.dev' },
-      { name: 'room/speakeasy', owner: 'Ryan', previewUrl: 'https://room-speakeasy.venu-e60.pages.dev' },
-      { name: 'fx/transitions', owner: 'Ryan', previewUrl: 'https://fx-transitions.venu-e60.pages.dev' },
+      { name: 'main', owner: 'Reviewed production', previewUrl: 'https://venu-e60.pages.dev', note: 'Production remains unchanged; review PRs before any merge.' },
+      { name: 'feature/circle-hd-3d-foundation-v1', owner: 'Andrew + Ryan · HD collaboration', previewUrl: 'https://f3fcd0ce.venu-e60.pages.dev/immersive/', note: 'S01 PlayCanvas background code; Cloudflare build succeeded but model files are absent, so page shows an explicitly labeled photographic fallback. DO NOT treat this as an approved HD 3D render. Source-of-truth: docs/ANIMATION_STATE.md and docs/START_HERE_CIRCLE_HD.md. Draft PR #3.' },
+      { name: 'feature/venue-flow', owner: 'Shared · original venue baseline', previewUrl: 'https://feature-venue-flow.venu-e60.pages.dev/?review', note: 'Preserved baseline before HD 3D upgrade; historical Gyro elements not part of the new scope.' },
+      { name: 'room/bar', owner: 'Legacy room branch', note: 'Historical room branch; prefer current S01 development branch.' },
+      { name: 'room/speakeasy', owner: 'Legacy room branch', note: 'Historical room branch; preserve for comparison, not new work.' },
     ],
     statusDoc: 'docs/STATUS.md',
+    checkpoint: {
+      branch: 'feature/circle-hd-3d-foundation-v1',
+      path: 'docs/START_HERE_CIRCLE_HD.md',
+      note: 'Current S01 3D checkpoint. The main-branch STATUS.md is historical; use this feature-branch handoff for current implementation and blocker status.',
+    },
   },
 ];
 
