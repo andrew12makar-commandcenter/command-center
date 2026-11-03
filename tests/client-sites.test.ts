@@ -10,11 +10,17 @@ const SAMPLE = `# Status: 2 Nov 2026
 | Gyro restaurant | Placeholder: labelled layout preview | d4 |
 | GitHub repo / branch previews | **NOT DONE**. No repo yet. | \`docs/SESSION_HANDOFF.md\` |
 
-## 3 Nov: layers
+## 3 Nov: layers (all PROPOSED, waiting for owner approval)
 | Layer | What | Test |
 |---|---|---|
 | gyro-facts | Name and sections | PASS |
 | gyro-opening | Opening pan | Inert: file not received |
+
+## 3 Nov (later)
+| Item | State | Test |
+|---|---|---|
+| Main demo shows the proposed layers | DONE | published v3 |
+| Front-door sign (medium confidence, needs confirmation) | DONE | PASS |
 `;
 
 test('registry slugs are unique and every site has https links and owned branches', () => {
@@ -44,11 +50,11 @@ test('Circle Tavern branch owners match the agreed split', () => {
 test('status markdown parses into sections and flags open items', () => {
   const { title, sections } = parseStatusMarkdown(SAMPLE);
   assert.equal(title, 'Status: 2 Nov 2026');
-  assert.equal(sections.length, 2);
+  assert.equal(sections.length, 3);
   assert.deepEqual(sections[0].columns, ['Area', 'State', 'Evidence']);
   assert.equal(sections[0].rows[2].cells[1], 'NOT DONE. No repo yet.');
   assert.equal(sections[0].rows[2].cells[2], 'docs/SESSION_HANDOFF.md');
-  assert.deepEqual(openItems(sections).map((o) => o.item), ['Gyro restaurant', 'GitHub repo / branch previews', 'gyro-opening']);
+  assert.deepEqual(openItems(sections).map((o) => o.item), ['Gyro restaurant', 'GitHub repo / branch previews', 'gyro-facts', 'gyro-opening', 'Front-door sign (medium confidence, needs confirmation)']);
 });
 
 test('open-state detection', () => {

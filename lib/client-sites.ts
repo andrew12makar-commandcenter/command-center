@@ -110,7 +110,10 @@ export function parseStatusMarkdown(markdown: string): { title: string; sections
     }
     if (current) {
       const cells = splitRow(line).map(plainMarkdown);
-      current.rows.push({ cells, open: isOpenState(cells.join(' ')) });
+      // Judge the state/result columns, not the item name (e.g. "shows the proposed layers").
+      // A section heading like "(all PROPOSED, waiting for owner approval)" marks every row open.
+      const open = isOpenState(cells.slice(1).join(' ')) || /needs confirmation/i.test(cells[0] ?? '') || isOpenState(current.heading);
+      current.rows.push({ cells, open });
     }
   }
   return { title, sections };
