@@ -1,0 +1,200 @@
+{
+  "rubric": "qa/generator/score-site.mjs",
+  "measuredAt": "2026-11-11T18:19:25.687Z",
+  "label": "Example Data Barbers is synthetic example data. factStatus stayed unreviewed. owner_approved was not set.",
+  "lighthouse": "not measured. The perf check is an offline byte budget. JS bytes for the production render come from the Playwright transfer log of the Next response.",
+  "sites": [
+    {
+      "directory": "qa/generator/output/example-data-barbers",
+      "score": 63,
+      "max": 100,
+      "pass": false,
+      "checks": [
+        {
+          "id": "heading-hierarchy",
+          "score": 12,
+          "max": 12,
+          "pass": true,
+          "detail": "1 h1, 11 headings, no skipped levels"
+        },
+        {
+          "id": "section-variety",
+          "score": 10,
+          "max": 14,
+          "pass": false,
+          "detail": "5 distinct section signature(s); rich patterns: address"
+        },
+        {
+          "id": "image-alt",
+          "score": 4,
+          "max": 10,
+          "pass": false,
+          "detail": "No img elements. Alt text is vacuously present, and the page has no photographic content."
+        },
+        {
+          "id": "font-loading",
+          "score": 0,
+          "max": 14,
+          "pass": false,
+          "detail": "No @font-face and no self-hosted font. The page inherits the system UI font."
+        },
+        {
+          "id": "boilerplate-copy",
+          "score": 0,
+          "max": 10,
+          "pass": false,
+          "detail": "Template phrases still visible (10): expertise organized around what comes next | a more useful introduction to the business | talk directly with the team | review the business[’']s confirmed services"
+        },
+        {
+          "id": "mobile-overflow",
+          "score": 14,
+          "max": 14,
+          "pass": true,
+          "detail": "No horizontal overflow at 390px (scroll 390 / client 390)"
+        },
+        {
+          "id": "contrast",
+          "score": 14,
+          "max": 14,
+          "pass": true,
+          "detail": "44 text samples meet WCAG AA (4.5:1 body, 3:1 large)"
+        },
+        {
+          "id": "perf-budget",
+          "score": 9,
+          "max": 12,
+          "pass": false,
+          "detail": "JS 144237 bytes exceeds 80000"
+        }
+      ]
+    },
+    {
+      "directory": "qa/generator/output/example-data-barbers-loop",
+      "score": 74,
+      "max": 100,
+      "pass": false,
+      "checks": [
+        {
+          "id": "heading-hierarchy",
+          "score": 12,
+          "max": 12,
+          "pass": true,
+          "detail": "1 h1, 4 headings, no skipped levels"
+        },
+        {
+          "id": "section-variety",
+          "score": 8,
+          "max": 14,
+          "pass": false,
+          "detail": "4 distinct section signature(s); rich patterns: none"
+        },
+        {
+          "id": "image-alt",
+          "score": 4,
+          "max": 10,
+          "pass": false,
+          "detail": "No img elements. Alt text is vacuously present, and the page has no photographic content."
+        },
+        {
+          "id": "font-loading",
+          "score": 3,
+          "max": 14,
+          "pass": false,
+          "detail": "Named families are not loaded: literata, inter tight"
+        },
+        {
+          "id": "boilerplate-copy",
+          "score": 7,
+          "max": 10,
+          "pass": false,
+          "detail": "Template phrases still visible (1): what we offer"
+        },
+        {
+          "id": "mobile-overflow",
+          "score": 14,
+          "max": 14,
+          "pass": true,
+          "detail": "No horizontal overflow at 390px (scroll 390 / client 390)"
+        },
+        {
+          "id": "contrast",
+          "score": 14,
+          "max": 14,
+          "pass": true,
+          "detail": "20 text samples meet WCAG AA (4.5:1 body, 3:1 large)"
+        },
+        {
+          "id": "perf-budget",
+          "score": 12,
+          "max": 12,
+          "pass": true,
+          "detail": "total 8040 bytes (html 8040, css 0, js 0, fonts 0, images 0)"
+        }
+      ]
+    },
+    {
+      "directory": "qa/generator/fixtures/brighton-barbers-demo",
+      "score": 92,
+      "max": 100,
+      "pass": false,
+      "checks": [
+        {
+          "id": "heading-hierarchy",
+          "score": 12,
+          "max": 12,
+          "pass": true,
+          "detail": "1 h1, 8 headings, no skipped levels"
+        },
+        {
+          "id": "section-variety",
+          "score": 12,
+          "max": 14,
+          "pass": true,
+          "detail": "4 distinct section signature(s); rich patterns: table, blockquote"
+        },
+        {
+          "id": "image-alt",
+          "score": 4,
+          "max": 10,
+          "pass": false,
+          "detail": "No img elements. Alt text is vacuously present, and the page has no photographic content."
+        },
+        {
+          "id": "font-loading",
+          "score": 14,
+          "max": 14,
+          "pass": true,
+          "detail": "Self-hosted faces: fraunces, source sans 3"
+        },
+        {
+          "id": "boilerplate-copy",
+          "score": 10,
+          "max": 10,
+          "pass": true,
+          "detail": "No listed generator boilerplate phrases"
+        },
+        {
+          "id": "mobile-overflow",
+          "score": 14,
+          "max": 14,
+          "pass": true,
+          "detail": "No horizontal overflow at 390px (scroll 390 / client 390)"
+        },
+        {
+          "id": "contrast",
+          "score": 14,
+          "max": 14,
+          "pass": true,
+          "detail": "50 text samples meet WCAG AA (4.5:1 body, 3:1 large)"
+        },
+        {
+          "id": "perf-budget",
+          "score": 12,
+          "max": 12,
+          "pass": true,
+          "detail": "total 135042 bytes (html 10171, css 12867, js 0, fonts 112004, images 0)"
+        }
+      ]
+    }
+  ]
+}

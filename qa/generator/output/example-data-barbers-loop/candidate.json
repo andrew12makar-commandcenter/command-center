@@ -1,0 +1,26 @@
+{
+  "label": "example data",
+  "candidate": {
+    "composition": "centered",
+    "hierarchy": "offer-first",
+    "typography": "classic-serif",
+    "palette": "orchard",
+    "imageryDensity": "none",
+    "ctaStructure": "paired",
+    "motionSystem": "calm",
+    "spacing": "regular",
+    "copyDepth": "brief"
+  },
+  "sectionKinds": [
+    "hero",
+    "offer",
+    "visit",
+    "contact"
+  ],
+  "typography": {
+    "display": "Literata",
+    "body": "Inter Tight",
+    "displayScale": 0.92
+  },
+  "note": "renderPlanHtml output before the audit harness banner. Fonts are named and not loaded."
+}
