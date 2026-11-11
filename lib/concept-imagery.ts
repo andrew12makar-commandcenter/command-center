@@ -1,4 +1,5 @@
 import type {Template} from '@/lib/demo-engine';
+import {classifyIndustry,type BusinessLine} from './business-classification.ts';
 
 export type ConceptImage={
  src:string;
@@ -39,17 +40,47 @@ export function getPrivatePreviewConcept(template:Template):ConceptImage{
  return getGeneratedConceptSet(template).hero;
 }
 
+const tradeDisclosure='Typographic concept mark. Not a photograph of the business.';
+const tradeLabel:Record<Exclude<BusinessLine,null>,string>={
+ barber:'Barber',salon:'Salon',produce:'Produce',deli:'Deli',convenience:'Convenience'
+};
+
+// A mark is not a stand-in photograph. Dental, landscape, and studio JPEGs stay
+// on the trades they were drawn for.
+function tradeMark(line:Exclude<BusinessLine,null>):GeneratedConceptSet{
+ const label=tradeLabel[line];
+ const image=(role:ConceptImage['role'],caption:string):ConceptImage=>{
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><rect width="160" height="160" fill="#f6f3ec"/><text x="80" y="88" text-anchor="middle" font-size="18" font-family="Georgia,serif" fill="#1c2b38">${caption}</text></svg>`;
+  return {
+   src:`data:image/svg+xml,${encodeURIComponent(svg)}`,
+   alt:`Typographic concept mark for a ${label.toLowerCase()} business, ${caption}. Not a photograph of the business.`,
+   disclosure:tradeDisclosure,
+   role
+  };
+ };
+ return {
+  hero:image('hero',label+' mark'),
+  editorial:image('editorial',label+' section'),
+  detail:image('detail',label+' detail')
+ };
+}
+
 /**
  * The legacy concept library is NOT a universal stock photo bank. A dental
  * chair on a veterinary site is harmful even when disclosed as conceptual.
- * Unknown subtypes use typographic previews pending appropriately matched
- * and rights-cleared imagery.
+ * Barber, salon, produce, deli, and convenience businesses get a typographic
+ * mark instead of the studio or dental photographs. Other unmatched subtypes
+ * stay without a concept image until a rights-cleared match exists.
  */
 export function getMatchedConceptSet(
  template:Template,category:string|null|undefined,services:readonly string[]=[],
  businessName=''
 ):GeneratedConceptSet|undefined{
- const subject=[category??'',...services,businessName].join(' ').toLowerCase();
+ const subject=[category??'',...services,businessName].join(' ');
+ const recorded=classifyIndustry(businessName,category);
+ const hinted=classifyIndustry(subject,category||subject);
+ const line=recorded.line??hinted.line;
+ if(line)return tradeMark(line);
  const vet=/\b(vets?|veterinar\w*|animal\w*|pets?|canine|feline|puppy|kitten)\b/i;
  const dental=/\b(dent(?:al|ist|istry)|orthodont\w*|implants?|invisalign|teeth|tooth|endodont\w*)\b/i;
  const fieldOther=/\b(plumb\w*|hvac|heat(?:ing)?|air condition\w*|roof\w*|electri\w*|pest control|floor\w*|painting|garage|mason\w*)\b/i;

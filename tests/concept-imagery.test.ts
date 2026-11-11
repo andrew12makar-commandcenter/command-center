@@ -31,3 +31,26 @@ test('concept photo choice is grounded in the business subtype, not just the tem
  assert.ok(getMatchedConceptSet('universal','Business consulting',['Strategy'],'Consulting Studio'));
  assert.equal(getMatchedConceptSet('medical',null,[],'Unspecified Practice'),undefined);
 });
+
+test('barber, salon, produce, deli, and convenience get a trade mark, not a dental or studio photo',()=>{
+ const cases=[
+  ['barber',['Haircut'],'Classic Barber Shop',/barber/i],
+  ['skin care',['Facial'],'Ensueno Skin Care',/salon/i],
+  ['greengrocer',['Fresh fruit'],"Johnny D's Fruit and Produce",/produce/i],
+  ['deli market',['Butcher counter'],'Oliveira Deli Market',/deli/i],
+  ['convenience store',[],'Zisis Convenience Store',/convenience/i]
+ ] as const;
+ const banned=/\/concepts\/(?:medical|landscaping|universal)-/;
+ for(const [category,services,name,alt] of cases){
+  const set=getMatchedConceptSet('universal',category,services,name);
+  assert.ok(set,name);
+  for(const image of [set.hero,set.editorial,set.detail]){
+   assert.match(image.alt,alt,name);
+   assert.match(image.disclosure,/Not a photograph of the business/);
+   assert.match(image.src,/^data:image\/svg\+xml,/);
+   assert.doesNotMatch(image.src,banned,name);
+  }
+ }
+ assert.equal(getMatchedConceptSet('universal','restaurant',['Dinner'],'Corner Hearth Kitchen'),undefined);
+ assert.equal(getMatchedConceptSet('medical','barber',['Haircut'],'Classic Barber Shop')?.hero.src.startsWith('data:image/svg+xml,'),true);
+});
