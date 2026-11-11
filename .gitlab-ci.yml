@@ -28,6 +28,11 @@
 # `npm ci` installs from package-lock.json. That lockfile is on this
 # integration branch and on its descendants. It is absent on main and on
 # feature/nextjs-foundation.
+#
+# Image: node:24.22.2-bookworm. .nvmrc asks for Node 24. Docker Hub has no
+# node:24.22.3-bookworm tag (pipeline 3055739070 failed with "manifest unknown").
+# 24.22.2-bookworm was the newest published Node 24 Bookworm tag on 2026-11-11.
+# Local checks in the receipt used the Node.js 24.22.3 binary from nodejs.org.
 
 stages:
   - check
@@ -43,7 +48,7 @@ variables:
 
 mr-checks:
   stage: check
-  image: node:24.22.3-bookworm
+  image: node:24.22.2-bookworm
   interruptible: true
   timeout: 30m
   cache:

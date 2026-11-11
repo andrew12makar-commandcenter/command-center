@@ -33,11 +33,19 @@ Node came from `https://nodejs.org/dist/v24.22.3/node-v24.22.3-linux-x64.tar.xz`
 
 Build environment: `NEXT_TELEMETRY_DISABLED=1`, `CI=1`, and `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `PAGESPEED_API_KEY` unset. No stub URL or stub key was required. No Vercel CLI and no Supabase CLI were invoked.
 
-The GitLab job uses image `node:24.22.3-bookworm`. That image was not executed here (Docker is not installed in this environment). The pipeline result is recorded below once GitLab runs it.
+The first GitLab job image was `node:24.22.3-bookworm`. That tag is not on Docker Hub. The job image is now `node:24.22.2-bookworm`, the newest Node 24 Bookworm tag returned by `https://hub.docker.com/v2/repositories/library/node/tags?page_size=100&name=24` on 2026-11-11. This environment has no Docker, so that image was not executed locally.
 
 ### Pipeline
 
-Pending. This receipt is updated after the merge request pipeline finishes.
+Draft merge request: https://gitlab.com/andrew-makar-personal-projects-group/command-center/-/merge_requests/1
+
+Pipeline https://gitlab.com/andrew-makar-personal-projects-group/command-center/-/pipelines/3055739070 (id 3055739070, source `merge_request_event`, sha `16c75aa5f421cd71c6a47198f1b7566484005343`) status `failed`.
+
+Job `mr-checks` https://gitlab.com/andrew-makar-personal-projects-group/command-center/-/jobs/17943937997 failed before any script ran:
+
+`ERROR: Job failed: failed to pull image "node:24.22.3-bookworm" with specified policies [always]: Error response from daemon: manifest for node:24.22.3-bookworm not found: manifest unknown`
+
+The follow-up commit changes the image to `node:24.22.2-bookworm`. Its pipeline result is appended here after GitLab finishes it.
 
 ## CLAIMED-but-unverified
 

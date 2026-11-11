@@ -83,6 +83,6 @@ Recorded in the lane brief and not re-verified from Vercel, Supabase, or a backu
 
 ## Merge request checks
 
-`.gitlab-ci.yml` runs only on merge requests: `npm ci` from `package-lock.json`, `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build`. The image is `node:24.22.3-bookworm`, matching the major version in `.nvmrc` (`24`) and the Node.js version used for the local run recorded in `coord/receipts/L5-cc-ci.md`.
+`.gitlab-ci.yml` runs only on merge requests: `npm ci` from `package-lock.json`, `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build`. The image is `node:24.22.2-bookworm`. `.nvmrc` says `24`. Docker Hub had no `node:24.22.3-bookworm` tag on 2026-11-11 (`node:24.22.2-bookworm` was the newest Node 24 Bookworm tag). The local run in `coord/receipts/L5-cc-ci.md` used the Node.js 24.22.3 binary from nodejs.org.
 
 No deploy stage. The variables in the "Environment variables for the production build" comment at the top of `.gitlab-ci.yml` are the complete CI environment this lane added. Supabase and Vercel credentials stay unset, so the build does not use stub URLs or stub keys.
