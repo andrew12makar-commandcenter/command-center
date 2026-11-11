@@ -45,7 +45,20 @@ Job `mr-checks` https://gitlab.com/andrew-makar-personal-projects-group/command-
 
 `ERROR: Job failed: failed to pull image "node:24.22.3-bookworm" with specified policies [always]: Error response from daemon: manifest for node:24.22.3-bookworm not found: manifest unknown`
 
-The follow-up commit changes the image to `node:24.22.2-bookworm`. Its pipeline result is appended here after GitLab finishes it.
+Follow-up commit `d8b75ef782ae706f0733b1d59ffbf187e7dc22df` sets the image to `node:24.22.2-bookworm`.
+
+Pipeline https://gitlab.com/andrew-makar-personal-projects-group/command-center/-/pipelines/3055754526 (id 3055754526, source `merge_request_event`, sha `d8b75ef782ae706f0733b1d59ffbf187e7dc22df`) status `success`.
+
+Job `mr-checks` https://gitlab.com/andrew-makar-personal-projects-group/command-center/-/jobs/17944041502 status `success`. From that job log:
+
+- Runner image pulled. `node -v` printed `v24.22.2`. `npm -v` printed `11.19.1`.
+- `npm ci --cache .npm --prefer-offline --no-audit --no-fund`: `added 590 packages in 20s`. Same `unrs-resolver@1.12.2` allowScripts warning and eslint deprecation warning as the local install. Exit allowed the next step.
+- `npm run lint`: `14 problems (0 errors, 14 warnings)`.
+- `npm run typecheck`: `tsc --noEmit` printed no errors, and the job continued.
+- `npm run test`: TypeScript suite `tests 287`, `pass 287`, `fail 0`. `.mjs` suite `tests 41`, `pass 41`, `fail 0`.
+- `npm run build`: Next.js 16.4.0 compiled successfully, generated 19 static pages. The log has no `SecurityFatalError` and no Supabase or Vercel command. `Job succeeded`.
+
+This receipt edit does not change `.gitlab-ci.yml`. A later pipeline on the receipt commit reruns that same job.
 
 ## CLAIMED-but-unverified
 
@@ -57,7 +70,7 @@ The follow-up commit changes the image to `node:24.22.2-bookworm`. Its pipeline 
 
 ## Blockers
 
-- None in install, lint, typecheck, unit tests, or the retried production build on this application tree.
+- None remaining in install, lint, typecheck, unit tests, or the production build. The first pipeline failed only because `node:24.22.3-bookworm` is not a published image. Commit `d8b75ef782ae706f0733b1d59ffbf187e7dc22df` pins `node:24.22.2-bookworm`. Pipeline 3055754526 succeeded.
 - Default branch is still `main` (README only). Changing it is waiting on Andrew. Not a CI failure.
 - Backup has not been created. Waiting on Andrew. Not a CI failure.
 
