@@ -1,5 +1,6 @@
 import {cleanSiteContent, type SiteContent} from './site-blueprint.ts';
 import {classifyIndustry} from './business-classification.ts';
+import {applyActiveSkillPacks,mergeSkillPackIntoPlan,type SkillPackAttachment} from './skill-packs/apply.ts';
 // Deterministic per-user, per-industry preference adaptation. No LLM training or external API calls.
 export const templates = ['landscaping','medical','universal'] as const;
 export type Template = typeof templates[number];
@@ -63,6 +64,7 @@ export type DemoCopy = {
     negativeConstraints:string[];
     motion:MotionStyle;
     motionPlan:MotionPlan;
+    skillPacks?:SkillPackAttachment;
   };
 };
 export type FeedbackSample = {
@@ -181,7 +183,7 @@ export function planMotion(composition:CompositionFamily,style:MotionStyle):Moti
   navigationMotion:composition==='centered'?'pill-shift':'underline-track',
   staggerMs:style==='calm'?90:style==='cinematic'?140:65};
 }
-export function planGeneration(name:string,template:Template,preferences:DesignPreferences){
+export function planGeneration(name:string,template:Template,preferences:DesignPreferences,packRoot?:string){
  const byIndustry:Record<Template,CompositionFamily[]>={
   medical:['split-editorial','centered','asymmetric','service-index'],
   landscaping:['immersive','asymmetric','service-index','split-editorial'],
@@ -193,18 +195,22 @@ export function planGeneration(name:string,template:Template,preferences:DesignP
  const conversionGoal:'book'|'estimate'|'contact'=template==='medical'?'book':template==='landscaping'?'estimate':'contact';
  const motion:MotionStyle=template==='medical'?'calm':template==='landscaping'?'cinematic':'precise';
  const motionPlan=planMotion(composition,motion);
+ const sectionOrder=preferences.sectionOrder?.length?[...preferences.sectionOrder]:template==='medical'?['hero','services','trust','about','contact']:
+  template==='landscaping'?['hero','proof','services','process','contact']:['hero','services','about','proof','contact'];
+ const pack=mergeSkillPackIntoPlan(applyActiveSkillPacks({template,root:packRoot}),{composition,sectionOrder,motion,motionPlan},{learned});
  return {
-  schemaVersion:1 as const,composition,typography:preferences.typography,
-  imageTreatment:preferences.needsRealAssets?(composition==='immersive'?'full-bleed':'mosaic'):preferences.imageTreatment,
+  schemaVersion:1 as const,composition:pack.composition,typography:preferences.typography,
+  imageTreatment:preferences.needsRealAssets?(pack.composition==='immersive'?'full-bleed':'mosaic'):preferences.imageTreatment,
   cardStyle:preferences.cardStyle,alignment:preferences.alignment,
-  sectionOrder:preferences.sectionOrder?.length?[...preferences.sectionOrder]:template==='medical'?['hero','services','trust','about','contact']:
-   template==='landscaping'?['hero','proof','services','process','contact']:['hero','services','about','proof','contact'],
-  conversionGoal,motion,motionPlan,rationale:[
-   `Selected ${composition.replaceAll('-',' ')} for ${template} context`,
+  sectionOrder:pack.sectionOrder,conversionGoal,motion:pack.motion,motionPlan:pack.motionPlan,
+  rationale:[
+   `Selected ${pack.composition.replaceAll('-',' ')} for ${template} context`,
    learned?`Applied ${preferences.feedbackCount} relevant feedback signal${preferences.feedbackCount===1?'':'s'}`:'Used deterministic business-specific variation',
    `Primary conversion path: ${conversionGoal}`,
-   `Required motion system: ${motionPlan.pageEntry}, ${motionPlan.sectionReveal}, ${motionPlan.mediaMotion}`
-  ],negativeConstraints:preferences.negativeConstraints
+   `Required motion system: ${pack.motionPlan.pageEntry}, ${pack.motionPlan.sectionReveal}, ${pack.motionPlan.mediaMotion}`,
+   ...pack.rationale
+  ],negativeConstraints:preferences.negativeConstraints,
+  ...(pack.skillPacks?{skillPacks:pack.skillPacks}:{})
  };
 }
 export function createDraft(name:string,city:string|null,category:string|null,template:Template,preferences=defaultPreferences()):DemoCopy {

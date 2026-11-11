@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "example-night-venue",
+  "name": "Example night venue",
+  "version": "1.0.0",
+  "example": true,
+  "description": "Example structural pack for a dark, room-by-room night venue tour. Not a client site and not business facts.",
+  "appliesTo": ["night-venue"],
+  "sourceNote": "Example only. Structural patterns abstracted from a private night-venue spatial tour: full-viewport scene, room switcher, glass docks, brass-on-black tokens, and a short fade between rooms. No photographs, prices, hours, addresses, or venue claims are included."
+}

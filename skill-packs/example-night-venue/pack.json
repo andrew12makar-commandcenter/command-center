@@ -1,0 +1,103 @@
+{
+  "format": 1,
+  "tokens": {
+    "color": {
+      "scene": "#000000",
+      "text": "#f3f0ea",
+      "muted": "#b3ada3",
+      "accent": "#d4af6a",
+      "accent-ink": "#1a1408",
+      "panel": "#18181c",
+      "line": "rgba(255,255,255,0.14)"
+    },
+    "font": {
+      "display": "Big Shoulders Display",
+      "body": "Public Sans"
+    },
+    "radius": {
+      "panel": "14px",
+      "chip": "999px",
+      "dialog": "16px"
+    },
+    "space": {
+      "dock": "16px",
+      "title": "18px"
+    }
+  },
+  "sections": [
+    {"id": "scene-hero", "kind": "scene", "slots": ["place-label", "view-note"], "template": "full-viewport-scene"},
+    {"id": "place-title", "kind": "hero", "slots": ["place-label", "view-note"], "template": "overlay-display-title"},
+    {"id": "room-switcher", "kind": "rooms", "slots": ["room-label"], "template": "bottom-dock-switcher"},
+    {"id": "view-chips", "kind": "rooms", "slots": ["view-label"], "template": "chip-row"},
+    {"id": "glass-toolbar", "kind": "toolbar", "slots": [], "template": "icon-toolbar"},
+    {"id": "hotspot-nav", "kind": "overlay", "slots": ["hotspot-label"], "template": "anchored-hotspot"},
+    {"id": "info-dialog", "kind": "overlay", "slots": ["accuracy-note", "unknown-note"], "template": "glass-dialog"},
+    {"id": "visit-cta", "kind": "visit", "slots": ["cta-label"], "template": "accent-pill"}
+  ],
+  "motion": [
+    {
+      "id": "hint-fade",
+      "style": "cinematic",
+      "reducedMotion": "static",
+      "durationMs": 600,
+      "staggerMs": 0,
+      "pageEntry": "cinematic-wipe",
+      "sectionReveal": "layered-wipe",
+      "mediaMotion": "slow-scale",
+      "navigationMotion": "underline-track"
+    },
+    {
+      "id": "room-fade",
+      "style": "cinematic",
+      "reducedMotion": "static",
+      "durationMs": 380,
+      "staggerMs": 0,
+      "pageEntry": "cinematic-wipe",
+      "sectionReveal": "layered-wipe",
+      "mediaMotion": "slow-scale",
+      "navigationMotion": "underline-track"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "night-tour",
+      "composition": "immersive",
+      "sectionOrder": ["hero", "gallery", "contact"],
+      "motionId": "room-fade",
+      "regions": [
+        {"id": "scene", "placement": "viewport"},
+        {"id": "place", "placement": "top-start"},
+        {"id": "tools", "placement": "top-end"},
+        {"id": "rooms", "placement": "bottom-dock"},
+        {"id": "overlay", "placement": "dialog"}
+      ],
+      "breakpoints": [
+        {"maxWidth": 680, "note": "Overlay panels stack in one column."},
+        {"maxWidth": 560, "note": "Room tags collapse and docked controls get smaller."}
+      ]
+    }
+  ],
+  "copy": [
+    {
+      "id": "place-intro",
+      "headingSlots": ["place-label"],
+      "bodySlots": ["view-note"],
+      "guidance": [
+        "Use one short orientation line for the current room.",
+        "Leave prices, hours, addresses, staff, and testimonials blank until a person confirms them.",
+        "Say what is shown and what is approximate. Do not fill gaps with claims."
+      ],
+      "forbidden": ["prices", "hours", "addresses", "testimonials", "staff claims", "remote assets"],
+      "disclaimer": "Internal concept, not endorsed by the business"
+    }
+  ],
+  "checks": [
+    {"id": "disclaimer", "severity": "block", "rule": "keeps-internal-disclaimer", "detail": "The internal-concept line stays on every preview."},
+    {"id": "noindex", "severity": "block", "rule": "noindex", "detail": "Previews stay noindex."},
+    {"id": "motion", "severity": "block", "rule": "reduced-motion-static", "detail": "Reduced motion renders the scene statically."},
+    {"id": "approval", "severity": "block", "rule": "no-owner-approval", "detail": "Packs cannot mark facts approved."},
+    {"id": "network", "severity": "block", "rule": "no-external-url", "detail": "Packs cannot name remote assets."},
+    {"id": "scene", "severity": "warn", "rule": "section-present", "sectionId": "scene-hero", "detail": "The tour keeps a full-viewport scene."},
+    {"id": "fade-cap", "severity": "warn", "rule": "motion-duration-cap", "maxMs": 900, "detail": "Room fades stay under the cinematic cap."}
+  ]
+}

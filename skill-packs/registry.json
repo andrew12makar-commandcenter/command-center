@@ -1,0 +1,12 @@
+{
+  "format": 1,
+  "packs": [
+    {
+      "id": "example-night-venue",
+      "version": "1.0.0",
+      "example": true,
+      "active": false,
+      "path": "example-night-venue"
+    }
+  ]
+}
