@@ -1,0 +1,105 @@
+{
+  "directory": "/workspace/qa/generator/output/brighton-barbers-after",
+  "score": 92,
+  "max": 100,
+  "pass": false,
+  "checks": [
+    {
+      "id": "heading-hierarchy",
+      "score": 12,
+      "max": 12,
+      "pass": true,
+      "detail": "1 h1, 7 headings, no skipped levels",
+      "headings": 7,
+      "h1": 1
+    },
+    {
+      "id": "section-variety",
+      "score": 12,
+      "max": 14,
+      "pass": true,
+      "detail": "5 distinct section signature(s); rich patterns: dl, address",
+      "signatures": [
+        "ds-hero|#site-top",
+        "ds-section|#site-services",
+        "ds-section|#site-about",
+        "ds-section|#site-hours",
+        "ds-booking|ds-section|#site-booking"
+      ],
+      "rich": [
+        "dl",
+        "address"
+      ]
+    },
+    {
+      "id": "image-alt",
+      "score": 4,
+      "max": 10,
+      "pass": false,
+      "detail": "No img elements. Alt text is vacuously present, and the page has no photographic content.",
+      "images": 0,
+      "missing": 0,
+      "meaningful": 0
+    },
+    {
+      "id": "font-loading",
+      "score": 14,
+      "max": 14,
+      "pass": true,
+      "detail": "Self-hosted faces: fraunces, source sans 3",
+      "faces": 2,
+      "families": [
+        "fraunces",
+        "source sans 3"
+      ]
+    },
+    {
+      "id": "boilerplate-copy",
+      "score": 10,
+      "max": 10,
+      "pass": true,
+      "detail": "No listed generator boilerplate phrases",
+      "hits": []
+    },
+    {
+      "id": "mobile-overflow",
+      "score": 14,
+      "max": 14,
+      "pass": true,
+      "detail": "No horizontal overflow at 390px (scroll 390 / client 390)",
+      "measured": true,
+      "width": 390,
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "offenders": []
+    },
+    {
+      "id": "contrast",
+      "score": 14,
+      "max": 14,
+      "pass": true,
+      "detail": "33 text samples meet WCAG AA (4.5:1 body, 3:1 large)",
+      "measured": true,
+      "samples": 33,
+      "failing": 0
+    },
+    {
+      "id": "perf-budget",
+      "score": 12,
+      "max": 12,
+      "pass": true,
+      "detail": "total 116235 bytes (html 20043, css 0, js 0, fonts 96192, images 0)",
+      "total": 116235,
+      "htmlBytes": 20043,
+      "cssBytes": 0,
+      "jsBytes": 0,
+      "fontBytes": 96192,
+      "imageBytes": 0,
+      "otherBytes": 0,
+      "viewport": true,
+      "remoteFontStylesheets": 0,
+      "source": "directory+network"
+    }
+  ],
+  "measuredAt": "2026-11-11T18:47:42.010Z"
+}

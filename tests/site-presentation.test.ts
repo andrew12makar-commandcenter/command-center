@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {selectSectionPresentation,contactJourney,primaryContactAction} from '../lib/site-presentation.ts';
 import {generatorBenchmarks,buildBenchmark} from '../lib/generator-benchmarks.ts';
+import {createDraft,defaultPreferences} from '../lib/demo-engine.ts';
+import {buildSiteBlueprint} from '../lib/site-blueprint.ts';
 
 test('clinical, outdoor and professional examples use distinct service and journey systems',()=>{
  const cases=generatorBenchmarks.filter(x=>!x.holdout).map(buildBenchmark);
@@ -71,4 +73,16 @@ test('primary demo action uses email as a safe fallback and rejects unsafe desti
  assert.deepEqual(email,{href:'mailto:hello%2Bdemo%40example.com',label:'Email us'});
  assert.equal(primaryContactAction({...site,contact:{...site.contact,phone:null,email:null},
   content:{...site.content,appointmentUrl:null}}),null);
+});
+
+test('a barber or salon line does not use the consultancy journey',()=>{
+ const barberDraft=createDraft('Brighton Barbers',null,'barber','universal',defaultPreferences());
+ const barber=buildSiteBlueprint('universal',barberDraft,{name:'Brighton Barbers',category:'barber'});
+ assert.equal(selectSectionPresentation(barber).journey,'shop-path');
+ const steps=contactJourney('shop-path',false);
+ const text=steps.map(step=>`${step.title} ${step.description}`).join(' ');
+ assert.doesNotMatch(text,/Discover|Move forward|Request information|What we offer/i);
+ const salonDraft=createDraft('Example Salon',null,'salon','universal',defaultPreferences());
+ const salon=buildSiteBlueprint('universal',salonDraft,{name:'Example Salon',category:'salon'});
+ assert.equal(selectSectionPresentation(salon).journey,'shop-path');
 });

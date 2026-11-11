@@ -1,6 +1,7 @@
 // Reusable source-of-truth between a private sales concept and a future
 // customer-approved site. No network scraping, invented facts, or asset licensing.
 import type {DemoCopy,Template,MotionPlan} from './demo-engine.ts';
+import type {SkillPackAttachment} from './skill-packs/apply.ts';
 import {evaluateSiteBlueprint,type QualityEvaluation} from './site-evaluation.ts';
 import {buildServiceSpecificCopy} from './business-specific-copy.ts';
 import type {ResearchInsight,ResearchInsightKind} from './research-intelligence.ts';
@@ -41,6 +42,8 @@ export type SiteBlueprint={
   primaryAction:string;secondaryAction:string;
   services:string[];contact:SiteContact;content:SiteContent;
   internalDisclaimer:string;
+  /** Internal concepts stay noindex. This is not an approval flag. */
+  noindex:true;
   quality:{previewReady:boolean;publishReady:boolean;blockers:string[];evaluation:QualityEvaluation};
   design:{variant:'editorial'|'bold';compact:boolean;prominentNav:boolean;
    composition:'split-editorial'|'immersive'|'bento'|'service-index'|'centered'|'asymmetric';
@@ -49,10 +52,18 @@ export type SiteBlueprint={
    motionPlan:MotionPlan;
    cardStyle:'bordered'|'numbered'|'flat';alignment:'left'|'center'|'offset';sectionOrder:string[]};
   narrative:{servicesHeading:string;servicesIntro:string;aboutHeading:string;contactHeading:string;processHeading:string};
+  /** Active skill-pack data copied from the generation spec. Absent when no pack matched. */
+  skillPacks?:SkillPackAttachment;
 };
 export type SiteSource={name:string;city?:string|null;phone?:string|null;email?:string|null;category?:string|null};
 
 const asText=(x:unknown,max:number)=>typeof x==='string'?x.trim().slice(0,max):'';
+const REQUIRED_DISCLAIMER='Internal concept, not endorsed by the business';
+function withRequiredDisclaimer(supplied:string):string{
+ if(!supplied)return REQUIRED_DISCLAIMER;
+ if(supplied.includes(REQUIRED_DISCLAIMER))return supplied;
+ return `${REQUIRED_DISCLAIMER} ${supplied}`;
+}
 export function safePublicUrl(raw:unknown):string|null {
  if(typeof raw!=='string'||raw.length>1600)return null;
  try{
@@ -216,9 +227,10 @@ export function buildSiteBlueprint(
   primaryAction:asText(copy.primaryAction,80)||'Get in touch',
   secondaryAction:asText(copy.secondaryAction,80)||'Explore services',
   services,contact,content,
-  internalDisclaimer:asText(copy.disclaimer,400)||
-   'Independent private design concept; not endorsed or published by the business.',
-  design,narrative
+  internalDisclaimer:withRequiredDisclaimer(asText(copy.disclaimer,320)),
+  noindex:true as const,
+  design,narrative,
+  ...(copy.generationSpec?.skillPacks?{skillPacks:copy.generationSpec.skillPacks}:{})
  };
  const evaluation=evaluateSiteBlueprint(candidate);
  for(const failure of evaluation.failures)if(!blockers.includes(failure))blockers.push(failure);

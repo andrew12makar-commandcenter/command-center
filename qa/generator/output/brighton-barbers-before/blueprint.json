@@ -1,0 +1,12 @@
+{
+  "label": "Brighton Barbers internal preview, renderer before design-system wiring",
+  "factStatus": "unreviewed",
+  "publishReady": false,
+  "ownerApproved": false,
+  "template": "universal",
+  "composition": "split-editorial",
+  "headline": "A better way to meet your next customer.",
+  "primaryAction": "Request information",
+  "services": [],
+  "source": "Name only. 8 Chestnut Hill Ave is confirmed but this renderer has no address field. No phone, service, price, hour, or review was supplied."
+}

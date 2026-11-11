@@ -5,9 +5,26 @@ import {classifyIndustry} from './business-classification.ts';
 // The same vertical has multiple credible families. The service count matters
 // because empty/filler cards are worse than a clean service index.
 export type ServicePresentation='clinical-index'|'care-editorial'|'project-panels'|'craft-index'|'advisory-grid'|'professional-index';
-export type SectionPresentation={services:ServicePresentation;journey:'care-path'|'quote-path'|'estimate-path'|'consult-path';gallery:'editorial'|'project-grid'|'quiet'};
+export type SectionPresentation={services:ServicePresentation;journey:'care-path'|'quote-path'|'estimate-path'|'consult-path'|'shop-path';gallery:'editorial'|'project-grid'|'quiet'};
+export type BusinessLine='barber'|'salon'|'produce'|'deli'|'convenience';
+
+/** Prefer the classification lane's `line` when that branch is present. */
+export function readBusinessLine(name:string, category?:string|null):BusinessLine|null{
+ const decision=classifyIndustry(name, category) as {line?:string|null};
+ if(decision.line==='barber'||decision.line==='salon'||decision.line==='produce'||decision.line==='deli'||decision.line==='convenience')
+  return decision.line;
+ const blob=`${name} ${category??''}`;
+ if(/\b(?:barbers?|barbershops?|barber\s+shops?)\b/i.test(blob))return 'barber';
+ if(/\b(?:salons?|skin\s*care|skincare|estheticians?|hair\s+(?:salons?|studios?|stylists?)|hairstylists?|nail\s+salons?|spas?)\b/i.test(blob))return 'salon';
+ if(/\b(?:produce|grocer(?:y|ies)|grocers?|greengrocers?|supermarkets?|fruit\s+markets?)\b/i.test(blob))return 'produce';
+ if(/\b(?:delis?|delicatessens?)\b/i.test(blob))return 'deli';
+ if(/\b(?:convenience(?:\s+stores?)?|mini\s*marts?|variety\s+stores?)\b/i.test(blob))return 'convenience';
+ return null;
+}
 
 export function selectSectionPresentation(site:Pick<SiteBlueprint,'template'|'services'|'design'|'businessName'|'category'>):SectionPresentation{
+ const line=readBusinessLine(site.businessName, site.category);
+ if(line)return {services:'professional-index',journey:'shop-path',gallery:'quiet'};
  const family=site.design.composition;
  const count=site.services.length;
  if(site.template==='medical')return {
@@ -58,6 +75,11 @@ export function contactJourney(kind:SectionPresentation['journey'],hasAppointmen
   {title:'Review capabilities',description:'Explore the home-service work listed for the company.'},
   {title:'Discuss the scope',description:'Share the project details and timing with the business.'},
   {title:'Request an estimate',description:'Use the confirmed contact method to discuss pricing and next steps.'}
+ ];
+ if(kind==='shop-path')return [
+  {title:'Services',description:'Only services already on the record are listed. Anything missing stays to confirm.'},
+  {title:'Location',description:'The address and hours on the record are shown. Missing details stay to confirm.'},
+  {title:'Contact',description:hasAppointment?'The confirmed booking link is the next step.':'A phone or email is shown only when it is already on the record.'}
  ];
  return [
   {title:'Discover',description:'Read the listed services and the business overview.'},

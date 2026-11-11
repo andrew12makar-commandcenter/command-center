@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Export an OWNER-APPROVED private blueprint into an isolated Next.js project.
 // This DOES NOT publish or deploy anything and copies no image files.
-import {readFile,writeFile,copyFile,mkdir,access} from 'node:fs/promises';
+import {readFile,writeFile,copyFile,mkdir,access,cp} from 'node:fs/promises';
 import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -134,6 +134,11 @@ async function writeProject(bp,output,writePages){
    await mkdir(dirname(join(target,dest)),{recursive:true});
    await copyFile(join(root,source),join(target,dest));
   }
+  await cp(join(root,'components','site-design-document.ts'),join(target,'components','site-design-document.ts'));
+  await cp(join(root,'lib','design-system'),join(target,'lib','design-system'),{recursive:true});
+  await mkdir(join(target,'public','fonts'),{recursive:true});
+  await cp(join(root,'public','fonts','fraunces-9e509503.woff2'),join(target,'public','fonts','fraunces-9e509503.woff2'));
+  await cp(join(root,'public','fonts','sourcesans3-e6c9ca63.woff2'),join(target,'public','fonts','sourcesans3-e6c9ca63.woff2'));
   await mkdir(join(target,'public','concepts'),{recursive:true});
   for(const asset of conceptAssets)await copyFile(join(root,'public','concepts',asset),join(target,'public','concepts',asset));
   await mkdir(join(target,'app'),{recursive:true});
