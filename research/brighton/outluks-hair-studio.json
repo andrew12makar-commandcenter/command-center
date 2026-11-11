@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "brighton-public-fact-sheet/v1",
+  "slug": "outluks-hair-studio",
+  "businessName": "Outluks Hair Studio",
+  "researchedOn": "2026-11-11",
+  "researchTarget": {
+    "name": "Outluks Hair Studio",
+    "addressAsSupplied": "245 Faneuil St",
+    "note": "Supplied for the sprint. This is not a public-source confirmation."
+  },
+  "category": [],
+  "address": [],
+  "phones": [],
+  "profiles": [
+    {
+      "kind": "booking",
+      "url": "https://www.styleseat.com/m/v/OUTLUKSHAIRSTUDIO",
+      "label": "StyleSeat URL containing OUTLUKSHAIRSTUDIO",
+      "relationship": "script-only",
+      "note": "HTTP 200 after redirect to the uppercase path. The HTML title is the generic StyleSeat title. The body has no Outluks name, address, hours, services, or phone.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "website",
+      "url": "http://www.outluckshairstudio.com/",
+      "label": "outluckshairstudio.com",
+      "relationship": "did-not-resolve",
+      "note": "curl could not resolve www.outluckshairstudio.com or outluckshairstudio.com. No retrieved page in this pass established that this hostname belongs to the studio.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "social",
+      "url": "https://www.facebook.com/168265266563949",
+      "label": "Facebook numeric URL",
+      "relationship": "login-wall",
+      "note": "The fetch redirected to a Facebook login page. The profile contents were not read, and this pass did not prove the numeric ID is the studio.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "directory",
+      "url": "https://www.loc8nearme.com/massachusetts/brighton/outluks-hair-studio/",
+      "label": "Loc8NearMe guess URL",
+      "relationship": "not-found",
+      "note": "HTTP 404. This was a guessed path, not a page linked from a confirmed listing.",
+      "accessed": "2026-11-11"
+    }
+  ],
+  "hours": [],
+  "offerings": [],
+  "publicDescriptions": [],
+  "attributes": [],
+  "publicRecords": [
+    {
+      "value": "The Active Food Establishment Licenses CSV downloaded on 2026-11-11 has 3,357 data rows, no matching business name, and no 02135 row at 245 Faneuil. Absence from this food-license file is not proof about other license types.",
+      "sources": [
+        {
+          "url": "https://data.boston.gov/dataset/5e4182e3-ba1e-4511-88f8-08a70383e1b6/resource/f1e13724-284d-478c-b8bc-ef042aa5b70b/download/tmpjv4tmjxm.csv",
+          "accessed": "2026-11-11",
+          "excerpt": "CSV header includes businessname,address,city,zip,licstatus. No 02135 row at 245 Faneuil."
+        }
+      ]
+    },
+    {
+      "value": "The Brighton Main Streets directory HTML contains no Outluks and no 245 Faneuil listing.",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/",
+          "accessed": "2026-11-11",
+          "excerpt": "Fetched directory HTML, 884,306 bytes. A text search found no Outluks and no 245 Faneuil."
+        }
+      ]
+    },
+    {
+      "value": "Nominatim returned an empty JSON array for an Outluks Hair Studio query at 245 Faneuil Street.",
+      "sources": [
+        {
+          "url": "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1&q=Outluks%20Hair%20Studio%20245%20Faneuil%20Street%20Brighton",
+          "accessed": "2026-11-11",
+          "excerpt": "HTTP 200 body was [] for the Outluks Faneuil query."
+        }
+      ]
+    }
+  ],
+  "photos": [],
+  "unknown": [
+    "Category, street address, phone, hours, services, products, prices, email, and photos are unknown / to confirm. No page retrieved on 2026-11-11 stated them.",
+    "Whether the StyleSeat URL is this studio is unknown / to confirm. The HTML did not identify a business.",
+    "Whether outluckshairstudio.com was ever this studio's site is unknown / to confirm. The hostname did not resolve, and no fetched page tied it to the studio.",
+    "Yelp, Yellow Pages, Cylex, and a salon directory returned HTTP 403, so hours and services reported elsewhere were not re-read and are unknown / to confirm."
+  ],
+  "conflicts": [],
+  "fetchAttempts": [
+    {
+      "url": "https://www.yelp.com/biz/outluks-hair-studio-brighton-2",
+      "accessed": "2026-11-11",
+      "httpStatus": 403,
+      "note": "Yelp returned HTTP 403. Hours, services, and photos were not read."
+    },
+    {
+      "url": "https://www.yellowpages.com/brighton-ma/mip/outluks-hair-studio-505247951",
+      "accessed": "2026-11-11",
+      "httpStatus": 403,
+      "note": "Yellow Pages returned HTTP 403. Phone and website fields were not read."
+    },
+    {
+      "url": "https://www.cylex.us.com/company/outluks-hair-studio-28818212.html",
+      "accessed": "2026-11-11",
+      "httpStatus": 403,
+      "note": "Cylex returned HTTP 403. The listing was not read."
+    },
+    {
+      "url": "https://www.beautynailhairsalons.com/US/Boston/168265266563949/Outluks-Hair-Studio",
+      "accessed": "2026-11-11",
+      "httpStatus": 403,
+      "note": "That salon directory returned HTTP 403. The listing was not read."
+    },
+    {
+      "url": "https://outluckshairstudio.com/",
+      "accessed": "2026-11-11",
+      "httpStatus": null,
+      "note": "DNS failure. curl reported it could not resolve the host."
+    }
+  ],
+  "generatorMustNot": [
+    "Do not invent prices, hours, services, reviews, or testimonials.",
+    "Do not set factStatus to owner_approved or bypass the owner-approval gate.",
+    "Photo links are reference only and were not downloaded. Do not display them until the owner approves that use.",
+    "Keep the text \"Internal concept, not endorsed by the business\" and noindex on any internal concept.",
+    "Do not build a page, invent a service menu, or invent hours for Outluks from this fact sheet. The public record retrieved on 2026-11-11 does not support it.",
+    "Do not treat the StyleSeat slug or the unresolved outluckshairstudio.com hostname as a confirmed booking link or website."
+  ]
+}

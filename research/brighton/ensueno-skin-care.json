@@ -1,0 +1,659 @@
+{
+  "schemaVersion": "brighton-public-fact-sheet/v1",
+  "slug": "ensueno-skin-care",
+  "businessName": "Ensueno Skin Care",
+  "researchedOn": "2026-11-11",
+  "researchTarget": {
+    "name": "Ensueno Skin Care",
+    "addressAsSupplied": "353 Washington St #1",
+    "note": "Supplied for the sprint. This is not a public-source confirmation."
+  },
+  "category": [
+    {
+      "value": "Grooming, Salon & Spa",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/ensueno-body-and-skin-care/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible categories: Grooming, Salon & Spa. Page title: Ensueno Body & Skin Care Clinic."
+        }
+      ]
+    },
+    {
+      "value": "Booksy JSON-LD @type HealthAndBeautyBusiness. Breadcrumb category: Medical aesthetics.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD @type HealthAndBeautyBusiness. Breadcrumb name Medical aesthetics."
+        }
+      ]
+    },
+    {
+      "value": "SinglePlatform name: Ensueno Body & Skin Care",
+      "sources": [
+        {
+          "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD name Ensueno Body & Skin Care. Visible title uses the same name."
+        }
+      ]
+    }
+  ],
+  "address": [
+    {
+      "value": "353 Washington Street, Brighton, MA 02135, with no unit on Brighton Main Streets or Booksy",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/ensueno-body-and-skin-care/",
+          "accessed": "2026-11-11",
+          "excerpt": "Address line: 353 Washington Street Brighton, MA 02135."
+        },
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD streetAddress 353 Washington Street, Brighton, 02135; postalCode 02135."
+        }
+      ]
+    },
+    {
+      "value": "353 Washington St # 1, Brighton, MA 02135 on SinglePlatform",
+      "sources": [
+        {
+          "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible address and JSON-LD streetAddress: 353 Washington St # 1, Brighton, MA 02135."
+        }
+      ]
+    }
+  ],
+  "phones": [
+    {
+      "value": "617-783-2100",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/ensueno-body-and-skin-care/",
+          "accessed": "2026-11-11",
+          "excerpt": "Phone line: 617-783-2100."
+        },
+        {
+          "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD telephone 617-783-2100. Visible text repeats 617-783-2100."
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "kind": "directory",
+      "url": "https://brightonmainstreets.org/shops/ensueno-body-and-skin-care/",
+      "label": "Brighton Main Streets",
+      "relationship": "directory-listing",
+      "note": "No website field is filled in. Instagram is linked. Map data is attributed to Google.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "booking",
+      "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+      "label": "Booksy",
+      "relationship": "directory-listing",
+      "note": "Booking page with structured hours, priced offers, and a visible No walk-ins line. The page name is Ensueno Skin Care.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "directory",
+      "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+      "label": "SinglePlatform menu",
+      "relationship": "directory-listing",
+      "note": "Older menu-style listing. Its own page includes a control to report incorrect prices or an out-of-date listing. JSON-LD url is empty and opening hours are an empty array.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "social",
+      "url": "https://www.instagram.com/ensuenoclinic/",
+      "label": "Instagram ensuenoclinic",
+      "relationship": "login-wall",
+      "note": "Linked from Brighton Main Streets. The fetch redirected to an Instagram login page, so posts were not read.",
+      "accessed": "2026-11-11"
+    }
+  ],
+  "hours": [
+    {
+      "value": "Booksy JSON-LD: Monday–Friday 10:00–18:30 and Saturday 12:00–15:00. Sunday is not in the specification.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "openingHoursSpecification Monday-Friday opens 10:00 closes 18:30; Saturday opens 12:00 closes 15:00. Sunday is absent."
+        }
+      ]
+    },
+    {
+      "value": "On 2026-11-11 the Booksy hours summary showed Today as 10:00 AM - 06:30 PM.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "The Today row uses data-test boh-summary-hours and contains 10:00 AM and 06:30 PM."
+        }
+      ]
+    }
+  ],
+  "offerings": [
+    {
+      "name": "Bottom Legs",
+      "detail": null,
+      "publishedPrice": "200 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Bottom Legs at 200 USD."
+        }
+      ]
+    },
+    {
+      "name": "Bikini",
+      "detail": null,
+      "publishedPrice": "275 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Bikini at 275 USD."
+        }
+      ]
+    },
+    {
+      "name": "Upper Lip",
+      "detail": null,
+      "publishedPrice": "120 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Upper Lip at 120 USD."
+        }
+      ]
+    },
+    {
+      "name": "Upper Lip & Chin",
+      "detail": null,
+      "publishedPrice": "200 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Upper Lip & Chin at 200 USD."
+        }
+      ]
+    },
+    {
+      "name": "Underarm",
+      "detail": null,
+      "publishedPrice": "180 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Underarm at 180 USD."
+        }
+      ]
+    },
+    {
+      "name": "Facial",
+      "detail": null,
+      "publishedPrice": "100 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Facial at 100 USD."
+        }
+      ]
+    },
+    {
+      "name": "Consultation/Consulta",
+      "detail": null,
+      "publishedPrice": "30 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Consultation/Consulta at 30 USD."
+        }
+      ]
+    },
+    {
+      "name": "Collagen Stimulation",
+      "detail": null,
+      "publishedPrice": "250 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Collagen Stimulation at 250 USD."
+        }
+      ]
+    },
+    {
+      "name": "Peel",
+      "detail": null,
+      "publishedPrice": "150 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Peel at 150 USD."
+        }
+      ]
+    },
+    {
+      "name": "VI PEEL",
+      "detail": "Visible Booksy text: Anti-aging, acne prone and hyperpigmentation. Minimal healing time.",
+      "publishedPrice": "200 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists VI PEEL at 200 USD."
+        }
+      ]
+    },
+    {
+      "name": "Retinol 5% Peel",
+      "detail": "Visible Booksy text: 5% Retinol: a form of Vitamin A that fights free radicals, boosts collagen production and speeds up cellular turnover (the skin’s natural exfoliating process).",
+      "publishedPrice": "150 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Retinol 5% Peel at 150 USD."
+        }
+      ]
+    },
+    {
+      "name": "Blue Peel Radiance",
+      "detail": "The static HTML starts the description \"Blue peel RADIANCE is formulated to be gentle, you may experience mild peeling and redness\" and cuts the rest of the sentence off.",
+      "publishedPrice": "150 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Blue Peel Radiance at 150 USD."
+        }
+      ]
+    },
+    {
+      "name": "Follow/ Ups",
+      "detail": "Visible Booksy text: Weekly appointments for Nu-derm Obagi Treatments.",
+      "publishedPrice": "80 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Follow/ Ups at 80 USD."
+        }
+      ]
+    },
+    {
+      "name": "MicroPen",
+      "detail": null,
+      "publishedPrice": "250 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists MicroPen at 250 USD."
+        }
+      ]
+    },
+    {
+      "name": "Nu-Derm Program",
+      "detail": null,
+      "publishedPrice": "871 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Nu-Derm Program at 871 USD."
+        }
+      ]
+    },
+    {
+      "name": "Botox",
+      "detail": "One of five Booksy offers that share the name Botox. The retrieved page does not say what this price covers.",
+      "publishedPrice": "480 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Botox at 480 USD."
+        }
+      ]
+    },
+    {
+      "name": "Botox",
+      "detail": "One of five Booksy offers that share the name Botox. The retrieved page does not say what this price covers.",
+      "publishedPrice": "240 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Botox at 240 USD."
+        }
+      ]
+    },
+    {
+      "name": "Botox",
+      "detail": "One of five Booksy offers that share the name Botox. The retrieved page does not say what this price covers.",
+      "publishedPrice": "720 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Botox at 720 USD."
+        }
+      ]
+    },
+    {
+      "name": "Botox",
+      "detail": "One of five Booksy offers that share the name Botox. The retrieved page does not say what this price covers.",
+      "publishedPrice": "420 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Botox at 420 USD."
+        }
+      ]
+    },
+    {
+      "name": "Botox",
+      "detail": "One of five Booksy offers that share the name Botox. The retrieved page does not say what this price covers.",
+      "publishedPrice": "360 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Botox at 360 USD."
+        }
+      ]
+    },
+    {
+      "name": "Skin Tags",
+      "detail": "Visible Booksy row. Not present in the JSON-LD makesOffer list, so there is no numeric price in that structured data.",
+      "publishedPrice": "Varies",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible service row: Skin Tags Varies 1h 15min."
+        }
+      ]
+    },
+    {
+      "name": "Laser Hair Removal",
+      "detail": "Visible Booksy group. Badge text says 5 services. The five JSON-LD area prices are listed separately.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible group label Laser Hair Removal with badge text 5 services."
+        }
+      ]
+    },
+    {
+      "name": "Micro Dermabrasion",
+      "detail": "Visible Booksy group. Badge text says 2 services.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible group label Micro Dermabrasion with badge text 2 services."
+        }
+      ]
+    },
+    {
+      "name": "Laser Genesis",
+      "detail": "Visible Booksy group. Badge text says 1 service.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible group label Laser Genesis with badge text 1 service."
+        }
+      ]
+    },
+    {
+      "name": "PEELS",
+      "detail": "Visible Booksy group. Badge text says 6 services.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible group label PEELS with badge text 6 services."
+        }
+      ]
+    },
+    {
+      "name": "INJECTABLES",
+      "detail": "Visible Booksy group. Badge text says 5 services. The five priced rows retrieved in JSON-LD are all named Botox.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible group label INJECTABLES with badge text 5 services."
+        }
+      ]
+    },
+    {
+      "name": "Consultation/Consulta (30 min)",
+      "detail": "SinglePlatform service. No price in its JSON-LD.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+          "accessed": "2026-11-11",
+          "excerpt": "Offer name Consultation/Consulta (30 min). JSON-LD price is an empty string."
+        }
+      ]
+    },
+    {
+      "name": "Laser Genesis (30 min)",
+      "detail": "SinglePlatform service. No price in its JSON-LD.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+          "accessed": "2026-11-11",
+          "excerpt": "Offer name Laser Genesis (30 min). JSON-LD price is an empty string."
+        }
+      ]
+    },
+    {
+      "name": "Laser Hair Removal (30 min)",
+      "detail": "SinglePlatform description: this indicates the reservation of time, and the detail of the service and price will be discussed during consultation.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+          "accessed": "2026-11-11",
+          "excerpt": "Laser Hair Removal (30 min) description says the detail of the service and price will be discussed during consultation."
+        }
+      ]
+    },
+    {
+      "name": "Micro Dermabrasion Package (30 min)",
+      "detail": "SinglePlatform service. No price in its JSON-LD.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+          "accessed": "2026-11-11",
+          "excerpt": "Offer name Micro Dermabrasion Package (30 min). JSON-LD price is an empty string."
+        }
+      ]
+    },
+    {
+      "name": "Micro/Facial",
+      "detail": "SinglePlatform price. The page says pricing and availability are subject to change.",
+      "publishedPrice": "90 USD",
+      "sources": [
+        {
+          "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible and JSON-LD price for Micro/Facial is $90.00 (90 USD). Disclaimer: pricing and availability subject to change."
+        }
+      ]
+    }
+  ],
+  "publicDescriptions": [
+    {
+      "value": "Booksy about text: \"Medical Aesthetics, Laser Hair Removal, Acne Treatments, Microdermabrasion and retail product for Obagi Medical.\"",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD description: Medical Aesthetics, Laser Hair Removal, Acne Treatments, Microdermabrasion and retail product for Obagi Medical."
+        }
+      ]
+    },
+    {
+      "value": "Booksy JSON-LD names one employee: Luz Egdahl. Visible review cards also name Luz Egdahl as staffer. Review text was not copied.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD employee name Luz Egdahl. Visible cards say Staffer: Luz Egdahl."
+        }
+      ]
+    }
+  ],
+  "attributes": [
+    {
+      "value": "Booksy booking policy line: No walk-ins.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible Booking Policies: No walk-ins."
+        }
+      ]
+    },
+    {
+      "value": "Booksy JSON-LD priceRange $30.00-$871.00 and paymentAccepted Cash.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD priceRange $30.00-$871.00 and paymentAccepted Cash."
+        }
+      ]
+    },
+    {
+      "value": "SinglePlatform JSON-LD priceRange is $$.",
+      "sources": [
+        {
+          "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD priceRange $$."
+        }
+      ]
+    }
+  ],
+  "publicRecords": [
+    {
+      "value": "The Active Food Establishment Licenses CSV downloaded on 2026-11-11 has 3,357 data rows, no matching business name, and no 02135 row at 353 Washington. Absence from this food-license file is not proof about other license types.",
+      "sources": [
+        {
+          "url": "https://data.boston.gov/dataset/5e4182e3-ba1e-4511-88f8-08a70383e1b6/resource/f1e13724-284d-478c-b8bc-ef042aa5b70b/download/tmpjv4tmjxm.csv",
+          "accessed": "2026-11-11",
+          "excerpt": "CSV header includes businessname,address,city,zip,licstatus. No 02135 row at 353 Washington."
+        }
+      ]
+    }
+  ],
+  "photos": [
+    {
+      "pageUrl": "https://brightonmainstreets.org/shops/ensueno-body-and-skin-care/",
+      "imageUrl": "https://brightonmainstreets.org/wp-content/uploads/2016/10/EnsuenoBodyandSkinCareClinic-1.jpg",
+      "note": "Image referenced by the Brighton Main Streets listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+      "imageUrl": "https://d2zdpiztbgorvt.cloudfront.net/us/us/620627/logo/427279b8-27d8-42ae-bbcf-3502a5-ensueno-skin-care-clinic-50148a3e-bfc6-4a91-919d-d6ccce-booksy.png",
+      "note": "Booksy JSON-LD logo. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    }
+  ],
+  "unknown": [
+    "Sunday hours are unknown / to confirm. Booksy does not list Sunday, and SinglePlatform's hours array is empty.",
+    "Whether the public address should include unit #1 is unknown / to confirm.",
+    "Which facial price is current is unknown / to confirm. Booksy lists Facial at 100 USD and SinglePlatform lists Micro/Facial at 90 USD.",
+    "What each of the five Botox prices covers is unknown / to confirm.",
+    "An owner-controlled website and email are unknown / to confirm.",
+    "Instagram content is unknown / to confirm because the fetch stopped at a login page.",
+    "Whether Cash is the only accepted payment is unknown / to confirm.",
+    "Permission to display the linked photos is unknown / to confirm.",
+    "Booksy displayed a 5.0 rating from 49 reviews. Review text was not copied and is unknown / to confirm as site content."
+  ],
+  "conflicts": [
+    {
+      "field": "address",
+      "note": "SinglePlatform includes unit #1. Brighton Main Streets and Booksy list 353 Washington Street and do not include a unit.",
+      "sources": [
+        {
+          "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+          "accessed": "2026-11-11",
+          "excerpt": "streetAddress 353 Washington St # 1, Brighton, MA 02135."
+        },
+        {
+          "url": "https://brightonmainstreets.org/shops/ensueno-body-and-skin-care/",
+          "accessed": "2026-11-11",
+          "excerpt": "Address line: 353 Washington Street Brighton, MA 02135."
+        }
+      ]
+    },
+    {
+      "field": "facial price",
+      "note": "Booksy lists Facial at 100 USD. SinglePlatform lists Micro/Facial at 90 USD and says pricing can change. These names are similar but not identical, so they were not merged.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/620627_ensueno-skin-care_aesthetic-medicine_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Facial at 100 USD."
+        },
+        {
+          "url": "http://places.singleplatform.com/ensueno-body--skin-care/menu",
+          "accessed": "2026-11-11",
+          "excerpt": "Micro/Facial is shown at $90.00 (90 USD), with a pricing-may-change disclaimer."
+        }
+      ]
+    }
+  ],
+  "fetchAttempts": [
+    {
+      "url": "https://www.yellowpages.com/brighton-ma/mip/ensueno-body-skin-care-clinic-10160067",
+      "accessed": "2026-11-11",
+      "httpStatus": 403,
+      "note": "Yellow Pages returned HTTP 403. A previously discussed website button on that listing was not re-read."
+    }
+  ],
+  "generatorMustNot": [
+    "Do not invent prices, hours, services, reviews, or testimonials.",
+    "Do not set factStatus to owner_approved or bypass the owner-approval gate.",
+    "Photo links are reference only and were not downloaded. Do not display them until the owner approves that use.",
+    "Keep the text \"Internal concept, not endorsed by the business\" and noindex on any internal concept.",
+    "Do not publish Booksy or SinglePlatform prices, or a Sunday hour, until the owner confirms them.",
+    "Do not drop the unit number or add it until the owner confirms the public address.",
+    "Keep the existing Booksy booking path. The page says no walk-ins."
+  ]
+}

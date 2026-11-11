@@ -1,0 +1,506 @@
+{
+  "schemaVersion": "brighton-public-fact-sheet/v1",
+  "slug": "classic-barber-shop",
+  "businessName": "Classic Barber Shop",
+  "researchedOn": "2026-11-11",
+  "researchTarget": {
+    "name": "Classic Barber Shop",
+    "addressAsSupplied": "379 Washington St",
+    "note": "Supplied for the sprint. This is not a public-source confirmation."
+  },
+  "category": [
+    {
+      "value": "Barber",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/classic-barber-shop/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible category: Barber."
+        }
+      ]
+    },
+    {
+      "value": "Booksy JSON-LD @type HairSalon, and the breadcrumb calls the category Barber",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD @type HairSalon. Breadcrumb item name Barber."
+        }
+      ]
+    },
+    {
+      "value": "Fresha primaryBusinessType Barber",
+      "sources": [
+        {
+          "url": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+          "accessed": "2026-11-11",
+          "excerpt": "Next.js liteLocation primaryBusinessType name Barber."
+        }
+      ]
+    }
+  ],
+  "address": [
+    {
+      "value": "379 Washington Street, Brighton, MA 02135",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/classic-barber-shop/",
+          "accessed": "2026-11-11",
+          "excerpt": "Address line as displayed, with no space before Brighton: 379 Washington StreetBrighton, MA 02135."
+        },
+        {
+          "url": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+          "accessed": "2026-11-11",
+          "excerpt": "fullFormattedAddress 379 Washington St, Brighton, MA 02135."
+        },
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD streetAddress Washington St, 379, Brighton, 02135; addressLocality Boston; postalCode 02135."
+        }
+      ]
+    }
+  ],
+  "phones": [
+    {
+      "value": "617-202-5837 on Brighton Main Streets",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/classic-barber-shop/",
+          "accessed": "2026-11-11",
+          "excerpt": "Phone line: 617-202-5837."
+        }
+      ]
+    },
+    {
+      "value": "(617) 208-7099 on Fresha",
+      "sources": [
+        {
+          "url": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD telephone (617) 208-7099. Next.js liteLocation phone is the same."
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "kind": "directory",
+      "url": "https://brightonmainstreets.org/shops/classic-barber-shop/",
+      "label": "Brighton Main Streets",
+      "relationship": "directory-listing",
+      "note": "Lists a website, Facebook, and Instagram. Map data is attributed to Google.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "booking",
+      "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+      "label": "Booksy",
+      "relationship": "directory-listing",
+      "note": "Booking page with structured hours, a priced service list, staff names, and a ReserveAction URL on the same page.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "booking",
+      "url": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+      "label": "Fresha",
+      "relationship": "directory-listing",
+      "note": "Listing page. websiteUrl in the Next.js data is empty. The only gallery image is a Fresha placeholder.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "website",
+      "url": "https://website-1230933097149659479132-barbershop.business.site/",
+      "label": "Google business.site URL linked by Brighton Main Streets",
+      "relationship": "not-found",
+      "note": "Fetched on 2026-11-11. The response was a Google 404 page titled Error 404 (Not Found).",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "social",
+      "url": "https://www.instagram.com/classicbarbershop379/",
+      "label": "Instagram classicbarbershop379",
+      "relationship": "login-wall",
+      "note": "Brighton Main Streets links https://www.instagram.com/classicbarbershop379/?hl=en and Fresha sameAs links https://www.instagram.com/Classicbarbershop379/. The fetch redirected to an Instagram login page, so posts were not read.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "social",
+      "url": "https://www.facebook.com/Classic-Barber-Shop-2069287373355079",
+      "label": "Facebook",
+      "relationship": "login-wall",
+      "note": "Linked from Brighton Main Streets. The fetch redirected to a Facebook login page, so the profile was not read.",
+      "accessed": "2026-11-11"
+    }
+  ],
+  "hours": [
+    {
+      "value": "Monday–Saturday 9:30 AM–7:00 PM and Sunday 10:00 AM–4:00 PM. Booksy JSON-LD and Fresha workingHours match.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "openingHoursSpecification Sunday opens 10:00 closes 16:00; Monday through Saturday opens 09:30 closes 19:00."
+        },
+        {
+          "url": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+          "accessed": "2026-11-11",
+          "excerpt": "workingHours Monday-Saturday 9:30 AM - 7:00 PM and Sunday 10:00 AM - 4:00 PM."
+        }
+      ]
+    }
+  ],
+  "offerings": [
+    {
+      "name": "Haircut and Beard",
+      "detail": "Listed in Booksy JSON-LD makesOffer. Not confirmed with the shop.",
+      "publishedPrice": "35 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Haircut and Beard at 35 USD."
+        }
+      ]
+    },
+    {
+      "name": "Line Up ( No beard )",
+      "detail": "Listed in Booksy JSON-LD makesOffer. Not confirmed with the shop.",
+      "publishedPrice": "15 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Line Up ( No beard ) at 15 USD."
+        }
+      ]
+    },
+    {
+      "name": "Regular Haircut (One/two size clippers)",
+      "detail": "Listed in Booksy JSON-LD makesOffer. Not confirmed with the shop.",
+      "publishedPrice": "25 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Regular Haircut (One/two size clippers) at 25 USD."
+        }
+      ]
+    },
+    {
+      "name": "Full services (Hair cut + Beard + Facial)",
+      "detail": "Listed in Booksy JSON-LD makesOffer. Not confirmed with the shop.",
+      "publishedPrice": "40 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Full services (Hair cut + Beard + Facial) at 40 USD."
+        }
+      ]
+    },
+    {
+      "name": "Skin Fade Cut",
+      "detail": "Listed in Booksy JSON-LD makesOffer. Not confirmed with the shop.",
+      "publishedPrice": "30 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Skin Fade Cut at 30 USD."
+        }
+      ]
+    },
+    {
+      "name": "Skin Fade Cut & Beard Trim",
+      "detail": "Listed in Booksy JSON-LD makesOffer. Not confirmed with the shop.",
+      "publishedPrice": "35 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Skin Fade Cut & Beard Trim at 35 USD."
+        }
+      ]
+    },
+    {
+      "name": "Scissors Cut all around",
+      "detail": "Listed in Booksy JSON-LD makesOffer. Not confirmed with the shop.",
+      "publishedPrice": "40 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Scissors Cut all around at 40 USD."
+        }
+      ]
+    },
+    {
+      "name": "Kid under 12 Regular Hair Cut",
+      "detail": "Listed in Booksy JSON-LD makesOffer. Not confirmed with the shop.",
+      "publishedPrice": "17 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Kid under 12 Regular Hair Cut at 17 USD."
+        }
+      ]
+    },
+    {
+      "name": "Kids under 12 Any Style",
+      "detail": "Listed in Booksy JSON-LD makesOffer. Not confirmed with the shop.",
+      "publishedPrice": "20 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Kids under 12 Any Style at 20 USD."
+        }
+      ]
+    },
+    {
+      "name": "Beard trim",
+      "detail": "Listed in Booksy JSON-LD makesOffer. Not confirmed with the shop.",
+      "publishedPrice": "15 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Beard trim at 15 USD."
+        }
+      ]
+    },
+    {
+      "name": "Line up and Beard trim",
+      "detail": "Listed in Booksy JSON-LD makesOffer. Not confirmed with the shop.",
+      "publishedPrice": "20 USD",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Booksy JSON-LD makesOffer lists Line up and Beard trim at 20 USD."
+        }
+      ]
+    },
+    {
+      "name": "Beard Trim",
+      "detail": "Fresha category Barbers. No price in the Fresha data.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+          "accessed": "2026-11-11",
+          "excerpt": "offeredCategories Barbers treatments: Beard Trim, Head Shave, Hot Towel Shave."
+        }
+      ]
+    },
+    {
+      "name": "Head Shave",
+      "detail": "On the Fresha list. Not in the Booksy makesOffer names retrieved from the same-day Booksy HTML.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+          "accessed": "2026-11-11",
+          "excerpt": "offeredCategories Barbers treatments include Head Shave. No prices in that Next.js payload."
+        }
+      ]
+    },
+    {
+      "name": "Hot Towel Shave",
+      "detail": "On the Fresha list. Not in the Booksy makesOffer names retrieved from the same-day Booksy HTML.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+          "accessed": "2026-11-11",
+          "excerpt": "offeredCategories Barbers treatments include Hot Towel Shave."
+        }
+      ]
+    },
+    {
+      "name": "Men's Haircut",
+      "detail": "Fresha category Hair. No price in the Fresha data.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+          "accessed": "2026-11-11",
+          "excerpt": "offeredCategories Hair treatments: Men's Haircut."
+        }
+      ]
+    }
+  ],
+  "publicDescriptions": [
+    {
+      "value": "Booksy about text, copied as published: \"Check in when coming in the Shop. I Work at Classic Barbershop in Brighton MA. We are a team of 6 Barbers. 3barbers available for appointment for the others 3 barbers walk in are welcome to come. We been working as a barber for many years in all type of hairs. We have street parking open. Welcome in!\"",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD description begins \"Check in when coming in the Shop\" and says \"We are a team of 6 Barbers.\""
+        }
+      ]
+    },
+    {
+      "value": "Booksy JSON-LD employee names: Eduardo, Alexander, Angel, Guillermo. The about text says the team has 6 barbers. The other two names are not in that employee list.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD employee names: Eduardo, Alexander, Angel, Guillermo."
+        }
+      ]
+    }
+  ],
+  "attributes": [
+    {
+      "value": "Booksy JSON-LD priceRange $15.00-$40.00 and paymentAccepted Cash.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD priceRange $15.00-$40.00 and paymentAccepted Cash."
+        }
+      ]
+    },
+    {
+      "value": "Booksy amenities in the HTML: Accessible for people with disabilities; Child-friendly; Wi-Fi.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible amenities: Accessible for people with disabilities, Child-friendly, and Wi-Fi."
+        }
+      ]
+    },
+    {
+      "value": "Booksy health-and-safety lines mention masks, disposable gloves, disinfection between clients, social distancing, masks for clients, and a place to wash hands. These read as template lines and were not confirmed as current shop policy.",
+      "sources": [
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible Venue Health and Safety Rules include Employees wear masks and Disinfection between clients."
+        }
+      ]
+    }
+  ],
+  "publicRecords": [
+    {
+      "value": "The Active Food Establishment Licenses CSV downloaded on 2026-11-11 has 3,357 data rows, no matching business name, and no 02135 row at 379 Washington. Absence from this food-license file is not proof about other license types.",
+      "sources": [
+        {
+          "url": "https://data.boston.gov/dataset/5e4182e3-ba1e-4511-88f8-08a70383e1b6/resource/f1e13724-284d-478c-b8bc-ef042aa5b70b/download/tmpjv4tmjxm.csv",
+          "accessed": "2026-11-11",
+          "excerpt": "CSV header includes businessname,address,city,zip,licstatus. No 02135 row at 379 Washington."
+        }
+      ]
+    }
+  ],
+  "photos": [
+    {
+      "pageUrl": "https://brightonmainstreets.org/shops/classic-barber-shop/",
+      "imageUrl": "https://brightonmainstreets.org/wp-content/uploads/2019/11/ClassicBarber.webp",
+      "note": "Image referenced by the Brighton Main Streets listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+      "imageUrl": "https://d2zdpiztbgorvt.cloudfront.net/us/images/177047/biz_photo_156167204161.jpeg",
+      "note": "Booksy JSON-LD image. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+      "imageUrl": "https://d2zdpiztbgorvt.cloudfront.net/us/images/177047/logo_156122178962.jpeg",
+      "note": "Booksy JSON-LD logo. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+      "imageUrl": "https://d2zdpiztbgorvt.cloudfront.net/region1/us/177047/resource_photos/51de8045bab143c9ba4c9659f0e03f76.jpeg",
+      "note": "Booksy employee image for Eduardo. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+      "imageUrl": "https://d2zdpiztbgorvt.cloudfront.net/region1/us/177047/resource_photos/52605befaa60427ca70e905a61b6c12d.jpeg",
+      "note": "Booksy employee image for Alexander. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+      "imageUrl": "https://d2zdpiztbgorvt.cloudfront.net/region1/us/177047/resource_photos/9cb23e50c7f34929a1f75dafb39617de.jpeg",
+      "note": "Booksy employee image for Angel. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+      "imageUrl": "https://d2zdpiztbgorvt.cloudfront.net/region1/us/177047/resource_photos/cbce99e71ff2494794bd7e5cfb1c7b3e.jpeg",
+      "note": "Booksy employee image for Guillermo. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+      "imageUrl": "https://images.fresha.com/lead-images/placeholders/barbershop-12.jpg?class=venue-gallery-mobile",
+      "note": "Fresha mobileImages URL is under lead-images/placeholders. This is a placeholder, not a photo of the shop. The file was not downloaded.",
+      "accessed": "2026-11-11"
+    }
+  ],
+  "unknown": [
+    "Which phone number is current is unknown / to confirm.",
+    "Which service list is current, the Booksy priced menu or the shorter Fresha list, is unknown / to confirm.",
+    "An owner-controlled website and email are unknown / to confirm. The linked business.site URL returns 404.",
+    "Instagram and Facebook content are unknown / to confirm because both fetches stopped at a login page.",
+    "Whether Booksy's Cash value is the only accepted payment is unknown / to confirm.",
+    "Permission to display the linked photos, including staff photos, is unknown / to confirm.",
+    "Booksy displayed a 4.9 rating from 294 reviews. Review text was not copied and is unknown / to confirm as site content."
+  ],
+  "conflicts": [
+    {
+      "field": "phone",
+      "note": "Brighton Main Streets publishes 617-202-5837. Fresha publishes (617) 208-7099. Booksy JSON-LD on the retrieved page has no telephone.",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/classic-barber-shop/",
+          "accessed": "2026-11-11",
+          "excerpt": "Phone line: 617-202-5837."
+        },
+        {
+          "url": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD telephone (617) 208-7099."
+        }
+      ]
+    },
+    {
+      "field": "services",
+      "note": "Fresha lists Head Shave and Hot Towel Shave and does not list prices. Booksy lists 11 priced services and the retrieved makesOffer names do not include Head Shave or Hot Towel Shave.",
+      "sources": [
+        {
+          "url": "https://www.fresha.com/lvp/classic-barber-shop-washington-street-boston-lRwqM",
+          "accessed": "2026-11-11",
+          "excerpt": "Barbers treatments: Beard Trim, Head Shave, Hot Towel Shave. Hair treatments: Men's Haircut. No prices in that payload."
+        },
+        {
+          "url": "https://booksy.com/en-us/177047_classic-barber-shop_barber-shop_22412_boston",
+          "accessed": "2026-11-11",
+          "excerpt": "makesOffer names include Haircut and Beard at 35 USD and Beard trim at 15 USD. Head Shave is not among those names."
+        }
+      ]
+    }
+  ],
+  "fetchAttempts": [],
+  "generatorMustNot": [
+    "Do not invent prices, hours, services, reviews, or testimonials.",
+    "Do not set factStatus to owner_approved or bypass the owner-approval gate.",
+    "Photo links are reference only and were not downloaded. Do not display them until the owner approves that use.",
+    "Keep the text \"Internal concept, not endorsed by the business\" and noindex on any internal concept.",
+    "Do not publish either phone, either service menu, or any Booksy price until the owner confirms it.",
+    "Do not replace the Booksy booking path. The ReserveAction URL is on the Booksy page.",
+    "Do not use the Fresha placeholder image as a photo of this shop.",
+    "Do not publish the Booksy mask and social-distancing lines as current policy."
+  ]
+}

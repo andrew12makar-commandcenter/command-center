@@ -1,0 +1,465 @@
+{
+  "schemaVersion": "brighton-public-fact-sheet/v1",
+  "slug": "oliveira-deli-market",
+  "businessName": "Oliveira Deli Market",
+  "researchedOn": "2026-11-11",
+  "researchTarget": {
+    "name": "Oliveira Deli Market",
+    "addressAsSupplied": "243 Faneuil St",
+    "note": "Supplied for the sprint. This is not a public-source confirmation."
+  },
+  "category": [
+    {
+      "value": "First-party homepage: Brazilian market with a butcher counter, Brazilian grocery products, and money transfer. The page is in Portuguese.",
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "Headings include Carne fresca, cortada na hora; Produtos do Brasil; and Envio de dinheiro. Loja Brighton is at 243 Faneuil St."
+        }
+      ]
+    },
+    {
+      "value": "Facebook meta category phrase: Butcher Shop.",
+      "sources": [
+        {
+          "url": "https://www.facebook.com/Oliveiradelimarket/",
+          "accessed": "2026-11-11",
+          "excerpt": "og:description: Oliveira Deli Market. 196 followers · 2 talking about this. Butcher Shop."
+        }
+      ]
+    },
+    {
+      "value": "Apple Maps category: Brazilian Cuisine.",
+      "sources": [
+        {
+          "url": "https://maps.apple.com/place?place-id=I51CC7BEDC8FE7813",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible category line: Brazilian Cuisine · Allston-Brighton, Boston."
+        }
+      ]
+    },
+    {
+      "value": "Nextdoor JSON-LD knowsAbout: Deli and Specialty food store. The name on that record is Oliveriras Deli Market Inc.",
+      "sources": [
+        {
+          "url": "https://nextdoor.com/pages/oliveiras-deli-market-brighton-ma/",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD name Oliveriras Deli Market Inc; knowsAbout Deli and Specialty food store."
+        }
+      ]
+    },
+    {
+      "value": "Restaurantji header labels: Brazilian, Deli.",
+      "sources": [
+        {
+          "url": "https://www.restaurantji.com/ma/brighton/oliveiras-deli-market-/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible header text includes Brazilian , Deli next to the address and phone."
+        }
+      ]
+    }
+  ],
+  "address": [
+    {
+      "value": "243 Faneuil St, Boston, MA 02135 on the business homepage, labeled Loja Brighton.",
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "Loja Brighton address: 243 Faneuil St, Boston, MA 02135. Phone on that block: (617) 987-0191."
+        },
+        {
+          "url": "https://www.restaurantji.com/ma/brighton/oliveiras-deli-market-/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible address: 243 Faneuil Street, Boston, MA 02135."
+        },
+        {
+          "url": "https://www.restaurantji.com/order.php?id=6036354",
+          "accessed": "2026-11-11",
+          "excerpt": "Order page text: Oliveira Deli Market, 243 Faneuil Street, Boston, MA 02135, (617) 987-0191."
+        },
+        {
+          "url": "https://nextdoor.com/pages/oliveiras-deli-market-brighton-ma/",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD streetAddress 243 Faneuil Street, addressLocality Brighton, postalCode 02135."
+        },
+        {
+          "url": "https://maps.apple.com/place?place-id=I51CC7BEDC8FE7813",
+          "accessed": "2026-11-11",
+          "excerpt": "Address block: 243 Faneuil St, Brighton, MA 02135, United States."
+        }
+      ]
+    },
+    {
+      "value": "The same homepage also lists Loja Lowell at 279 Chelmsford St, Lowell, MA 01851. That is a different store and a different phone.",
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "LOJA LOWELL address 279 Chelmsford St, Lowell, MA 01851. Phone (978) 455-1724."
+        }
+      ]
+    }
+  ],
+  "phones": [
+    {
+      "value": "(617) 987-0191 for the Brighton store",
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "Loja Brighton telephone (617) 987-0191. tel:+16179870191 and WhatsApp https://wa.me/16179870191 are on the page."
+        },
+        {
+          "url": "https://maps.apple.com/place?place-id=I51CC7BEDC8FE7813",
+          "accessed": "2026-11-11",
+          "excerpt": "Phone block: +1 (617) 987-0191."
+        },
+        {
+          "url": "https://www.restaurantji.com/ma/brighton/oliveiras-deli-market-/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible phone (617) 987-0191."
+        },
+        {
+          "url": "https://nextdoor.com/pages/oliveiras-deli-market-brighton-ma/",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD telephone +16179870191."
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "kind": "website",
+      "url": "https://oliveiradelimarket.com/",
+      "label": "oliveiradelimarket.com",
+      "relationship": "first-party",
+      "note": "WordPress homepage. Copyright line says © 2026 Oliveira Deli Market. It describes three stores and prints Lowell and Brighton address blocks. A testimonial label says Loja Framingham, but no Framingham address is on the page.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "social",
+      "url": "https://www.facebook.com/Oliveiradelimarket/",
+      "label": "Facebook Oliveira Deli Market",
+      "relationship": "first-party",
+      "note": "Linked from the homepage. Public meta tags were readable. The post feed was not.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "social",
+      "url": "https://www.instagram.com/oliveiradelimarket/",
+      "label": "Instagram oliveiradelimarket",
+      "relationship": "login-wall",
+      "note": "Linked from the homepage and from Restaurantji. The fetch redirected to an Instagram login page, so posts were not read.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "social",
+      "url": "https://wa.me/16179870191",
+      "label": "WhatsApp",
+      "relationship": "linked-by-another-public-page",
+      "note": "The homepage links wa.me/16179870191, the Brighton number. The chat was not opened and nobody was contacted.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "map",
+      "url": "https://maps.apple.com/place?place-id=I51CC7BEDC8FE7813",
+      "label": "Apple Maps",
+      "relationship": "directory-listing",
+      "note": "Place page with hours that differ from the business homepage. A claim-this-place control is on the page.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "directory",
+      "url": "https://www.restaurantji.com/ma/brighton/oliveiras-deli-market-/",
+      "label": "Restaurantji",
+      "relationship": "directory-listing",
+      "note": "Lists hours that match the homepage, plus Facebook and Instagram links. The menu subpage returned HTTP 403.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "ordering",
+      "url": "https://www.restaurantji.com/order.php?id=6036354",
+      "label": "Restaurantji order page",
+      "relationship": "directory-listing",
+      "note": "Confirms the name, address, and phone. The HTML did not link DoorDash, Grubhub, Uber Eats, or another ordering host.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "directory",
+      "url": "https://nextdoor.com/pages/oliveiras-deli-market-brighton-ma/",
+      "label": "Nextdoor",
+      "relationship": "directory-listing",
+      "note": "The record spells the name Oliveriras Deli Market Inc and links a Google business.site URL that returned 404.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "website",
+      "url": "https://oliveiras-deli-market.business.site/",
+      "label": "oliveiras-deli-market.business.site",
+      "relationship": "not-found",
+      "note": "Linked by the Nextdoor page. Fetch returned a Google 404.",
+      "accessed": "2026-11-11"
+    }
+  ],
+  "hours": [
+    {
+      "value": "Homepage, Loja Brighton: Seg a sáb, 6h30–21h · Dom, 6h30–16h. Read as Monday–Saturday 6:30–21:00 and Sunday 6:30–16:00.",
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "Loja Brighton HORÁRIO: Seg a sáb, 6h30–21h · Dom, 6h30–16h."
+        }
+      ]
+    },
+    {
+      "value": "Restaurantji: Monday–Saturday 6:30AM–9PM and Sunday 6:30AM–4PM. This matches the homepage reading.",
+      "sources": [
+        {
+          "url": "https://www.restaurantji.com/ma/brighton/oliveiras-deli-market-/",
+          "accessed": "2026-11-11",
+          "excerpt": "Hours table: Monday 6:30AM-9PM through Saturday 6:30AM-9PM, Sunday 6:30AM-4PM."
+        }
+      ]
+    },
+    {
+      "value": "Apple Maps: Monday–Saturday 7:00 AM–9:00 PM and Sunday 7:00 AM–4:00 PM. This does not match the homepage.",
+      "sources": [
+        {
+          "url": "https://maps.apple.com/place?place-id=I51CC7BEDC8FE7813",
+          "accessed": "2026-11-11",
+          "excerpt": "Hours block: Mon – Sat 7:00 AM – 9:00 PM. Sunday 7:00 AM – 4:00 PM."
+        }
+      ]
+    }
+  ],
+  "offerings": [
+    {
+      "name": "Carne fresca, cortada na hora",
+      "detail": "Homepage section. English rendering of the page's own words: fresh meat, cut to order. The page calls the counter an açougue.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "Heading: Carne fresca, cortada na hora. Body says the açougue cuts meat to order."
+        }
+      ]
+    },
+    {
+      "name": "Produtos do Brasil",
+      "detail": "Homepage examples: café, biscoito, tempero, doce, and brands from Brazil.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "Heading Produtos do Brasil. Examples in the paragraph: Café, biscoito, tempero, doce."
+        }
+      ]
+    },
+    {
+      "name": "Envio de dinheiro",
+      "detail": "Homepage: money transfer to Brazil from inside the market. No fee or provider is named.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "Heading Envio de dinheiro. Text: Envio de dinheiro pro Brasil com segurança e sem complicação."
+        }
+      ]
+    }
+  ],
+  "publicDescriptions": [
+    {
+      "value": "Homepage line: \"Um pedacinho do Brasil pertinho de você — agora em Lowell e Brighton.\"",
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible line: Um pedacinho do Brasil pertinho de você — agora em Lowell e Brighton."
+        }
+      ]
+    },
+    {
+      "value": "The homepage says there are three stores. It prints address blocks for Lowell and Brighton only. One quote on the page is labeled Cliente · Loja Framingham and does not include a Framingham street address.",
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "Heading: Três lojas, o mesmo abraço. A quote is labeled Cliente · Loja Framingham."
+        }
+      ]
+    },
+    {
+      "value": "Homepage customer quotes and a Google review widget are present. The quote text was not copied into this fact sheet.",
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "The page has a Quem é da casa, conta quote block and a Trustindex Google review widget."
+        }
+      ]
+    }
+  ],
+  "attributes": [
+    {
+      "value": "Apple Maps Good to Know list, not repeated on the homepage: Accepts Apple Pay, contactless payments, takeout, delivery, wheelchair accessible, good for kids, street parking, lunch, no alcohol, casual ambiance, catering, free Wi-Fi, accepts credit cards.",
+      "sources": [
+        {
+          "url": "https://maps.apple.com/place?place-id=I51CC7BEDC8FE7813",
+          "accessed": "2026-11-11",
+          "excerpt": "Good to Know includes Takeout, Delivery, No Alcohol, Catering, and Accepts Credit Cards."
+        }
+      ]
+    },
+    {
+      "value": "Restaurantji shows the labels delivery, take-out, and in-store shopping.",
+      "sources": [
+        {
+          "url": "https://www.restaurantji.com/ma/brighton/oliveiras-deli-market-/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible options text: delivery take-out and in-store shopping."
+        }
+      ]
+    }
+  ],
+  "publicRecords": [
+    {
+      "value": "The Active Food Establishment Licenses CSV downloaded on 2026-11-11 has 3,357 data rows, no matching business name, and no 02135 row at 243 Faneuil. Absence from this food-license file is not proof about other license types.",
+      "sources": [
+        {
+          "url": "https://data.boston.gov/dataset/5e4182e3-ba1e-4511-88f8-08a70383e1b6/resource/f1e13724-284d-478c-b8bc-ef042aa5b70b/download/tmpjv4tmjxm.csv",
+          "accessed": "2026-11-11",
+          "excerpt": "CSV header includes businessname,address,city,zip,licstatus. No 02135 row at 243 Faneuil."
+        }
+      ]
+    }
+  ],
+  "photos": [
+    {
+      "pageUrl": "https://oliveiradelimarket.com/",
+      "imageUrl": "https://oliveiradelimarket.com/wp-content/uploads/2026/09/group_3.webp",
+      "note": "Image URL on the homepage. What it depicts was not inspected. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://oliveiradelimarket.com/",
+      "imageUrl": "https://oliveiradelimarket.com/wp-content/uploads/2026/09/mask_group.webp",
+      "note": "Image URL on the homepage. What it depicts was not inspected. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://oliveiradelimarket.com/",
+      "imageUrl": "https://oliveiradelimarket.com/wp-content/uploads/2026/09/vector-1.webp",
+      "note": "Image URL on the homepage. The filename says vector. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://oliveiradelimarket.com/",
+      "imageUrl": "https://oliveiradelimarket.com/wp-content/uploads/2026/09/Group-2.png",
+      "note": "Image URL on the homepage. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://oliveiradelimarket.com/",
+      "imageUrl": "https://oliveiradelimarket.com/wp-content/uploads/2026/09/Group-6.png",
+      "note": "Image URL on the homepage. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.restaurantji.com/ma/brighton/oliveiras-deli-market-/",
+      "imageUrl": "https://cdn6.localdatacdn.com/images/6036354/d_oliveira_deli_market_photo.jpg?q=6acb4c4861b08",
+      "note": "Image URL on the Restaurantji page. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.restaurantji.com/ma/brighton/oliveiras-deli-market-/",
+      "imageUrl": "https://cdn6.localdatacdn.com/images/6036354/d_oliveira_deli_market_menu.jpg?q=6acb4c4861b08",
+      "note": "Menu image URL on the Restaurantji page. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://nextdoor.com/pages/oliveiras-deli-market-brighton-ma/",
+      "imageUrl": "https://d33c41ebahvfs6.cloudfront.net/static/nextdoorv2/images/smb/smb-default-f2c1f2c3cf55184f27532f33420a758e.png",
+      "note": "Nextdoor JSON-LD image is the site default SMB placeholder, not a store photo. The file was not downloaded.",
+      "accessed": "2026-11-11"
+    }
+  ],
+  "unknown": [
+    "Which weekly hours are current is unknown / to confirm. The homepage and Restaurantji agree with each other and disagree with Apple Maps.",
+    "Whether the Brighton store sells prepared food, and any menu, are unknown / to confirm. The homepage describes a butcher, Brazilian groceries, and money transfer. It does not list a hot-food menu.",
+    "The street address for the Framingham location named on the homepage is unknown / to confirm.",
+    "Email is unknown / to confirm.",
+    "Permission to display the linked images is unknown / to confirm.",
+    "Apple Maps attributes and any delivery platform are unknown / to confirm. Grubhub and Seamless did not return a menu.",
+    "Homepage quotes were not copied. Whether the owner wants them reused is unknown / to confirm."
+  ],
+  "conflicts": [
+    {
+      "field": "hours",
+      "note": "The homepage and Restaurantji say Monday–Saturday 6:30 AM–9:00 PM and Sunday 6:30 AM–4:00 PM. Apple Maps says Monday–Saturday 7:00 AM–9:00 PM and Sunday 7:00 AM–4:00 PM.",
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "Loja Brighton HORÁRIO: Seg a sáb, 6h30–21h · Dom, 6h30–16h."
+        },
+        {
+          "url": "https://maps.apple.com/place?place-id=I51CC7BEDC8FE7813",
+          "accessed": "2026-11-11",
+          "excerpt": "Mon – Sat 7:00 AM – 9:00 PM. Sunday 7:00 AM – 4:00 PM."
+        }
+      ]
+    },
+    {
+      "field": "name",
+      "note": "The homepage and Facebook use Oliveira Deli Market. Nextdoor's structured name is Oliveriras Deli Market Inc.",
+      "sources": [
+        {
+          "url": "https://oliveiradelimarket.com/",
+          "accessed": "2026-11-11",
+          "excerpt": "Page title and footer: Oliveira Deli Market."
+        },
+        {
+          "url": "https://nextdoor.com/pages/oliveiras-deli-market-brighton-ma/",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD name Oliveriras Deli Market Inc."
+        }
+      ]
+    }
+  ],
+  "fetchAttempts": [
+    {
+      "url": "https://www.grubhub.com/restaurant/oliveira-deli-market-243-faneuil-st-boston/2533774",
+      "accessed": "2026-11-11",
+      "httpStatus": 200,
+      "note": "HTTP 200. The HTML was an interstitial titled Prepare your taste buds and did not include the business name, address, or menu."
+    },
+    {
+      "url": "https://www.seamless.com/menu/oliveira-deli-market-243-faneuil-st-boston/2533774",
+      "accessed": "2026-11-11",
+      "httpStatus": 200,
+      "note": "HTTP 200. Same kind of interstitial. No menu was in the HTML."
+    },
+    {
+      "url": "https://www.restaurantji.com/ma/brighton/oliveiras-deli-market-/menu/",
+      "accessed": "2026-11-11",
+      "httpStatus": 403,
+      "note": "Restaurantji menu URL returned HTTP 403. The menu page was not read."
+    }
+  ],
+  "generatorMustNot": [
+    "Do not invent prices, hours, services, reviews, or testimonials.",
+    "Do not set factStatus to owner_approved or bypass the owner-approval gate.",
+    "Photo links are reference only and were not downloaded. Do not display them until the owner approves that use.",
+    "Keep the text \"Internal concept, not endorsed by the business\" and noindex on any internal concept.",
+    "Do not publish hours until the owner picks one schedule. Do not use the Lowell phone on the Brighton page.",
+    "Do not invent a prepared-food menu or publish Apple Maps amenities as owner features.",
+    "Do not reuse homepage quotes or the Google review widget as testimonials.",
+    "Do not describe the market as unlicensed because the food-establishment file has no row at this address."
+  ]
+}

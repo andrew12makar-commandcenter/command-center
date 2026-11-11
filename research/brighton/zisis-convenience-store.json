@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "brighton-public-fact-sheet/v1",
+  "slug": "zisis-convenience-store",
+  "businessName": "Zisis Convenience Store",
+  "researchedOn": "2026-11-11",
+  "researchTarget": {
+    "name": "Zisis Convenience Store",
+    "addressAsSupplied": "375 Washington St",
+    "note": "Supplied for the sprint. This is not a public-source confirmation."
+  },
+  "category": [
+    {
+      "value": "Food and Drink, Shopping",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/zsis-conveince/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible categories: Food and Drink, Shopping. Page title: Zisi's Convenience."
+        }
+      ]
+    },
+    {
+      "value": "Convenience Stores, Variety Stores",
+      "sources": [
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/zisis-convenience-store/5108799/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible labels: Convenience Stores, Variety Stores. Page title uses ZISIS CONVENIENCE STORE."
+        }
+      ]
+    }
+  ],
+  "address": [
+    {
+      "value": "375 Washington Street, Brighton, MA 02135",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/zsis-conveince/",
+          "accessed": "2026-11-11",
+          "excerpt": "Address line: 375 Washington Street Brighton, MA 02135."
+        },
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/zisis-convenience-store/5108799/",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD streetAddress 375 Washington Street, addressLocality Brighton, postalCode 02135."
+        }
+      ]
+    }
+  ],
+  "phones": [
+    {
+      "value": "617-562-0400, displayed on Brighton Main Streets with a space before 0400",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/zsis-conveince/",
+          "accessed": "2026-11-11",
+          "excerpt": "Phone line as displayed: 617-562- 0400."
+        }
+      ]
+    },
+    {
+      "value": "(617) 785-2938 on Loc8NearMe",
+      "sources": [
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/zisis-convenience-store/5108799/",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD telephone (617) 785-2938. Visible text repeats (617) 785-2938."
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "kind": "directory",
+      "url": "https://brightonmainstreets.org/shops/zsis-conveince/",
+      "label": "Brighton Main Streets — Zisi's Convenience",
+      "relationship": "directory-listing",
+      "note": "The public title is Zisi's Convenience. The URL slug is zsis-conveince. No website or business social link is on the page. Map data is attributed to Google.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "directory",
+      "url": "https://www.loc8nearme.com/massachusetts/brighton/zisis-convenience-store/5108799/",
+      "label": "Loc8NearMe",
+      "relationship": "directory-listing",
+      "note": "Third-party directory. It is the only retrieved page with weekly hours.",
+      "accessed": "2026-11-11"
+    }
+  ],
+  "hours": [
+    {
+      "value": "Loc8NearMe lists every day 8:00 AM–8:00 PM. No second source retrieved a weekly schedule.",
+      "sources": [
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/zisis-convenience-store/5108799/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible hours Monday through Sunday 8AM-8PM. JSON-LD openingHours are 8:00-20:00 for Mo through Su."
+        }
+      ]
+    }
+  ],
+  "offerings": [],
+  "publicDescriptions": [],
+  "attributes": [
+    {
+      "value": "Loc8NearMe tips line: accepts credit cards; bike parking.",
+      "sources": [
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/zisis-convenience-store/5108799/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible tips: accepts credit cards bike parking."
+        }
+      ]
+    }
+  ],
+  "publicRecords": [
+    {
+      "value": "The Active Food Establishment Licenses CSV downloaded on 2026-11-11 has 3,357 data rows, no matching business name, and no 02135 row at 375 Washington. Absence from this food-license file is not proof about other license types.",
+      "sources": [
+        {
+          "url": "https://data.boston.gov/dataset/5e4182e3-ba1e-4511-88f8-08a70383e1b6/resource/f1e13724-284d-478c-b8bc-ef042aa5b70b/download/tmpjv4tmjxm.csv",
+          "accessed": "2026-11-11",
+          "excerpt": "CSV header includes businessname,address,city,zip,licstatus. No 02135 row at 375 Washington."
+        }
+      ]
+    }
+  ],
+  "photos": [
+    {
+      "pageUrl": "https://brightonmainstreets.org/shops/zsis-conveince/",
+      "imageUrl": "https://brightonmainstreets.org/wp-content/uploads/2016/10/Zisis-Conenience-1.png",
+      "note": "Directory card image referenced by the Brighton Main Streets page. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    }
+  ],
+  "unknown": [
+    "Which phone is current is unknown / to confirm.",
+    "Owner-confirmed hours are unknown / to confirm. Only Loc8NearMe published a weekly schedule in this pass. Waze returned HTTP 403, so its hours were not read.",
+    "Specific products, prices, email, a website, and a business social profile are unknown / to confirm.",
+    "Which public spelling to use, Zisi's Convenience or Zisis Convenience Store, is unknown / to confirm.",
+    "Permission to display the directory photo is unknown / to confirm.",
+    "Review text on Loc8NearMe was not copied and is unknown / to confirm as usable content."
+  ],
+  "conflicts": [
+    {
+      "field": "phone",
+      "note": "Brighton Main Streets displays 617-562- 0400. Loc8NearMe displays (617) 785-2938. Neither was confirmed with the business.",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/zsis-conveince/",
+          "accessed": "2026-11-11",
+          "excerpt": "Phone line as displayed: 617-562- 0400."
+        },
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/zisis-convenience-store/5108799/",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD telephone (617) 785-2938."
+        }
+      ]
+    },
+    {
+      "field": "name",
+      "note": "Brighton Main Streets titles the page Zisi's Convenience. Loc8NearMe titles it ZISIS CONVENIENCE STORE.",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/zsis-conveince/",
+          "accessed": "2026-11-11",
+          "excerpt": "Title: Zisi's Convenience - Brighton Main Streets."
+        },
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/zisis-convenience-store/5108799/",
+          "accessed": "2026-11-11",
+          "excerpt": "Title: ZISIS CONVENIENCE STORE - Brighton MA."
+        }
+      ]
+    }
+  ],
+  "fetchAttempts": [
+    {
+      "url": "https://www.waze.com/live-map/directions/zisis-convenience-store-washington-st-375-boston?to=place.w.189268391.1893011595.3217183",
+      "accessed": "2026-11-11",
+      "httpStatus": 403,
+      "note": "Waze returned HTTP 403. Hours and phone on Waze were not read."
+    },
+    {
+      "url": "https://zisisconveniencestorema.localsearch.com/",
+      "accessed": "2026-11-11",
+      "httpStatus": 403,
+      "note": "The localsearch.com host returned HTTP 403. The page was not read."
+    }
+  ],
+  "generatorMustNot": [
+    "Do not invent prices, hours, services, reviews, or testimonials.",
+    "Do not set factStatus to owner_approved or bypass the owner-approval gate.",
+    "Photo links are reference only and were not downloaded. Do not display them until the owner approves that use.",
+    "Keep the text \"Internal concept, not endorsed by the business\" and noindex on any internal concept.",
+    "Do not pick a phone, a spelling, or the Loc8NearMe hours until the owner confirms them.",
+    "Do not invent a product list for the convenience store."
+  ]
+}

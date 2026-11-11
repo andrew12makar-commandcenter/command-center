@@ -1,0 +1,400 @@
+{
+  "schemaVersion": "brighton-public-fact-sheet/v1",
+  "slug": "johnny-ds-fruit-and-produce",
+  "businessName": "Johnny D's Fruit and Produce",
+  "researchedOn": "2026-11-11",
+  "researchTarget": {
+    "name": "Johnny D's Fruit and Produce",
+    "addressAsSupplied": "381 Washington St",
+    "note": "Supplied for the sprint. This is not a public-source confirmation."
+  },
+  "category": [
+    {
+      "value": "Produce, Shopping",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/johnny-ds-produce/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible categories under the listing title: Produce, Shopping."
+        }
+      ]
+    },
+    {
+      "value": "OpenStreetMap shop=greengrocer",
+      "sources": [
+        {
+          "url": "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1&q=Johnny%20D%20Fruit%20Produce%20381%20Washington%20Street%20Brighton",
+          "accessed": "2026-11-11",
+          "excerpt": "Nominatim result type greengrocer, name Johnny D's Fruit and Produce, osm node 10175697959."
+        }
+      ]
+    },
+    {
+      "value": "Grocery Stores, Fruits & Veggies",
+      "sources": [
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible labels: Grocery Stores, Fruits & Veggies, and Fruits & Veggies in Brighton."
+        }
+      ]
+    }
+  ],
+  "address": [
+    {
+      "value": "381 Washington Street, Brighton, MA 02135",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/johnny-ds-produce/",
+          "accessed": "2026-11-11",
+          "excerpt": "Address line: 381 Washington Street Brighton, MA 02135."
+        },
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD streetAddress 381 Washington Street, addressLocality Brighton, postalCode 02135."
+        },
+        {
+          "url": "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1&q=Johnny%20D%20Fruit%20Produce%20381%20Washington%20Street%20Brighton",
+          "accessed": "2026-11-11",
+          "excerpt": "display_name includes 381, Washington Street, Brighton, Boston, 02135."
+        }
+      ]
+    }
+  ],
+  "phones": [
+    {
+      "value": "617-254-0500",
+      "sources": [
+        {
+          "url": "https://brightonmainstreets.org/shops/johnny-ds-produce/",
+          "accessed": "2026-11-11",
+          "excerpt": "Phone line: 617-254-0500."
+        },
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+          "accessed": "2026-11-11",
+          "excerpt": "JSON-LD telephone (617) 254-0500."
+        },
+        {
+          "url": "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1&q=Johnny%20D%20Fruit%20Produce%20381%20Washington%20Street%20Brighton",
+          "accessed": "2026-11-11",
+          "excerpt": "extratags phone +1-617-2540500."
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "kind": "directory",
+      "url": "https://brightonmainstreets.org/shops/johnny-ds-produce/",
+      "label": "Brighton Main Streets — Johnny D's Produce",
+      "relationship": "directory-listing",
+      "note": "Neighborhood directory listing. The page says map and data are provided by Google. No website link is filled in.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "directory",
+      "url": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "label": "Loc8NearMe",
+      "relationship": "directory-listing",
+      "note": "Third-party directory. Its about paragraph reads like review synthesis and is not treated as owner copy.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "map",
+      "url": "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1&q=Johnny%20D%20Fruit%20Produce%20381%20Washington%20Street%20Brighton",
+      "label": "OpenStreetMap via Nominatim",
+      "relationship": "directory-listing",
+      "note": "Community map record, check_date 2026-07-17. ODbL. Not an owner schedule.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "social",
+      "url": "https://www.facebook.com/p/Johnny-Ds-Fruit-and-Produce-100068090161218/",
+      "label": "Facebook — Johnny D's Fruit and Produce",
+      "relationship": "linked-by-another-public-page",
+      "note": "Brighton Main Streets links this page. The fetched HTML exposed title and description meta tags, not a post feed.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "kind": "social",
+      "url": "https://www.instagram.com/explore/locations/266738463/johnny-ds-fruit-and-produce/",
+      "label": "Instagram location",
+      "relationship": "linked-by-another-public-page",
+      "note": "The href is on the Brighton Main Streets page. The Instagram location page itself was not fetched.",
+      "accessed": "2026-11-11"
+    }
+  ],
+  "hours": [
+    {
+      "value": "Monday, Wednesday, Thursday, and Friday 8:00 AM–6:00 PM; Saturday 8:00 AM–3:00 PM; Tuesday and Sunday closed. Two community or directory sources agree. This is not an owner-published schedule.",
+      "sources": [
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+          "accessed": "2026-11-11",
+          "excerpt": "Visible hours: Monday 8AM-6PM, Tuesday Closed, Wednesday 8AM-6PM, Thursday 8AM-6PM, Friday 8AM-6PM, Saturday 8AM-3PM, Sunday Closed. JSON-LD matches, including Tu Closed and Su Closed."
+        },
+        {
+          "url": "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1&q=Johnny%20D%20Fruit%20Produce%20381%20Washington%20Street%20Brighton",
+          "accessed": "2026-11-11",
+          "excerpt": "extratags opening_hours Mo,We-Fr 08:00-18:00; Sa08:00-15:00. Tuesday and Sunday are not listed. check_date 2026-07-17."
+        }
+      ]
+    }
+  ],
+  "offerings": [
+    {
+      "name": "Fresh fruit and produce",
+      "detail": "Facebook meta description. Not a product list.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://www.facebook.com/p/Johnny-Ds-Fruit-and-Produce-100068090161218/",
+          "accessed": "2026-11-11",
+          "excerpt": "og:description: The freshest fruit and produce in Brighton."
+        }
+      ]
+    },
+    {
+      "name": "Local and imported produce",
+      "detail": "Described by a 2017 CBS Boston article. Not reconfirmed as a 2026 product list.",
+      "publishedPrice": null,
+      "sources": [
+        {
+          "url": "https://www.cbsnews.com/boston/news/best-places-for-fresh-fruit-in-boston/",
+          "accessed": "2026-11-11",
+          "excerpt": "2017-07-04 article calls it a greengrocer whose aisles hold fresh local and imported produce, and says it had no website then."
+        }
+      ]
+    }
+  ],
+  "publicDescriptions": [
+    {
+      "value": "Facebook meta description: \"The freshest fruit and produce in Brighton.\" The same tags said 265 followers at fetch time.",
+      "sources": [
+        {
+          "url": "https://www.facebook.com/p/Johnny-Ds-Fruit-and-Produce-100068090161218/",
+          "accessed": "2026-11-11",
+          "excerpt": "og:description: Johnny D's Fruit and Produce. 265 followers. The freshest fruit and produce in Brighton."
+        }
+      ]
+    },
+    {
+      "value": "A CBS Boston article dated 2017-07-04 describes a greengrocer, names John DiPietro, and says the store had no website but did have a Facebook page that posted hours. That article is not a 2026 owner biography.",
+      "sources": [
+        {
+          "url": "https://www.cbsnews.com/boston/news/best-places-for-fresh-fruit-in-boston/",
+          "accessed": "2026-11-11",
+          "excerpt": "datePublished 2017-07-04. Text names Johnny D's Fruit and Produce, 381 Washington St, (617) 254-0500, and www.facebook.com."
+        }
+      ]
+    }
+  ],
+  "attributes": [
+    {
+      "value": "OpenStreetMap extratag payment:cash=yes. The tag does not say other payments are refused.",
+      "sources": [
+        {
+          "url": "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1&q=Johnny%20D%20Fruit%20Produce%20381%20Washington%20Street%20Brighton",
+          "accessed": "2026-11-11",
+          "excerpt": "extratags include payment:cash yes and phone +1-617-2540500."
+        }
+      ]
+    }
+  ],
+  "publicRecords": [
+    {
+      "value": "The Active Food Establishment Licenses CSV downloaded on 2026-11-11 has 3,357 data rows, no matching business name, and no 02135 row at 381 Washington. Absence from this food-license file is not proof about other license types.",
+      "sources": [
+        {
+          "url": "https://data.boston.gov/dataset/5e4182e3-ba1e-4511-88f8-08a70383e1b6/resource/f1e13724-284d-478c-b8bc-ef042aa5b70b/download/tmpjv4tmjxm.csv",
+          "accessed": "2026-11-11",
+          "excerpt": "CSV header includes businessname,address,city,zip,licstatus. No 02135 row at 381 Washington."
+        }
+      ]
+    }
+  ],
+  "photos": [
+    {
+      "pageUrl": "https://www.facebook.com/p/Johnny-Ds-Fruit-and-Produce-100068090161218/",
+      "imageUrl": null,
+      "note": "Facebook meta tags referenced a profile image. The signed CDN address was not stored. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn10.localdatacdn.com/ma/brighton/7241335/original/9rqpUPOXbF.jpeg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn10.localdatacdn.com/ma/brighton/7241335/original/BCzkR05hcb.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn10.localdatacdn.com/ma/brighton/7241335/original/GWQoRDr4Ai.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn10.localdatacdn.com/ma/brighton/7241335/original/WYZJQ5K1Ce.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn10.localdatacdn.com/ma/brighton/7241335/original/nKSGtLNtqH.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn3.localdatacdn.com/ma/brighton/7241335/original/0126b9af0a.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn3.localdatacdn.com/ma/brighton/7241335/original/6ea9e0e04d.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn3.localdatacdn.com/ma/brighton/7241335/original/b83c02d057.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn3.localdatacdn.com/ma/brighton/7241335/original/ed5ce4d0d9.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn3.localdatacdn.com/ma/brighton/7241335/original/eed1a89fb1.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn4.localdatacdn.com/ma/brighton/7241335/original/0KXk26X8NM.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn4.localdatacdn.com/ma/brighton/7241335/original/1i9c9gdni5.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn4.localdatacdn.com/ma/brighton/7241335/original/Bv7xPQAt42.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn4.localdatacdn.com/ma/brighton/7241335/original/R41cP8b4JB.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn4.localdatacdn.com/ma/brighton/7241335/original/eFL3cltlQ8.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn4.localdatacdn.com/ma/brighton/7241335/original/n3PXAg1EwU.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn4.localdatacdn.com/ma/brighton/7241335/original/o46kCAxmhP.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn4.localdatacdn.com/ma/brighton/7241335/original/vav52RD3WQ.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn5.localdatacdn.com/ma/brighton/7241335/original/LAENUki5FB.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn5.localdatacdn.com/ma/brighton/7241335/original/LgdIXXPbjr.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn5.localdatacdn.com/ma/brighton/7241335/original/gPxNW7c0ac.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    },
+    {
+      "pageUrl": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+      "imageUrl": "https://cdn5.localdatacdn.com/ma/brighton/7241335/original/ncROMGg9dj.jpg",
+      "note": "Image URL present on the Loc8NearMe listing. The file was not downloaded. Display permission is unknown.",
+      "accessed": "2026-11-11"
+    }
+  ],
+  "unknown": [
+    "Owner-confirmed hours are unknown / to confirm. The agreeing schedules above are a directory and OpenStreetMap, not the business.",
+    "Whether a first-party website exists in 2026 is unknown / to confirm. Brighton Main Streets has no website link. Yellow Pages returned HTTP 403, so an older directory-link claim was not re-read.",
+    "Whether John DiPietro, named in the 2017 article, still operates the store is unknown / to confirm.",
+    "A current product list, in-store prices, email, and whether the store is cash-only are unknown / to confirm. Loc8NearMe's about text says cash only; OpenStreetMap only records that cash is accepted.",
+    "Permission to display the linked photos is unknown / to confirm.",
+    "Review text on Loc8NearMe was not copied. Which comments are current is unknown / to confirm."
+  ],
+  "conflicts": [
+    {
+      "field": "payment",
+      "note": "Loc8NearMe's about text says cash only. OpenStreetMap records payment:cash=yes and does not say other payments are refused. Neither source is the owner.",
+      "sources": [
+        {
+          "url": "https://www.loc8nearme.com/massachusetts/brighton/johnny-ds-fruit-and-produce/7241335/",
+          "accessed": "2026-11-11",
+          "excerpt": "About paragraph includes: cash only, with ATMs nearby across the street."
+        },
+        {
+          "url": "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1&q=Johnny%20D%20Fruit%20Produce%20381%20Washington%20Street%20Brighton",
+          "accessed": "2026-11-11",
+          "excerpt": "extratags payment:cash yes. No cash-only tag was in the Nominatim response."
+        }
+      ]
+    }
+  ],
+  "fetchAttempts": [
+    {
+      "url": "https://www.yellowpages.com/brighton-ma/mip/johnnys-ds-fruit-produce-6379875",
+      "accessed": "2026-11-11",
+      "httpStatus": 403,
+      "note": "Yellow Pages returned HTTP 403. The page was not read, so its website link was not re-checked."
+    }
+  ],
+  "generatorMustNot": [
+    "Do not invent prices, hours, services, reviews, or testimonials.",
+    "Do not set factStatus to owner_approved or bypass the owner-approval gate.",
+    "Photo links are reference only and were not downloaded. Do not display them until the owner approves that use.",
+    "Keep the text \"Internal concept, not endorsed by the business\" and noindex on any internal concept.",
+    "Do not publish the directory hours, the 2017 biography, or a cash-only claim until the owner confirms them.",
+    "Do not describe the shop as unlicensed because it is absent from the food-establishment file."
+  ]
+}
