@@ -1,0 +1,64 @@
+# Merge-request checks only. There is no deploy stage.
+# This file must not contain secrets. Jobs do not call Vercel or Supabase.
+#
+# Environment variables for the production build
+# ----------------------------------------------
+# GitLab sets CI=true on runners. This file also sets:
+#   NEXT_TELEMETRY_DISABLED=1
+#     Disables Next.js telemetry.
+#   npm_config_audit=false
+#   npm_config_fund=false
+#     Keeps npm from adding audit or funding requests on top of the install.
+#
+# Intentionally unset. No stub values are required for the application tree on
+# integration/release-candidate-oct14 at c6219dfb2e6f53f0915c626555ec0919fd212262:
+#   NEXT_PUBLIC_SUPABASE_URL
+#   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+#     When both are empty, lib/supabase/config.ts reports Supabase as not
+#     configured, and proxy.ts returns before it constructs a Supabase client.
+#     The production build does not contact Supabase. A local `npm run build`
+#     with both variables unset completed on Node.js v24.22.3 (see
+#     coord/receipts/L5-cc-ci.md).
+#   PAGESPEED_API_KEY
+#     Left unset so these jobs do not call the PageSpeed Insights API.
+#   VERCEL_*, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ACCESS_TOKEN, and any
+#     database password
+#     Not set and not read by install, lint, typecheck, unit tests, or build.
+#
+# `npm ci` installs from package-lock.json. That lockfile is on this
+# integration branch and on its descendants. It is absent on main and on
+# feature/nextjs-foundation.
+
+stages:
+  - check
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+variables:
+  NEXT_TELEMETRY_DISABLED: "1"
+  npm_config_audit: "false"
+  npm_config_fund: "false"
+
+mr-checks:
+  stage: check
+  image: node:24.22.3-bookworm
+  interruptible: true
+  timeout: 30m
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - node -v
+    - npm -v
+    - npm ci --cache .npm --prefer-offline --no-audit --no-fund
+    - npm run lint
+    - npm run typecheck
+    - npm run test
+    - npm run build
