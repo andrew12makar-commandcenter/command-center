@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CLIENT_SITES, branchUrl, getClientSite, isOpenState, openItems, parseStatusMarkdown } from '../lib/client-sites.ts';
+import { CLIENT_SITES, branchUrl, getClientSite, isOpenState, openItems, parseStatusMarkdown, repoUrl, sitesInCollection } from '../lib/client-sites.ts';
 
 const SAMPLE = `# Status: 2 Nov 2026
 
@@ -23,11 +23,12 @@ const SAMPLE = `# Status: 2 Nov 2026
 | Front-door sign (medium confidence, needs confirmation) | DONE | PASS |
 `;
 
-test('registry slugs are unique and every site has https links and owned branches', () => {
+test('registry slugs are unique and every site has https links, a collection, and owned branches', () => {
   const slugs = CLIENT_SITES.map((s) => s.slug);
   assert.equal(new Set(slugs).size, slugs.length);
   for (const site of CLIENT_SITES) {
     assert.match(site.liveUrl, /^https:\/\//);
+    assert.ok(site.collection === 'build' || site.collection === 'demo', `${site.slug} needs a collection`);
     for (const b of site.branches) {
       assert.ok(b.owner.length > 0, `${site.slug}:${b.name} needs an owner`);
       if (b.previewUrl) assert.match(b.previewUrl, /^https:\/\//);
@@ -35,16 +36,36 @@ test('registry slugs are unique and every site has https links and owned branche
   }
 });
 
-test('Circle Tavern branch owners match the agreed split', () => {
+test('Circle Tavern is the current sold Client Build', () => {
   const site = getClientSite('circle-tavern');
   assert.ok(site);
-  const owners = Object.fromEntries(site.branches.map((b) => [b.name, b.owner]));
-  assert.equal(owners['room/bar'], 'Andrew');
-  assert.equal(owners['room/kitchen'], 'Andrew');
-  assert.equal(owners['room/speakeasy'], 'Ryan');
-  assert.equal(owners['fx/transitions'], 'Ryan');
-  assert.match(owners.main, /shared/i);
-  assert.equal(branchUrl(site, 'room/bar'), 'https://github.com/andrew12makar-commandcenter/venu/tree/room/bar');
+  assert.equal(site.collection, 'build');
+  assert.equal(site.stage, 'Live');
+  assert.equal(site.liveUrl, 'https://www.thecircletavern.com/');
+  assert.equal(site.pinnedUrl, 'https://e47cf2ba.circle-tavern-official.pages.dev');
+  assert.match(site.saleNote ?? '', /George/i);
+  assert.match(site.saleNote ?? '', /\$1,000/);
+  assert.equal(site.repo.host, 'gitlab');
+  assert.equal(site.repo.name, 'circle-venu');
+  assert.equal(repoUrl(site), 'https://gitlab.com/andrew-makar-personal-projects-group/circle-venu');
+  assert.equal(sitesInCollection('build').map((s) => s.slug).join(','), 'circle-tavern');
+});
+
+test("Johnny D's r8 is the current Client Demo and is not duplicated", () => {
+  const matches = CLIENT_SITES.filter((s) => /johnny/i.test(s.slug) || /johnny/i.test(s.name));
+  assert.equal(matches.length, 1);
+  const site = getClientSite('johnnyds');
+  assert.ok(site);
+  assert.equal(site.collection, 'demo');
+  assert.equal(site.stage, 'In review');
+  assert.equal(site.liveUrl, 'https://r8.johnnyds-preview.pages.dev');
+  assert.equal(site.pinnedUrl, 'https://f0ba5452.johnnyds-preview.pages.dev');
+  assert.equal(site.repo.host, 'gitlab');
+  assert.equal(site.repo.name, 'johnnyds-site');
+  assert.equal(site.repo.defaultBranch, 'r8');
+  assert.equal(branchUrl(site, 'r8'), 'https://gitlab.com/andrew-makar-personal-projects-group/johnnyds-site/-/tree/r8');
+  assert.equal(site.branches[0]?.commitSha, 'adc086f8887a9bf21ac1be0ed7db9cf2ed9da480');
+  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds');
 });
 
 test('status markdown parses into sections and flags open items', () => {
