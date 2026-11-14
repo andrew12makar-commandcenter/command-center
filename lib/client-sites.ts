@@ -111,6 +111,44 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    slug: 'universal-barber',
+    name: 'Universal Barber Shop',
+    client: 'Rafy · Universal Barber Shop, 4 Chestnut Hill Ave, Brighton',
+    collection: 'demo',
+    summary: 'Pitch demo, preview only (r2 polish pass): Checker & Chrome storefront design, Call as the main action, Book online links to the shop\'s existing booking page, softened privacy blurs. Owner still to confirm: phone (817) 966-9525 vs (617) 787-0200; Thu/Fri close 7 PM (window sign) vs 6 PM (Google); prices $30/$20 vs $35/$25 on the draft site; which booking site he uses; rating (4.5/~98 Google vs 4.6/112); kids\' age (under 15 vs 15 and under). Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r2.universal-barber-preview.pages.dev',
+    pinnedUrl: 'https://be605b54.universal-barber-preview.pages.dev',
+    hosting: 'Cloudflare Pages project universal-barber-preview (Andrew personal account), noindex',
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'universal-barber-site',
+      defaultBranch: 'r2',
+    },
+    branches: [
+      {
+        name: 'r2',
+        owner: 'Andrew',
+        previewUrl: 'https://r2.universal-barber-preview.pages.dev',
+        note: 'Pitch demo, preview only; not on a domain. Pinned URL: https://be605b54.universal-barber-preview.pages.dev (built from f2848d68). QA 103/103 + contrast 6/6. Open owner items: phone (817) 966-9525 vs (617) 787-0200; Thu/Fri 7 PM close; prices $30/$20 vs $35/$25; booking site; rating; kids age.',
+        commitSha: '3774ca5087fbe0dbb164727ae809eadf88a70128',
+        commitMessage: 'r2: add deploy/make_pages_worker.py (how r2 was deployed)',
+        commitDate: '2026-11-14T23:10:00Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/universal-barber-site/-/commit/3774ca5087fbe0dbb164727ae809eadf88a70128',
+      },
+      {
+        name: 'r1',
+        owner: 'President Claude',
+        note: 'First build (Claude Opus 5.5), QA 95/95; never deployed. r2 branches from it.',
+        commitSha: '9a1469ae66b2261f4e7f0ec98f954d88178cd5b5',
+        commitMessage: 'r1: QA results and screenshots for the in-between width fix (95 passed, 0 failed)',
+        commitDate: '2026-11-14T22:05:27Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/universal-barber-site/-/commit/9a1469ae66b2261f4e7f0ec98f954d88178cd5b5',
+      },
+    ],
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {
