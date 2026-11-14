@@ -116,7 +116,7 @@ export const CLIENT_SITES: ClientSite[] = [
     name: 'Universal Barber Shop',
     client: 'Rafy · Universal Barber Shop, 4 Chestnut Hill Ave, Brighton',
     collection: 'demo',
-    summary: 'Pitch demo, preview only (r2 polish pass): Checker & Chrome storefront design, Call as the main action, Book online links to the shop\'s existing booking page, softened privacy blurs. Owner still to confirm: phone (817) 966-9525 vs (617) 787-0200; Thu/Fri close 7 PM (window sign) vs 6 PM (Google); prices $30/$20 vs $35/$25 on the draft site; which booking site he uses; rating (4.5/~98 Google vs 4.6/112); kids\' age (under 15 vs 15 and under). Not on a custom domain.',
+    summary: 'Pitch demo, preview only (r2 polish pass): Checker & Chrome storefront design, Call as the main action, Book online links to the shop\'s existing booking page, softened privacy blurs. Owner still to confirm: phone (817) 966-9525 vs (617) 787-0200; Thu/Fri close 7 PM (window sign) vs 6 PM (Google); prices $30/$20 vs $35/$25 on the draft site; which booking site he uses; rating (site says about 4.5 from about 98 reviews; draft says 4.6 from 112 Google reviews); kids\' age (under 15 vs 15 and under). Not on a custom domain.',
     stage: 'In review',
     liveUrl: 'https://r2.universal-barber-preview.pages.dev',
     pinnedUrl: 'https://be605b54.universal-barber-preview.pages.dev',
@@ -135,7 +135,7 @@ export const CLIENT_SITES: ClientSite[] = [
         note: 'Pitch demo, preview only; not on a domain. Pinned URL: https://be605b54.universal-barber-preview.pages.dev (built from f2848d68). QA 103/103 + contrast 6/6. Open owner items: phone (817) 966-9525 vs (617) 787-0200; Thu/Fri 7 PM close; prices $30/$20 vs $35/$25; booking site; rating; kids age.',
         commitSha: '3774ca5087fbe0dbb164727ae809eadf88a70128',
         commitMessage: 'r2: add deploy/make_pages_worker.py (how r2 was deployed)',
-        commitDate: '2026-11-14T23:10:00Z',
+        commitDate: '2026-11-14T23:08:40Z',
         commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/universal-barber-site/-/commit/3774ca5087fbe0dbb164727ae809eadf88a70128',
       },
       {
