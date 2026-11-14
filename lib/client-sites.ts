@@ -1,7 +1,10 @@
-// Client site registry for the Command Center "Client Sites" area.
+// Client site registry for the Command Center Client Builds and Client Demos area.
 // Each client site lives in its own repository and hosting account. The Command
 // Center only links to, embeds and reads public metadata about it.
-// To add the next client site, append one entry to CLIENT_SITES.
+// To add the next client site, append one entry to CLIENT_SITES and set
+// collection to 'build' (sold or live on a domain) or 'demo' (preview only).
+
+export type ClientSiteCollection = 'build' | 'demo';
 
 export type ClientSiteBranch = {
   name: string;
@@ -9,6 +12,18 @@ export type ClientSiteBranch = {
   /** Branch preview URL, if the host builds one. */
   previewUrl?: string;
   note?: string;
+  /** Recorded commit when live activity cannot be read from GitHub. */
+  commitSha?: string;
+  commitMessage?: string;
+  commitDate?: string;
+  commitUrl?: string;
+};
+
+export type ClientSiteRepo = {
+  host?: 'github' | 'gitlab';
+  owner: string;
+  name: string;
+  defaultBranch: string;
 };
 
 export type ClientSite = {
@@ -16,34 +31,82 @@ export type ClientSite = {
   name: string;
   client: string;
   summary: string;
+  /** Sold/live work vs preview-only demos. */
+  collection: ClientSiteCollection;
   /** Lifecycle label shown on the card. */
   stage: 'In build' | 'In review' | 'Live' | 'Paused';
   liveUrl: string;
+  /** Immutable host URL for the same release, if one exists. */
+  pinnedUrl?: string;
   hosting: string;
-  repo: { owner: string; name: string; defaultBranch: string };
+  saleNote?: string;
+  repo: ClientSiteRepo;
   branches: ClientSiteBranch[];
   /** Repo path of a markdown status file with tables (Area | State | Evidence). */
   statusDoc?: string;
+};
+
+export const COLLECTION_LABELS: Record<ClientSiteCollection, string> = {
+  build: 'Client Builds',
+  demo: 'Client Demos',
 };
 
 export const CLIENT_SITES: ClientSite[] = [
   {
     slug: 'circle-tavern',
     name: 'Circle Tavern',
-    client: 'Circle Tavern · Gyro Theory',
-    summary: 'Night-panorama venue tour: Gyro Theory, the main bar and the speakeasy, with the Campus2Care × Circle event reveal.',
-    stage: 'In build',
-    liveUrl: 'https://venu-e60.pages.dev',
-    hosting: 'Cloudflare Pages (Circle’s own account)',
-    repo: { owner: 'andrew12makar-commandcenter', name: 'venu', defaultBranch: 'main' },
+    client: 'George · Circle Tavern',
+    collection: 'build',
+    summary: 'Sold live venue site on www.thecircletavern.com. The current production release is the Nov 8, 2026 Cloudflare Pages upload that approved the Free Your Mind soundtrack and kept the original redirect rules.',
+    stage: 'Live',
+    liveUrl: 'https://www.thecircletavern.com/',
+    pinnedUrl: 'https://e47cf2ba.circle-tavern-official.pages.dev',
+    hosting: 'Cloudflare Pages project circle-tavern-official (Andrew personal account)',
+    saleNote: 'Sold to George for $1,000.',
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'circle-venu',
+      defaultBranch: 'feature/circle-hd-3d-motion-v2',
+    },
     branches: [
-      { name: 'main', owner: 'Shared · reviewed', previewUrl: 'https://venu-e60.pages.dev', note: 'Changes land through reviewed PRs.' },
-      { name: 'room/bar', owner: 'Andrew', previewUrl: 'https://room-bar.venu-e60.pages.dev' },
-      { name: 'room/kitchen', owner: 'Andrew', previewUrl: 'https://room-kitchen.venu-e60.pages.dev' },
-      { name: 'room/speakeasy', owner: 'Ryan', previewUrl: 'https://room-speakeasy.venu-e60.pages.dev' },
-      { name: 'fx/transitions', owner: 'Ryan', previewUrl: 'https://fx-transitions.venu-e60.pages.dev' },
+      {
+        name: 'production',
+        owner: 'Andrew',
+        previewUrl: 'https://e47cf2ba.circle-tavern-official.pages.dev',
+        note: 'Canonical production deploy e47cf2ba-9ae2-40c2-8956-e03a452059dd, Sunday Nov 8, 2026, 3:49 PM ET. Ad-hoc Pages upload with no git commit hash recorded. Custom domain: www.thecircletavern.com. Related GitLab source: circle-venu, newest branch feature/circle-hd-3d-motion-v2 @ 1264f55b (Nov 5, 2026, 12:58 AM ET); that branch is earlier than the live upload and may not match the live bytes.',
+        commitDate: '2026-11-08T20:49:33.037081Z',
+      },
     ],
-    statusDoc: 'docs/STATUS.md',
+  },
+  {
+    slug: 'johnnyds',
+    name: "Johnny D's Fresh Fruit & Produce",
+    client: "Johnny D's Fruit & Produce",
+    collection: 'demo',
+    summary: 'Preview-only fruit market site, revision r8: lower hero crop so the full storefront sign shows, with reduced motion zoom. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r8.johnnyds-preview.pages.dev',
+    pinnedUrl: 'https://f0ba5452.johnnyds-preview.pages.dev',
+    hosting: 'Cloudflare Pages project johnnyds-preview (Andrew personal account)',
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'johnnyds-site',
+      defaultBranch: 'r8',
+    },
+    branches: [
+      {
+        name: 'r8',
+        owner: 'Andrew',
+        previewUrl: 'https://r8.johnnyds-preview.pages.dev',
+        note: 'Preview only; not on a domain. Pinned URL: https://f0ba5452.johnnyds-preview.pages.dev',
+        commitSha: 'adc086f8887a9bf21ac1be0ed7db9cf2ed9da480',
+        commitMessage: 'r8 (2/2): native-resolution hero crops from photo A (765×1020)',
+        commitDate: '2026-11-14T20:03:26Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/johnnyds-site/-/commit/adc086f8887a9bf21ac1be0ed7db9cf2ed9da480',
+      },
+    ],
   },
 ];
 
@@ -51,12 +114,25 @@ export function getClientSite(slug: string): ClientSite | undefined {
   return CLIENT_SITES.find((site) => site.slug === slug);
 }
 
+export function sitesInCollection(collection: ClientSiteCollection): ClientSite[] {
+  return CLIENT_SITES.filter((site) => site.collection === collection);
+}
+
+export function repoHost(site: ClientSite): 'github' | 'gitlab' {
+  return site.repo.host ?? 'github';
+}
+
 export function repoUrl(site: ClientSite): string {
-  return `https://github.com/${site.repo.owner}/${site.repo.name}`;
+  const host = repoHost(site) === 'gitlab' ? 'https://gitlab.com' : 'https://github.com';
+  return `${host}/${site.repo.owner}/${site.repo.name}`;
 }
 
 export function branchUrl(site: ClientSite, branch: string): string {
-  return `${repoUrl(site)}/tree/${branch.split('/').map(encodeURIComponent).join('/')}`;
+  const encoded = branch.split('/').map(encodeURIComponent).join('/');
+  if (repoHost(site) === 'gitlab') {
+    return `${repoUrl(site)}/-/tree/${encoded}`;
+  }
+  return `${repoUrl(site)}/tree/${encoded}`;
 }
 
 // ---------- STATUS.md parsing ----------

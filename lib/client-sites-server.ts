@@ -1,10 +1,11 @@
 import 'server-only';
-import { parseStatusMarkdown, type ClientSite, type StatusSection } from '@/lib/client-sites';
+import { branchUrl, parseStatusMarkdown, repoHost, repoUrl, type ClientSite, type StatusSection } from '@/lib/client-sites';
 
 // Read-only GitHub lookups for client site repositories. Server-side only.
 // Uses GITHUB_READONLY_TOKEN when set (fine-grained, read-only); otherwise the
 // unauthenticated public API, which works for public repos (60 requests/hour per IP).
 // Responses are cached for 5 minutes to stay well under that limit.
+// GitLab-hosted sites use recorded branch metadata instead of the GitHub API.
 
 const REVALIDATE_SECONDS = 300;
 
@@ -12,6 +13,18 @@ export type BranchCommit = { sha: string; message: string; author: string; date:
 export type OpenPull = { number: number; title: string; url: string; author: string; head: string; base: string; draft: boolean; updatedAt: string };
 export type BranchActivity = { branch: string; commit: BranchCommit | null; pulls: OpenPull[]; error?: string };
 export type SiteActivity = { branches: BranchActivity[]; lastUpdated: string | null; error?: string };
+
+function recordedCommit(site: ClientSite, branchName: string): BranchCommit | null {
+  const b = site.branches.find((branch) => branch.name === branchName);
+  if (!b?.commitSha && !b?.commitDate) return null;
+  return {
+    sha: b.commitSha ?? '',
+    message: b.commitMessage ?? '',
+    author: b.owner,
+    date: b.commitDate ?? '',
+    url: b.commitUrl ?? (b.commitSha ? `${repoUrl(site)}/-/commit/${b.commitSha}` : branchUrl(site, branchName)),
+  };
+}
 
 function headers(): HeadersInit {
   const h: Record<string, string> = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'command-center-client-sites' };
@@ -33,6 +46,20 @@ type GhCommit = { sha: string; html_url: string; commit: { message: string; auth
 type GhPull = { number: number; title: string; html_url: string; draft: boolean; updated_at: string; user: { login: string } | null; head: { ref: string }; base: { ref: string } };
 
 export async function getSiteActivity(site: ClientSite): Promise<SiteActivity> {
+  if (repoHost(site) !== 'github') {
+    const branches = site.branches.map((b): BranchActivity => {
+      const commit = recordedCommit(site, b.name);
+      return {
+        branch: b.name,
+        commit,
+        pulls: [],
+        error: commit ? undefined : 'No git commit is recorded for this release. Cloudflare Pages listed this as an ad-hoc upload with an empty commit hash.',
+      };
+    });
+    const dates = branches.map((b) => b.commit?.date).filter((d): d is string => Boolean(d)).sort();
+    return { branches, lastUpdated: dates.at(-1) ?? null };
+  }
+
   const { owner, name } = site.repo;
   let pulls: GhPull[] = [];
   let pullError: string | undefined;
@@ -69,6 +96,18 @@ export async function getSiteActivity(site: ClientSite): Promise<SiteActivity> {
 export async function getSiteStatus(site: ClientSite): Promise<{ title: string; sections: StatusSection[]; sourceUrl: string } | { error: string; sourceUrl: string } | null> {
   if (!site.statusDoc) return null;
   const { owner, name, defaultBranch } = site.repo;
+  if (repoHost(site) === 'gitlab') {
+    const sourceUrl = `${repoUrl(site)}/-/blob/${defaultBranch}/${site.statusDoc}`;
+    try {
+      const res = await fetch(`https://gitlab.com/${owner}/${name}/-/raw/${defaultBranch}/${site.statusDoc}?inline=false`, {
+        next: { revalidate: REVALIDATE_SECONDS },
+      });
+      if (!res.ok) return { error: `Status file returned ${res.status}.`, sourceUrl };
+      return { ...parseStatusMarkdown(await res.text()), sourceUrl };
+    } catch {
+      return { error: 'Could not load the status file.', sourceUrl };
+    }
+  }
   const sourceUrl = `https://github.com/${owner}/${name}/blob/${defaultBranch}/${site.statusDoc}`;
   try {
     const res = await fetch(`https://raw.githubusercontent.com/${owner}/${name}/${defaultBranch}/${site.statusDoc}`, {
