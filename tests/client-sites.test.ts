@@ -42,12 +42,14 @@ test('Circle Tavern is the current sold Client Build', () => {
   assert.equal(site.collection, 'build');
   assert.equal(site.stage, 'Live');
   assert.equal(site.liveUrl, 'https://www.thecircletavern.com/');
-  assert.equal(site.pinnedUrl, 'https://e47cf2ba.circle-tavern-official.pages.dev');
+  assert.equal(site.pinnedUrl, 'https://2f6b8925.circle-tavern-official.pages.dev');
   assert.match(site.saleNote ?? '', /George/i);
   assert.match(site.saleNote ?? '', /\$1,000/);
   assert.equal(site.repo.host, 'gitlab');
   assert.equal(site.repo.name, 'circle-venu');
+  assert.equal(site.repo.defaultBranch, 'release/live-20261114');
   assert.equal(repoUrl(site), 'https://gitlab.com/andrew-makar-personal-projects-group/circle-venu');
+  assert.equal(site.branches[0]?.commitSha, '9ec7cd8795cc9bef5ab72054249979314679a380');
   assert.equal(sitesInCollection('build').map((s) => s.slug).join(','), 'circle-tavern');
 });
 
