@@ -43,7 +43,7 @@ const sections = [
     links: [
       { href: '/app/intelligence', label: 'Website Intelligence', icon: Activity },
       { href: '/app/demos', label: 'Demo Studio', icon: PanelsTopLeft },
-      { href: '/app/client-sites', label: 'Client Sites', icon: Globe },
+      { href: '/app/client-sites', label: 'Client Builds & Demos', icon: Globe },
     ],
   },
   {

@@ -1,7 +1,12 @@
-// Client site registry for the Command Center "Client Sites" area.
+// Client site registry for the Command Center Client Builds and Client Demos area.
 // Each client site lives in its own repository and hosting account. The Command
 // Center only links to, embeds and reads public metadata about it.
-// To add the next client site, append one entry to CLIENT_SITES.
+// To add the next client site, append one entry to CLIENT_SITES and set
+// collection to 'build' (sold or live on a domain) or 'demo' (preview only).
+// alsoIn lists a site in a second section too (Circle Tavern is a sold Client
+// Build that is also shown in Client Demos as a finished example to pitch with).
+
+export type ClientSiteCollection = 'build' | 'demo';
 
 export type ClientSiteBranch = {
   name: string;
@@ -9,6 +14,18 @@ export type ClientSiteBranch = {
   /** Branch preview URL, if the host builds one. */
   previewUrl?: string;
   note?: string;
+  /** Recorded commit when live activity cannot be read from GitHub. */
+  commitSha?: string;
+  commitMessage?: string;
+  commitDate?: string;
+  commitUrl?: string;
+};
+
+export type ClientSiteRepo = {
+  host?: 'github' | 'gitlab';
+  owner: string;
+  name: string;
+  defaultBranch: string;
 };
 
 export type ClientSite = {
@@ -16,34 +33,146 @@ export type ClientSite = {
   name: string;
   client: string;
   summary: string;
+  /** Sold/live work vs preview-only demos. */
+  collection: ClientSiteCollection;
+  /** Extra sections the card also appears in, e.g. a sold live site shown in Client Demos as a pitch example. */
+  alsoIn?: ClientSiteCollection[];
   /** Lifecycle label shown on the card. */
   stage: 'In build' | 'In review' | 'Live' | 'Paused';
   liveUrl: string;
+  /** Immutable host URL for the same release, if one exists. */
+  pinnedUrl?: string;
   hosting: string;
-  repo: { owner: string; name: string; defaultBranch: string };
+  saleNote?: string;
+  repo: ClientSiteRepo;
   branches: ClientSiteBranch[];
   /** Repo path of a markdown status file with tables (Area | State | Evidence). */
   statusDoc?: string;
+};
+
+export const COLLECTION_LABELS: Record<ClientSiteCollection, string> = {
+  build: 'Client Builds',
+  demo: 'Client Demos',
 };
 
 export const CLIENT_SITES: ClientSite[] = [
   {
     slug: 'circle-tavern',
     name: 'Circle Tavern',
-    client: 'Circle Tavern · Gyro Theory',
-    summary: 'Night-panorama venue tour: Gyro Theory, the main bar and the speakeasy, with the Campus2Care × Circle event reveal.',
-    stage: 'In build',
-    liveUrl: 'https://venu-e60.pages.dev',
-    hosting: 'Cloudflare Pages (Circle’s own account)',
-    repo: { owner: 'andrew12makar-commandcenter', name: 'venu', defaultBranch: 'main' },
+    client: 'George · Circle Tavern',
+    collection: 'build',
+    alsoIn: ['demo'],
+    summary: 'Sold live venue site on www.thecircletavern.com. The Nov 14, 2026 production release replaces the Campus2Care event banner with a call-to-book banner at (617) 904-8482 and removes the food menu so only drinks remain.',
+    stage: 'Live',
+    liveUrl: 'https://www.thecircletavern.com/',
+    pinnedUrl: 'https://2f6b8925.circle-tavern-official.pages.dev',
+    hosting: 'Cloudflare Pages project circle-tavern-official (Andrew personal account)',
+    saleNote: 'Sold to George for $1,000.',
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'circle-venu',
+      defaultBranch: 'release/live-20261114',
+    },
     branches: [
-      { name: 'main', owner: 'Shared · reviewed', previewUrl: 'https://venu-e60.pages.dev', note: 'Changes land through reviewed PRs.' },
-      { name: 'room/bar', owner: 'Andrew', previewUrl: 'https://room-bar.venu-e60.pages.dev' },
-      { name: 'room/kitchen', owner: 'Andrew', previewUrl: 'https://room-kitchen.venu-e60.pages.dev' },
-      { name: 'room/speakeasy', owner: 'Ryan', previewUrl: 'https://room-speakeasy.venu-e60.pages.dev' },
-      { name: 'fx/transitions', owner: 'Ryan', previewUrl: 'https://fx-transitions.venu-e60.pages.dev' },
+      {
+        name: 'release/live-20261114',
+        owner: 'Andrew',
+        previewUrl: 'https://2f6b8925.circle-tavern-official.pages.dev',
+        note: 'Canonical production deploy 8be1a3b0-28a8-491c-8ee5-9e8b1bce1f80, Saturday Nov 14, 2026, 5:08 PM ET. Source: circle-venu branch release/live-20261114 @ 9ec7cd87 (live-site/ folder). Changes: event-booking call banner (617) 904-8482 replaced the Campus2Care banner; food menu removed (drinks only). Previous production e47cf2ba is the rollback target. Cloudflare also serves this release at https://8be1a3b0.circle-tavern-official.pages.dev.',
+        commitSha: '9ec7cd8795cc9bef5ab72054249979314679a380',
+        commitMessage: 'live-site: drinks-only menu open, comment cleanup, deploy worker builder + release README',
+        commitDate: '2026-11-14T22:07:56Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/circle-venu/-/commit/9ec7cd8795cc9bef5ab72054249979314679a380',
+      },
     ],
-    statusDoc: 'docs/STATUS.md',
+  },
+  {
+    slug: 'johnnyds',
+    name: "Johnny D's Fresh Fruit & Produce",
+    client: "Johnny D's Fruit & Produce",
+    collection: 'demo',
+    summary: 'Preview-only fruit market site, revision r8: lower hero crop so the full storefront sign shows, with reduced motion zoom. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r8.johnnyds-preview.pages.dev',
+    pinnedUrl: 'https://f0ba5452.johnnyds-preview.pages.dev',
+    hosting: 'Cloudflare Pages project johnnyds-preview (Andrew personal account)',
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'johnnyds-site',
+      defaultBranch: 'r8',
+    },
+    branches: [
+      {
+        name: 'r8',
+        owner: 'Andrew',
+        previewUrl: 'https://r8.johnnyds-preview.pages.dev',
+        note: 'Preview only; not on a domain. Pinned URL: https://f0ba5452.johnnyds-preview.pages.dev',
+        commitSha: 'adc086f8887a9bf21ac1be0ed7db9cf2ed9da480',
+        commitMessage: 'r8 (2/2): native-resolution hero crops from photo A (765×1020)',
+        commitDate: '2026-11-14T20:03:26Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/johnnyds-site/-/commit/adc086f8887a9bf21ac1be0ed7db9cf2ed9da480',
+      },
+    ],
+  },
+  {
+    slug: 'universal-barber',
+    name: 'Universal Barber Shop',
+    client: 'Rafy · Universal Barber Shop, 4 Chestnut Hill Ave, Brighton',
+    collection: 'demo',
+    summary: 'Pitch demo, preview only (r4): the Charcoal & Brass r3 site plus its own booking and online payment page. Customers pick a cut ($30 haircut, $20 kids; prices unconfirmed), a day and a 30-minute time from the shop hours (Sunday closed, Thu/Fri until 7 PM), enter name and phone, then pay. Payments run in demo mode ("Demo payment · Stripe connects at launch", no money moves) until the owner connects his own Stripe account and bank (docs/BOOKING-PAYMENTS.md). Double-booking protected; owner view at /admin behind an owner code. Call stays the main action. r3 is the same site without payments (fallback). Owner still to confirm: phone (817) 966-9525 vs (617) 787-0200; Thu/Fri close 7 PM vs 6 PM; prices $30/$20 vs $35/$25; taking cards online vs the Cash only sign; rating; kids\' age. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r4.universal-barber-preview.pages.dev',
+    pinnedUrl: 'https://f1a62711.universal-barber-preview.pages.dev',
+    hosting: 'Cloudflare Pages project universal-barber-preview (Andrew personal account), noindex; bookings in D1 universal-barber-bookings-preview',
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'universal-barber-site',
+      defaultBranch: 'r4',
+    },
+    branches: [
+      {
+        name: 'r4',
+        owner: 'Andrew',
+        previewUrl: 'https://r4.universal-barber-preview.pages.dev',
+        note: 'Pitch version with booking + online payment, preview only; not on a domain. Pinned URL: https://f1a62711.universal-barber-preview.pages.dev (built from 302b15f1). Book at /book/, owner view at /admin/. Payments: demo mode until STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are set (docs/BOOKING-PAYMENTS.md). QA: site 103/103, contrast pass, booking 50/50 (double booking, holds, owner-code auth, Stripe webhook signatures, flow at 390x844 and 1440x900).',
+        commitSha: 'de42eb07dd2cd62bd183c966d562e1ea0ece2746',
+        commitMessage: 'r4 (6/6): QA results for 302b15f1 (site 103/0, contrast all pass, booking 50/0); deployed preview f1a62711 (alias r4)',
+        commitDate: '2026-11-15T18:04:37Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/universal-barber-site/-/commit/de42eb07dd2cd62bd183c966d562e1ea0ece2746',
+      },
+      {
+        name: 'r3',
+        owner: 'Andrew',
+        previewUrl: 'https://r3.universal-barber-preview.pages.dev',
+        note: 'No-payment fallback (r4 adds booking + payments on top). Preview only; not on a domain. Palette: Charcoal & Brass (cream #F5F0E8, charcoal #26221F, brass #C29A5B). Pinned URL: https://e4dc0b41.universal-barber-preview.pages.dev. QA 103/103 + contrast 6/6. Same open owner items as r2.',
+        commitSha: '53e746a1ef9989c914dec3b59739a4242757981f',
+        commitMessage: 'r3-a: palette study notes and theme generator',
+        commitDate: '2026-11-15T17:25:02Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/universal-barber-site/-/commit/53e746a1ef9989c914dec3b59739a4242757981f',
+      },
+      {
+        name: 'r2',
+        owner: 'Andrew',
+        previewUrl: 'https://r2.universal-barber-preview.pages.dev',
+        note: 'Pitch demo, preview only; not on a domain. Pinned URL: https://be605b54.universal-barber-preview.pages.dev (built from f2848d68). QA 103/103 + contrast 6/6. Open owner items: phone (817) 966-9525 vs (617) 787-0200; Thu/Fri 7 PM close; prices $30/$20 vs $35/$25; booking site; rating; kids age.',
+        commitSha: '3774ca5087fbe0dbb164727ae809eadf88a70128',
+        commitMessage: 'r2: add deploy/make_pages_worker.py (how r2 was deployed)',
+        commitDate: '2026-11-14T23:08:40Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/universal-barber-site/-/commit/3774ca5087fbe0dbb164727ae809eadf88a70128',
+      },
+      {
+        name: 'r1',
+        owner: 'President Claude',
+        note: 'First build (Claude Opus 5.5), QA 95/95; never deployed. r2 branches from it.',
+        commitSha: '9a1469ae66b2261f4e7f0ec98f954d88178cd5b5',
+        commitMessage: 'r1: QA results and screenshots for the in-between width fix (95 passed, 0 failed)',
+        commitDate: '2026-11-14T22:05:27Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/universal-barber-site/-/commit/9a1469ae66b2261f4e7f0ec98f954d88178cd5b5',
+      },
+    ],
   },
 ];
 
@@ -51,12 +180,29 @@ export function getClientSite(slug: string): ClientSite | undefined {
   return CLIENT_SITES.find((site) => site.slug === slug);
 }
 
+/** Sites whose own collection matches, then sites listed there through alsoIn. */
+export function sitesInCollection(collection: ClientSiteCollection): ClientSite[] {
+  return [
+    ...CLIENT_SITES.filter((site) => site.collection === collection),
+    ...CLIENT_SITES.filter((site) => site.collection !== collection && (site.alsoIn ?? []).includes(collection)),
+  ];
+}
+
+export function repoHost(site: ClientSite): 'github' | 'gitlab' {
+  return site.repo.host ?? 'github';
+}
+
 export function repoUrl(site: ClientSite): string {
-  return `https://github.com/${site.repo.owner}/${site.repo.name}`;
+  const host = repoHost(site) === 'gitlab' ? 'https://gitlab.com' : 'https://github.com';
+  return `${host}/${site.repo.owner}/${site.repo.name}`;
 }
 
 export function branchUrl(site: ClientSite, branch: string): string {
-  return `${repoUrl(site)}/tree/${branch.split('/').map(encodeURIComponent).join('/')}`;
+  const encoded = branch.split('/').map(encodeURIComponent).join('/');
+  if (repoHost(site) === 'gitlab') {
+    return `${repoUrl(site)}/-/tree/${encoded}`;
+  }
+  return `${repoUrl(site)}/tree/${encoded}`;
 }
 
 // ---------- STATUS.md parsing ----------

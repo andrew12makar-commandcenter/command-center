@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ExternalLink, GitBranch, GitPullRequest } from 'lucide-react';
 import { requireWorkspace } from '@/lib/workspace';
-import { branchUrl, getClientSite, openItems, repoUrl } from '@/lib/client-sites';
+import { branchUrl, getClientSite, openItems, repoHost, repoUrl } from '@/lib/client-sites';
 import { getSiteActivity, getSiteStatus } from '@/lib/client-sites-server';
 import { formatWhen, StageBadge } from '../ui';
 
@@ -16,28 +16,33 @@ export default async function ClientSitePage({ params }: { params: Promise<{ slu
   const [activity, status] = await Promise.all([getSiteActivity(site), getSiteStatus(site)]);
   const byBranch = new Map(activity.branches.map((b) => [b.branch, b]));
   const open = status && 'sections' in status ? openItems(status.sections) : [];
+  const primaryLabel = site.collection === 'demo' ? 'Open preview' : 'Open live site';
+  const previewHeading = site.collection === 'demo' ? 'Preview' : 'Live site';
+  const githubHosted = repoHost(site) === 'github';
 
   return <main className="max-w-6xl">
-    <p className="kicker"><Link href="/app/client-sites" className="hover:underline">Client Sites</Link> · {site.client}</p>
+    <p className="kicker"><Link href="/app/client-sites" className="hover:underline">Client Builds &amp; Demos</Link> · {site.client}</p>
     <div className="mt-3 flex flex-wrap items-center gap-4">
       <h1 className="text-4xl font-semibold tracking-tight">{site.name}</h1>
       <StageBadge stage={site.stage} />
     </div>
     <p className="muted mt-3 max-w-3xl text-sm leading-6">{site.summary}</p>
+    {site.saleNote && <p className="mt-3 text-sm text-emerald-100">{site.saleNote}</p>}
     <div className="mt-5 flex flex-wrap gap-3">
-      <a className="btn" href={site.liveUrl} target="_blank" rel="noopener noreferrer">Open live site <ExternalLink size={15} className="ml-2" /></a>
+      <a className="btn" href={site.liveUrl} target="_blank" rel="noopener noreferrer">{primaryLabel} <ExternalLink size={15} className="ml-2" /></a>
+      {site.pinnedUrl && <a className="btn" href={site.pinnedUrl} target="_blank" rel="noopener noreferrer">Pinned URL <ExternalLink size={15} className="ml-2" /></a>}
       <a className="btn" href={repoUrl(site)} target="_blank" rel="noopener noreferrer">Repository <ExternalLink size={15} className="ml-2" /></a>
     </div>
 
     <section className="panel mt-7 overflow-hidden" aria-labelledby="preview-heading">
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
-        <div><p id="preview-heading" className="kicker">Live preview</p><p className="muted mt-1 break-all text-xs">{site.liveUrl} · {site.hosting}</p></div>
+        <div><p id="preview-heading" className="kicker">{previewHeading}</p><p className="muted mt-1 break-all text-xs">{site.liveUrl} · {site.hosting}</p></div>
         <a className="text-sm font-semibold text-cyan-200 underline" href={site.liveUrl} target="_blank" rel="noopener noreferrer">Open in new tab ↗</a>
       </div>
       <div className="relative aspect-[4/5] w-full border-t border-[#243b47] bg-black sm:aspect-video">
         <iframe
           src={site.liveUrl}
-          title={`${site.name} live preview`}
+          title={`${site.name} ${site.collection === 'demo' ? 'preview' : 'live site'}`}
           className="absolute inset-0 h-full w-full"
           loading="lazy"
           referrerPolicy="no-referrer"
@@ -49,8 +54,8 @@ export default async function ClientSitePage({ params }: { params: Promise<{ slu
     </section>
 
     <section className="panel mt-6 p-6" aria-labelledby="branches-heading">
-      <p id="branches-heading" className="kicker">Branches · previews · owners</p>
-      {activity.error && <p className="mt-3 text-sm text-amber-200">GitHub data unavailable: {activity.error}</p>}
+      <p id="branches-heading" className="kicker">Releases · previews · owners</p>
+      {activity.error && <p className="mt-3 text-sm text-amber-200">{githubHosted ? 'GitHub data unavailable: ' : ''}{activity.error}</p>}
       <div className="mt-4 space-y-3">
         {site.branches.map((b) => {
           const a = byBranch.get(b.name);
@@ -63,11 +68,11 @@ export default async function ClientSitePage({ params }: { params: Promise<{ slu
             {b.note && <p className="muted mt-1 text-xs">{b.note}</p>}
             <div className="mt-3 text-xs leading-5">
               {a?.commit
-                ? <p><span className="muted">Last commit </span><a className="font-mono text-cyan-200 underline" href={a.commit.url} target="_blank" rel="noopener noreferrer">{a.commit.sha.slice(0, 7)}</a> <span className="text-[#d3e3e8]">{a.commit.message}</span> <span className="muted">· {a.commit.author} · {formatWhen(a.commit.date)}</span></p>
+                ? <p><span className="muted">Last commit </span>{a.commit.sha ? <a className="font-mono text-cyan-200 underline" href={a.commit.url} target="_blank" rel="noopener noreferrer">{a.commit.sha.slice(0, 7)}</a> : <span className="muted">not recorded</span>} {a.commit.message && <span className="text-[#d3e3e8]">{a.commit.message}</span>} <span className="muted">{a.commit.date ? `· ${a.commit.author} · ${formatWhen(a.commit.date)}` : ''}</span></p>
                 : <p className="text-amber-200">{a?.error ?? 'No commit data.'}</p>}
               {a && a.pulls.length > 0
                 ? <ul className="mt-2 space-y-1">{a.pulls.map((p) => <li key={p.number} className="flex items-start gap-2"><GitPullRequest size={14} className="mt-0.5 shrink-0 text-violet-200" /><a className="text-violet-100 underline" href={p.url} target="_blank" rel="noopener noreferrer">#{p.number} {p.title}</a><span className="muted">{p.head} → {p.base}{p.draft ? ' · draft' : ''}</span></li>)}</ul>
-                : <p className="muted mt-1">No open pull requests.</p>}
+                : githubHosted ? <p className="muted mt-1">No open pull requests.</p> : null}
             </div>
           </article>;
         })}
