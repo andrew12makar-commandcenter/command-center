@@ -3,6 +3,8 @@
 // Center only links to, embeds and reads public metadata about it.
 // To add the next client site, append one entry to CLIENT_SITES and set
 // collection to 'build' (sold or live on a domain) or 'demo' (preview only).
+// alsoIn lists a site in a second section too (Circle Tavern is a sold Client
+// Build that is also shown in Client Demos as a finished example to pitch with).
 
 export type ClientSiteCollection = 'build' | 'demo';
 
@@ -33,6 +35,8 @@ export type ClientSite = {
   summary: string;
   /** Sold/live work vs preview-only demos. */
   collection: ClientSiteCollection;
+  /** Extra sections the card also appears in, e.g. a sold live site shown in Client Demos as a pitch example. */
+  alsoIn?: ClientSiteCollection[];
   /** Lifecycle label shown on the card. */
   stage: 'In build' | 'In review' | 'Live' | 'Paused';
   liveUrl: string;
@@ -57,6 +61,7 @@ export const CLIENT_SITES: ClientSite[] = [
     name: 'Circle Tavern',
     client: 'George · Circle Tavern',
     collection: 'build',
+    alsoIn: ['demo'],
     summary: 'Sold live venue site on www.thecircletavern.com. The Nov 14, 2026 production release replaces the Campus2Care event banner with a call-to-book banner at (617) 904-8482 and removes the food menu so only drinks remain.',
     stage: 'Live',
     liveUrl: 'https://www.thecircletavern.com/',
@@ -116,23 +121,33 @@ export const CLIENT_SITES: ClientSite[] = [
     name: 'Universal Barber Shop',
     client: 'Rafy · Universal Barber Shop, 4 Chestnut Hill Ave, Brighton',
     collection: 'demo',
-    summary: 'Pitch demo, preview only (r3): r2 polish pass re-themed in the Charcoal & Brass palette Andrew picked (60% cream, 30% warm charcoal, 10% brass on Call and prices), Call as the main action, Book online links to the shop\'s existing booking page, softened privacy blurs. Owner still to confirm: phone (817) 966-9525 vs (617) 787-0200; Thu/Fri close 7 PM (window sign) vs 6 PM (Google); prices $30/$20 vs $35/$25 on the draft site; which booking site he uses; rating (site says about 4.5 from about 98 reviews; draft says 4.6 from 112 Google reviews); kids\' age (under 15 vs 15 and under). Not on a custom domain.',
+    summary: 'Pitch demo, preview only (r4): the Charcoal & Brass r3 site plus its own booking and online payment page. Customers pick a cut ($30 haircut, $20 kids; prices unconfirmed), a day and a 30-minute time from the shop hours (Sunday closed, Thu/Fri until 7 PM), enter name and phone, then pay. Payments run in demo mode ("Demo payment · Stripe connects at launch", no money moves) until the owner connects his own Stripe account and bank (docs/BOOKING-PAYMENTS.md). Double-booking protected; owner view at /admin behind an owner code. Call stays the main action. r3 is the same site without payments (fallback). Owner still to confirm: phone (817) 966-9525 vs (617) 787-0200; Thu/Fri close 7 PM vs 6 PM; prices $30/$20 vs $35/$25; taking cards online vs the Cash only sign; rating; kids\' age. Not on a custom domain.',
     stage: 'In review',
-    liveUrl: 'https://r3.universal-barber-preview.pages.dev',
-    pinnedUrl: 'https://e4dc0b41.universal-barber-preview.pages.dev',
-    hosting: 'Cloudflare Pages project universal-barber-preview (Andrew personal account), noindex',
+    liveUrl: 'https://r4.universal-barber-preview.pages.dev',
+    pinnedUrl: 'https://f1a62711.universal-barber-preview.pages.dev',
+    hosting: 'Cloudflare Pages project universal-barber-preview (Andrew personal account), noindex; bookings in D1 universal-barber-bookings-preview',
     repo: {
       host: 'gitlab',
       owner: 'andrew-makar-personal-projects-group',
       name: 'universal-barber-site',
-      defaultBranch: 'r3',
+      defaultBranch: 'r4',
     },
     branches: [
+      {
+        name: 'r4',
+        owner: 'Andrew',
+        previewUrl: 'https://r4.universal-barber-preview.pages.dev',
+        note: 'Pitch version with booking + online payment, preview only; not on a domain. Pinned URL: https://f1a62711.universal-barber-preview.pages.dev (built from 302b15f1). Book at /book/, owner view at /admin/. Payments: demo mode until STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are set (docs/BOOKING-PAYMENTS.md). QA: site 103/103, contrast pass, booking 50/50 (double booking, holds, owner-code auth, Stripe webhook signatures, flow at 390x844 and 1440x900).',
+        commitSha: 'de42eb07dd2cd62bd183c966d562e1ea0ece2746',
+        commitMessage: 'r4 (6/6): QA results for 302b15f1 (site 103/0, contrast all pass, booking 50/0); deployed preview f1a62711 (alias r4)',
+        commitDate: '2026-11-15T18:04:37Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/universal-barber-site/-/commit/de42eb07dd2cd62bd183c966d562e1ea0ece2746',
+      },
       {
         name: 'r3',
         owner: 'Andrew',
         previewUrl: 'https://r3.universal-barber-preview.pages.dev',
-        note: 'Pitch version, preview only; not on a domain. Palette: Charcoal & Brass (cream #F5F0E8, charcoal #26221F, brass #C29A5B). Pinned URL: https://e4dc0b41.universal-barber-preview.pages.dev. QA 103/103 + contrast 6/6. Same open owner items as r2.',
+        note: 'No-payment fallback (r4 adds booking + payments on top). Preview only; not on a domain. Palette: Charcoal & Brass (cream #F5F0E8, charcoal #26221F, brass #C29A5B). Pinned URL: https://e4dc0b41.universal-barber-preview.pages.dev. QA 103/103 + contrast 6/6. Same open owner items as r2.',
         commitSha: '53e746a1ef9989c914dec3b59739a4242757981f',
         commitMessage: 'r3-a: palette study notes and theme generator',
         commitDate: '2026-11-15T17:25:02Z',
@@ -165,8 +180,12 @@ export function getClientSite(slug: string): ClientSite | undefined {
   return CLIENT_SITES.find((site) => site.slug === slug);
 }
 
+/** Sites whose own collection matches, then sites listed there through alsoIn. */
 export function sitesInCollection(collection: ClientSiteCollection): ClientSite[] {
-  return CLIENT_SITES.filter((site) => site.collection === collection);
+  return [
+    ...CLIENT_SITES.filter((site) => site.collection === collection),
+    ...CLIENT_SITES.filter((site) => site.collection !== collection && (site.alsoIn ?? []).includes(collection)),
+  ];
 }
 
 export function repoHost(site: ClientSite): 'github' | 'gitlab' {

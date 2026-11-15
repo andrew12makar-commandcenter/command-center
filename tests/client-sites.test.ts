@@ -51,6 +51,7 @@ test('Circle Tavern is the current sold Client Build', () => {
   assert.equal(repoUrl(site), 'https://gitlab.com/andrew-makar-personal-projects-group/circle-venu');
   assert.equal(site.branches[0]?.commitSha, '9ec7cd8795cc9bef5ab72054249979314679a380');
   assert.equal(sitesInCollection('build').map((s) => s.slug).join(','), 'circle-tavern');
+  assert.deepEqual(site.alsoIn, ['demo']);
 });
 
 test("Johnny D's r8 is the current Client Demo and is not duplicated", () => {
@@ -67,7 +68,24 @@ test("Johnny D's r8 is the current Client Demo and is not duplicated", () => {
   assert.equal(site.repo.defaultBranch, 'r8');
   assert.equal(branchUrl(site, 'r8'), 'https://gitlab.com/andrew-makar-personal-projects-group/johnnyds-site/-/tree/r8');
   assert.equal(site.branches[0]?.commitSha, 'adc086f8887a9bf21ac1be0ed7db9cf2ed9da480');
-  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds');
+});
+
+test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8 and Circle Tavern (sold, also shown as a demo)', () => {
+  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,circle-tavern');
+  const u = getClientSite('universal-barber');
+  assert.ok(u);
+  assert.equal(u.collection, 'demo');
+  assert.equal(u.liveUrl, 'https://r4.universal-barber-preview.pages.dev');
+  assert.equal(u.pinnedUrl, 'https://f1a62711.universal-barber-preview.pages.dev');
+  assert.equal(u.repo.defaultBranch, 'r4');
+  assert.deepEqual(u.branches.map((b) => b.name), ['r4', 'r3', 'r2', 'r1']);
+  assert.match(u.branches[1]?.note ?? '', /fallback/i);
+  assert.equal(u.branches[1]?.previewUrl, 'https://r3.universal-barber-preview.pages.dev');
+  // a site appears at most once per section
+  for (const c of ['build', 'demo'] as const) {
+    const slugs = sitesInCollection(c).map((s) => s.slug);
+    assert.equal(new Set(slugs).size, slugs.length);
+  }
 });
 
 test('status markdown parses into sections and flags open items', () => {
