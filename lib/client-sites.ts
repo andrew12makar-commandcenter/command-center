@@ -174,6 +174,35 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    slug: 'zisis-convenience',
+    name: 'Zisis Convenience Store',
+    client: 'Zisis Convenience Store · neighborhood convenience store, 375 Washington Street, Brighton, Massachusetts',
+    collection: 'demo',
+    summary: 'Interactive neighborhood convenience-store website concept featuring live hours, searchable everyday essentials, original storefront photography, and responsive design. Site 04, preview only (r1). Confirmed by Andrew: phone 617-785-2938, open daily 8 AM–8 PM (live Boston-time open/closed sign), cash and card. Six aisle groups with 24 illustrative items and licensed stock photos, each with a details dialog and Call to Ask; Lottery & Keno (18+) note; real, unblurred storefront photos with owner approval. Owner still to confirm: actual stock and brands, holiday hours, ATM, parking/accessibility, SMS, card minimums/EBT, public owner name, and whether to launch on a domain. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.zisis-convenience-preview.pages.dev',
+    pinnedUrl: 'https://c3950fb9.zisis-convenience-preview.pages.dev',
+    hosting: 'Cloudflare Pages project zisis-convenience-preview (Andrew personal account), preview branch r1, noindex',
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'zisis-convenience-site',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'Andrew',
+        previewUrl: 'https://r1.zisis-convenience-preview.pages.dev',
+        note: 'Preview only; not on a domain. Pinned URL: https://c3950fb9.zisis-convenience-preview.pages.dev (built from 6f9893c6). Built by Codex, finished by President Claude Nov 16. QA on the live preview: 166/166 at 390, 768, 1024 and 1440 wide, zero axe violations; Lighthouse 13.6.0 mobile 98/100/100 (performance/accessibility/best practices; SEO 58 by design because noindex). Branch head 370ec644 adds only QA reports. Inventory and stock photos are illustrative, not confirmed stock.',
+        commitSha: '6f9893c6df48d6ab8f8f4babdfea021d226ddc91',
+        commitMessage: 'r1: absolute Open Graph image and URL on the verified Pages preview alias',
+        commitDate: '2026-11-16T23:47:15Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site/-/commit/6f9893c6df48d6ab8f8f4babdfea021d226ddc91',
+      },
+    ],
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {
