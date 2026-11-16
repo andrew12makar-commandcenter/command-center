@@ -76,7 +76,7 @@ test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8 and Circle Tav
   assert.ok(u);
   assert.equal(u.collection, 'demo');
   assert.equal(u.liveUrl, 'https://r4.universal-barber-preview.pages.dev');
-  assert.equal(u.pinnedUrl, 'https://f1a62711.universal-barber-preview.pages.dev');
+  assert.equal(u.pinnedUrl, 'https://80efd175.universal-barber-preview.pages.dev');
   assert.equal(u.repo.defaultBranch, 'r4');
   assert.deepEqual(u.branches.map((b) => b.name), ['r4', 'r3', 'r2', 'r1']);
   assert.match(u.branches[1]?.note ?? '', /fallback/i);
