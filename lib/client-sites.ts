@@ -174,6 +174,33 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    slug: 'oliveira-deli',
+    name: 'Oliveira Deli Market',
+    client: 'Oliveira Deli Market, 243 Faneuil St, Brighton (owner not yet named)',
+    collection: 'demo',
+    summary: 'Client Demo 05, pitch demo, r1 built locally and not yet pushed or deployed. Brazilian deli and market site: real storefront photo (Harvard Crimson, Dec 2024, door number 243), DoorDash food photo as hero, Yelp hot-food and pastel photos kept at native 250 px. All photos are third-party, provisional and demo-only (docs/ASSET-SOURCES.md); the night storefront photo is held back because its window reads 279. Real published menu data: 26 DoorDash items and prices (delivery-listing prices, may differ in-store). Listed Restaurantji hours with a Boston-time OPEN/CLOSED status, menu filter and search, a pickup-list builder that copies the list and offers a call (no order is submitted, no SMS), keyboard lightbox, reduced-motion support, works without JavaScript, noindex. QA 72/72, axe clean, Lighthouse not run. Owner to confirm: hours, in-store prices, best sellers and specials, catering, phone orders, photo permission, owner story. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/tree/r1',
+    hosting: 'Planned: Cloudflare Pages project oliveira-deli-preview (Andrew personal account), branch r1, noindex, behind Access. Not deployed; awaiting approval.',
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'oliveira-deli-site',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'President Claude',
+        note: 'First build (Claude Opus 5.5), Nov 16, 2026. Local only: the GitLab repo and this branch link exist only after the approved push, and there is no preview URL until the approved deploy (liveUrl points at the branch until then). QA 72/72 on 4b7f2bba (4 viewports, functional, hours boundaries, no-JS, reduced motion, axe).',
+        commitSha: '463346f28ef70cebc1185d44587f085bcf90a250',
+        commitMessage: 'r1: QA results for 4b7f2bba (72 passed, 0 failed; axe clean; Lighthouse not run)',
+        commitDate: '2026-11-16T23:38:20Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/commit/463346f28ef70cebc1185d44587f085bcf90a250',
+      },
+    ],
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {

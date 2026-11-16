@@ -70,8 +70,27 @@ test("Johnny D's r8 is the current Client Demo and is not duplicated", () => {
   assert.equal(site.branches[0]?.commitSha, 'adc086f8887a9bf21ac1be0ed7db9cf2ed9da480');
 });
 
-test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8 and Circle Tavern (sold, also shown as a demo)', () => {
-  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,circle-tavern');
+test('Oliveira Deli Market r1 is Client Demo 05 on GitLab, not deployed yet', () => {
+  const matches = CLIENT_SITES.filter((s) => /oliveira/i.test(s.slug) || /oliveira/i.test(s.name));
+  assert.equal(matches.length, 1);
+  const site = getClientSite('oliveira-deli');
+  assert.ok(site);
+  assert.equal(site.collection, 'demo');
+  assert.equal(site.stage, 'In review');
+  assert.equal(site.repo.host, 'gitlab');
+  assert.equal(site.repo.name, 'oliveira-deli-site');
+  assert.equal(site.repo.defaultBranch, 'r1');
+  assert.match(site.hosting, /oliveira-deli-preview/);
+  assert.match(site.hosting, /Not deployed/);
+  assert.equal(site.pinnedUrl, undefined);
+  assert.equal(site.branches[0]?.previewUrl, undefined);
+  assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/tree/r1');
+  assert.equal(site.branches[0]?.commitSha, '463346f28ef70cebc1185d44587f085bcf90a250');
+  assert.match(site.summary, /provisional/);
+});
+
+test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8, Oliveira r1 and Circle Tavern (sold, also shown as a demo)', () => {
+  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,oliveira-deli,circle-tavern');
   const u = getClientSite('universal-barber');
   assert.ok(u);
   assert.equal(u.collection, 'demo');
