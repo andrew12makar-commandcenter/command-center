@@ -70,7 +70,7 @@ test("Johnny D's r8 is the current Client Demo and is not duplicated", () => {
   assert.equal(site.branches[0]?.commitSha, 'adc086f8887a9bf21ac1be0ed7db9cf2ed9da480');
 });
 
-test('Oliveira Deli Market r1 is Client Demo 05 on GitLab, not deployed yet', () => {
+test('Oliveira Deli Market r1 is Client Demo 05 on GitLab with a Pages preview', () => {
   const matches = CLIENT_SITES.filter((s) => /oliveira/i.test(s.slug) || /oliveira/i.test(s.name));
   assert.equal(matches.length, 1);
   const site = getClientSite('oliveira-deli');
@@ -81,9 +81,10 @@ test('Oliveira Deli Market r1 is Client Demo 05 on GitLab, not deployed yet', ()
   assert.equal(site.repo.name, 'oliveira-deli-site');
   assert.equal(site.repo.defaultBranch, 'r1');
   assert.match(site.hosting, /oliveira-deli-preview/);
-  assert.match(site.hosting, /Not deployed/);
-  assert.equal(site.pinnedUrl, undefined);
-  assert.equal(site.branches[0]?.previewUrl, undefined);
+  assert.match(site.hosting, /no production deployment/);
+  assert.equal(site.liveUrl, 'https://r1.oliveira-deli-preview.pages.dev');
+  assert.equal(site.pinnedUrl, 'https://7ad9a4d7.oliveira-deli-preview.pages.dev');
+  assert.equal(site.branches[0]?.previewUrl, 'https://r1.oliveira-deli-preview.pages.dev');
   assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/tree/r1');
   assert.equal(site.branches[0]?.commitSha, '463346f28ef70cebc1185d44587f085bcf90a250');
   assert.match(site.summary, /provisional/);
