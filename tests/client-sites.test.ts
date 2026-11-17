@@ -70,8 +70,55 @@ test("Johnny D's r8 is the current Client Demo and is not duplicated", () => {
   assert.equal(site.branches[0]?.commitSha, 'adc086f8887a9bf21ac1be0ed7db9cf2ed9da480');
 });
 
-test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8, Zisis Convenience r1 and Circle Tavern (sold, also shown as a demo)', () => {
-  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,circle-tavern');
+test('Oliveira Deli Market r1 is Client Demo 05 on GitLab with a Pages preview', () => {
+  const matches = CLIENT_SITES.filter((s) => /oliveira/i.test(s.slug) || /oliveira/i.test(s.name));
+  assert.equal(matches.length, 1);
+  const site = getClientSite('oliveira-deli');
+  assert.ok(site);
+  assert.equal(site.collection, 'demo');
+  assert.equal(site.stage, 'In review');
+  assert.equal(site.repo.host, 'gitlab');
+  assert.equal(site.repo.name, 'oliveira-deli-site');
+  assert.equal(site.repo.defaultBranch, 'r1');
+  assert.match(site.hosting, /oliveira-deli-preview/);
+  assert.match(site.hosting, /no production deployment/);
+  assert.equal(site.liveUrl, 'https://r1.oliveira-deli-preview.pages.dev');
+  assert.equal(site.pinnedUrl, 'https://7ad9a4d7.oliveira-deli-preview.pages.dev');
+  assert.equal(site.branches[0]?.previewUrl, 'https://r1.oliveira-deli-preview.pages.dev');
+  assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/tree/r1');
+  assert.equal(site.branches[0]?.commitSha, '463346f28ef70cebc1185d44587f085bcf90a250');
+  assert.match(site.summary, /provisional/);
+});
+
+test('Zisis Convenience r1 is Client Demo 04 on GitLab with the verified Pages preview and a thumbnail', () => {
+  const matches = CLIENT_SITES.filter((s) => /zisis|zz's|client demo 04/i.test(`${s.slug} ${s.name} ${s.summary}`));
+  assert.equal(matches.length, 1);
+  const site = getClientSite('zisis-convenience');
+  assert.ok(site);
+  assert.equal(site.name, 'Zisis Convenience Store');
+  assert.equal(site.collection, 'demo');
+  assert.equal(site.alsoIn, undefined);
+  assert.equal(site.stage, 'In review');
+  assert.equal(site.liveUrl, 'https://r1.zisis-convenience-preview.pages.dev');
+  assert.equal(site.pinnedUrl, 'https://93d21a87.zisis-convenience-preview.pages.dev');
+  assert.match(site.hosting, /Cloudflare Pages.*zisis-convenience-preview/);
+  assert.match(site.summary, /^Interactive neighborhood convenience-store website concept/);
+  assert.equal(site.repo.host, 'gitlab');
+  assert.equal(repoUrl(site), 'https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site');
+  assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site/-/tree/r1');
+  assert.deepEqual(site.branches.map((b) => b.name), ['r1']);
+  const r1 = site.branches[0];
+  assert.equal(r1?.previewUrl, site.liveUrl);
+  assert.equal(r1?.commitSha, '784ea78133c6b8121ee88cfe66e4fb9fee1b47ad');
+  assert.equal(r1?.commitUrl, `https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site/-/commit/${r1?.commitSha}`);
+  assert.equal(site.thumbnail?.src, '/client-sites/zisis-convenience.jpg');
+  assert.ok((site.thumbnail?.alt ?? '').length > 10);
+  // only Zisis carries a thumbnail; other entries unchanged
+  assert.deepEqual(CLIENT_SITES.filter((s) => s.thumbnail).map((s) => s.slug), ['zisis-convenience']);
+});
+
+test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8, Zisis r1, Oliveira r1 and Circle Tavern (sold, also shown as a demo)', () => {
+  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,oliveira-deli,circle-tavern');
   const u = getClientSite('universal-barber');
   assert.ok(u);
   assert.equal(u.collection, 'demo');
@@ -86,33 +133,6 @@ test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8, Zisis Conveni
     const slugs = sitesInCollection(c).map((s) => s.slug);
     assert.equal(new Set(slugs).size, slugs.length);
   }
-});
-
-test('Zisis Convenience r1 is a Client Demo on GitLab with the verified Pages preview', () => {
-  const matches = CLIENT_SITES.filter((s) => /zisis/i.test(s.slug) || /zisis/i.test(s.name));
-  assert.equal(matches.length, 1);
-  const site = getClientSite('zisis-convenience');
-  assert.ok(site);
-  assert.equal(site.name, 'Zisis Convenience Store');
-  assert.equal(site.collection, 'demo');
-  assert.equal(site.alsoIn, undefined);
-  assert.equal(site.stage, 'In review');
-  assert.equal(site.liveUrl, 'https://r1.zisis-convenience-preview.pages.dev');
-  assert.equal(site.pinnedUrl, 'https://c3950fb9.zisis-convenience-preview.pages.dev');
-  assert.match(site.hosting, /Cloudflare Pages.*zisis-convenience-preview/);
-  assert.match(site.summary, /^Interactive neighborhood convenience-store website concept/);
-  assert.equal(site.repo.host, 'gitlab');
-  assert.equal(site.repo.owner, 'andrew-makar-personal-projects-group');
-  assert.equal(site.repo.name, 'zisis-convenience-site');
-  assert.equal(site.repo.defaultBranch, 'r1');
-  assert.equal(repoUrl(site), 'https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site');
-  assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site/-/tree/r1');
-  assert.deepEqual(site.branches.map((b) => b.name), ['r1']);
-  const r1 = site.branches[0];
-  assert.equal(r1?.previewUrl, site.liveUrl);
-  assert.match(r1?.commitSha ?? '', /^[0-9a-f]{40}$/);
-  assert.equal(r1?.commitSha, '6f9893c6df48d6ab8f8f4babdfea021d226ddc91');
-  assert.equal(r1?.commitUrl, `https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site/-/commit/${r1?.commitSha}`);
 });
 
 test('status markdown parses into sections and flags open items', () => {

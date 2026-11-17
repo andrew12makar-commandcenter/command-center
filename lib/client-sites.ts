@@ -48,6 +48,8 @@ export type ClientSite = {
   branches: ClientSiteBranch[];
   /** Repo path of a markdown status file with tables (Area | State | Evidence). */
   statusDoc?: string;
+  /** Optional card thumbnail: a real screenshot of the site, served from public/. */
+  thumbnail?: { src: string; alt: string; width: number; height: number };
 };
 
 export const COLLECTION_LABELS: Record<ClientSiteCollection, string> = {
@@ -179,11 +181,12 @@ export const CLIENT_SITES: ClientSite[] = [
     name: 'Zisis Convenience Store',
     client: 'Zisis Convenience Store · neighborhood convenience store, 375 Washington Street, Brighton, Massachusetts',
     collection: 'demo',
-    summary: 'Interactive neighborhood convenience-store website concept featuring live hours, searchable everyday essentials, original storefront photography, and responsive design. Site 04, preview only (r1). Confirmed by Andrew: phone 617-785-2938, open daily 8 AM–8 PM (live Boston-time open/closed sign), cash and card. Six aisle groups with 24 illustrative items and licensed stock photos, each with a details dialog and Call to Ask; Lottery & Keno (18+) note; real, unblurred storefront photos with owner approval. Owner still to confirm: actual stock and brands, holiday hours, ATM, parking/accessibility, SMS, card minimums/EBT, public owner name, and whether to launch on a domain. Not on a custom domain.',
+    summary: 'Interactive neighborhood convenience-store website concept featuring live hours, searchable everyday essentials, original storefront photography, and responsive design. Client Demo 04, preview only (r1). Confirmed by Andrew: phone 617-785-2938, open daily 8 AM–8 PM (live Boston-time status), cash and card. Ivory hero with the real storefront sign; Uber Eats-style catalog of 28 branded products (26 package photos from Andrew\'s list, 2 shown as "photo coming soon") with sample prices, category chips, search, cart with quantities and a checkout preview in demo mode ("Live checkout available after merchant activation"; nothing is ordered or charged). Owner still to confirm: real stock and prices, image rights before any launch, holiday hours, ATM, parking/accessibility, card minimums/EBT, and whether to activate Uber Eats ordering. Not on a custom domain.',
     stage: 'In review',
     liveUrl: 'https://r1.zisis-convenience-preview.pages.dev',
-    pinnedUrl: 'https://c3950fb9.zisis-convenience-preview.pages.dev',
+    pinnedUrl: 'https://93d21a87.zisis-convenience-preview.pages.dev',
     hosting: 'Cloudflare Pages project zisis-convenience-preview (Andrew personal account), preview branch r1, noindex',
+    thumbnail: { src: '/client-sites/zisis-convenience.jpg', alt: 'Zisis Convenience preview: ivory hero with the real storefront sign and Get Directions button', width: 1200, height: 750 },
     repo: {
       host: 'gitlab',
       owner: 'andrew-makar-personal-projects-group',
@@ -195,11 +198,40 @@ export const CLIENT_SITES: ClientSite[] = [
         name: 'r1',
         owner: 'Andrew',
         previewUrl: 'https://r1.zisis-convenience-preview.pages.dev',
-        note: 'Preview only; not on a domain. Pinned URL: https://c3950fb9.zisis-convenience-preview.pages.dev (built from 6f9893c6). Built by Codex, finished by President Claude Nov 16. QA on the live preview: 166/166 at 390, 768, 1024 and 1440 wide, zero axe violations; Lighthouse 13.6.0 mobile 98/100/100 (performance/accessibility/best practices; SEO 58 by design because noindex). Branch head 370ec644 adds only QA reports. Inventory and stock photos are illustrative, not confirmed stock.',
-        commitSha: '6f9893c6df48d6ab8f8f4babdfea021d226ddc91',
-        commitMessage: 'r1: absolute Open Graph image and URL on the verified Pages preview alias',
-        commitDate: '2026-11-16T23:47:15Z',
-        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site/-/commit/6f9893c6df48d6ab8f8f4babdfea021d226ddc91',
+        note: 'Preview only; not on a domain. Pinned URL: https://93d21a87.zisis-convenience-preview.pages.dev (built from 784ea781). Built by Codex, finished by President Claude Nov 16. QA on the live preview: 267/267 at 390, 768, 1024 and 1440 wide (catalog, cart math and persistence, checkout preview, focus traps), zero axe violations; Lighthouse 13.6.0 100/100/100 on mobile and desktop (SEO 58 by design: noindex). Product photos are retailer reference images (rights not cleared) and prices are sample prices.',
+        commitSha: '784ea78133c6b8121ee88cfe66e4fb9fee1b47ad',
+        commitMessage: 'Shopping preview: sample prices, cart with quantities and persistence, checkout preview, ordering demo/live switch',
+        commitDate: '2026-11-17T00:50:50Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site/-/commit/784ea78133c6b8121ee88cfe66e4fb9fee1b47ad',
+      },
+    ],
+  },
+  {
+    slug: 'oliveira-deli',
+    name: 'Oliveira Deli Market',
+    client: 'Oliveira Deli Market, 243 Faneuil St, Brighton (owner not yet named)',
+    collection: 'demo',
+    summary: 'Client Demo 05, pitch demo, preview only (r1, Nov 16). Brazilian deli and market site: real storefront photo (Harvard Crimson, Dec 2024, door number 243), DoorDash food photo as hero, Yelp hot-food and pastel photos kept at native 250 px. All photos are third-party, provisional and demo-only (docs/ASSET-SOURCES.md); the night storefront photo is held back because its window reads 279. Real published menu data: 26 DoorDash items and prices (delivery-listing prices, may differ in-store). Listed Restaurantji hours with a Boston-time OPEN/CLOSED status, menu filter and search, a pickup-list builder that copies the list and offers a call (no order is submitted, no SMS), keyboard lightbox, reduced-motion support, works without JavaScript, noindex. QA 72/72, axe clean, Lighthouse not run. Owner to confirm: hours, in-store prices, best sellers and specials, catering, phone orders, photo permission, owner story. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.oliveira-deli-preview.pages.dev',
+    pinnedUrl: 'https://7ad9a4d7.oliveira-deli-preview.pages.dev',
+    hosting: 'Cloudflare Pages project oliveira-deli-preview (Andrew personal account), preview branch r1 only (no production deployment), noindex. Not behind Cloudflare Access yet: the link is unlisted but open.',
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'oliveira-deli-site',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'President Claude',
+        previewUrl: 'https://r1.oliveira-deli-preview.pages.dev',
+        note: 'First build (Claude Opus 5.5), Nov 16, 2026. Pushed to GitLab (private) and deployed as Cloudflare Pages preview 7ad9a4d7 (built from 463346f2); pinned URL https://7ad9a4d7.oliveira-deli-preview.pages.dev. QA 72/72 on 4b7f2bba (4 viewports, functional, hours boundaries, no-JS, reduced motion, axe); live smoke test on the preview passed on desktop and mobile. Not behind Access yet.',
+        commitSha: '463346f28ef70cebc1185d44587f085bcf90a250',
+        commitMessage: 'r1: QA results for 4b7f2bba (72 passed, 0 failed; axe clean; Lighthouse not run)',
+        commitDate: '2026-11-16T23:38:20Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/commit/463346f28ef70cebc1185d44587f085bcf90a250',
       },
     ],
   },
