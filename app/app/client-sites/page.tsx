@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight, Globe } from 'lucide-react';
 import { requireWorkspace } from '@/lib/workspace';
@@ -13,6 +14,7 @@ function primaryLabel(site: ClientSite) {
 
 function SiteCard({ site, activity }: { site: ClientSite; activity: SiteActivity }) {
   return <article className="panel flex flex-col p-6">
+    {site.thumbnail && <Link href={`/app/client-sites/${site.slug}`} className="mb-5 block overflow-hidden rounded-lg border border-[#243b47]"><Image src={site.thumbnail.src} alt={site.thumbnail.alt} width={site.thumbnail.width} height={site.thumbnail.height} className="h-auto w-full" sizes="(min-width: 768px) 560px, 100vw" /></Link>}
     <div className="flex items-start justify-between gap-3">
       <div className="flex items-center gap-3"><Globe size={18} className="text-[#75d6e7]" /><h3 className="text-xl font-semibold">{site.name}</h3></div>
       <StageBadge stage={site.stage} />
