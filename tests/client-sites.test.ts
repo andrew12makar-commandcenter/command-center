@@ -100,7 +100,7 @@ test('Zisis Convenience r1 is Client Demo 04 on GitLab with the verified Pages p
   assert.equal(site.alsoIn, undefined);
   assert.equal(site.stage, 'In review');
   assert.equal(site.liveUrl, 'https://r1.zisis-convenience-preview.pages.dev');
-  assert.equal(site.pinnedUrl, 'https://93d21a87.zisis-convenience-preview.pages.dev');
+  assert.equal(site.pinnedUrl, 'https://4015e345.zisis-convenience-preview.pages.dev');
   assert.match(site.hosting, /Cloudflare Pages.*zisis-convenience-preview/);
   assert.match(site.summary, /^Interactive neighborhood convenience-store website concept/);
   assert.equal(site.repo.host, 'gitlab');
@@ -109,7 +109,7 @@ test('Zisis Convenience r1 is Client Demo 04 on GitLab with the verified Pages p
   assert.deepEqual(site.branches.map((b) => b.name), ['r1']);
   const r1 = site.branches[0];
   assert.equal(r1?.previewUrl, site.liveUrl);
-  assert.equal(r1?.commitSha, '784ea78133c6b8121ee88cfe66e4fb9fee1b47ad');
+  assert.equal(r1?.commitSha, '00c93b5eef3e029a6598501f7031d52b213b0dc0');
   assert.equal(r1?.commitUrl, `https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site/-/commit/${r1?.commitSha}`);
   assert.equal(site.thumbnail?.src, '/client-sites/zisis-convenience.jpg');
   assert.ok((site.thumbnail?.alt ?? '').length > 10);
