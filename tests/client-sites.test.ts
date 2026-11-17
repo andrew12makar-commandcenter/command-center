@@ -113,12 +113,38 @@ test('Zisis Convenience r1 is Client Demo 04 on GitLab with the verified Pages p
   assert.equal(r1?.commitUrl, `https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site/-/commit/${r1?.commitSha}`);
   assert.equal(site.thumbnail?.src, '/client-sites/zisis-convenience.jpg');
   assert.ok((site.thumbnail?.alt ?? '').length > 10);
-  // only Zisis carries a thumbnail; other entries unchanged
-  assert.deepEqual(CLIENT_SITES.filter((s) => s.thumbnail).map((s) => s.slug), ['zisis-convenience']);
+  // only Zisis and Brighton Cellar carry thumbnails; other entries unchanged
+  assert.deepEqual(CLIENT_SITES.filter((s) => s.thumbnail).map((s) => s.slug), ['zisis-convenience', 'brighton-cellar-gourmet']);
 });
 
-test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8, Zisis r1, Oliveira r1 and Circle Tavern (sold, also shown as a demo)', () => {
-  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,oliveira-deli,circle-tavern');
+test('Brighton Cellar & Gourmet r1 is one Client Demo on GitLab with the verified Pages preview and a thumbnail', () => {
+  const matches = CLIENT_SITES.filter((s) => /brighton cellar|brighton gourmet|brighton-cellar/i.test(`${s.slug} ${s.name}`));
+  assert.equal(matches.length, 1);
+  const site = getClientSite('brighton-cellar-gourmet');
+  assert.ok(site);
+  assert.equal(site.name, 'Brighton Cellar & Gourmet');
+  assert.equal(site.collection, 'demo');
+  assert.equal(site.alsoIn, undefined);
+  assert.equal(site.stage, 'In review');
+  assert.match(site.client, /569 Washington Street, Brighton, MA 02135/);
+  assert.match(site.summary, /^Client Demo 06/);
+  assert.equal(site.liveUrl, 'https://r1.brighton-cellar-gourmet-preview.pages.dev');
+  assert.equal(site.pinnedUrl, 'https://e47965ce.brighton-cellar-gourmet-preview.pages.dev');
+  assert.match(site.hosting, /Cloudflare Pages.*brighton-cellar-gourmet-preview/);
+  assert.equal(repoUrl(site), 'https://gitlab.com/andrew-makar-personal-projects-group/brighton-cellar-gourmet');
+  assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/brighton-cellar-gourmet/-/tree/r1');
+  const r1 = site.branches[0];
+  assert.deepEqual(site.branches.map((b) => b.name), ['r1']);
+  assert.equal(r1?.previewUrl, site.liveUrl);
+  assert.equal(r1?.commitSha, '6f3fd3f00675badc493a68cc7db812e2ebeccb59');
+  assert.equal(r1?.commitUrl, `https://gitlab.com/andrew-makar-personal-projects-group/brighton-cellar-gourmet/-/commit/${r1?.commitSha}`);
+  assert.equal(site.thumbnail?.src, '/client-sites/brighton-cellar-gourmet.jpg');
+  // demo numbers stay unique: 04 Zisis, 05 Oliveira, 06 Brighton
+  for (const n of ['04', '05', '06']) assert.equal(CLIENT_SITES.filter((s) => s.summary.includes(`Client Demo ${n}`)).length, 1, `Client Demo ${n}`);
+});
+
+test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8, Zisis r1, Oliveira r1, Brighton Cellar r1 and Circle Tavern (sold, also shown as a demo)', () => {
+  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,oliveira-deli,brighton-cellar-gourmet,circle-tavern');
   const u = getClientSite('universal-barber');
   assert.ok(u);
   assert.equal(u.collection, 'demo');
