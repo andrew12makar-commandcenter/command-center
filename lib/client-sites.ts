@@ -48,6 +48,8 @@ export type ClientSite = {
   branches: ClientSiteBranch[];
   /** Repo path of a markdown status file with tables (Area | State | Evidence). */
   statusDoc?: string;
+  /** Optional card thumbnail: a real screenshot of the site, served from public/. */
+  thumbnail?: { src: string; alt: string; width: number; height: number };
 };
 
 export const COLLECTION_LABELS: Record<ClientSiteCollection, string> = {
@@ -171,6 +173,36 @@ export const CLIENT_SITES: ClientSite[] = [
         commitMessage: 'r1: QA results and screenshots for the in-between width fix (95 passed, 0 failed)',
         commitDate: '2026-11-14T22:05:27Z',
         commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/universal-barber-site/-/commit/9a1469ae66b2261f4e7f0ec98f954d88178cd5b5',
+      },
+    ],
+  },
+  {
+    slug: 'zisis-convenience',
+    name: 'Zisis Convenience Store',
+    client: 'Zisis Convenience Store · neighborhood convenience store, 375 Washington Street, Brighton, Massachusetts',
+    collection: 'demo',
+    summary: 'Interactive neighborhood convenience-store website concept featuring live hours, searchable everyday essentials, original storefront photography, and responsive design. Client Demo 04, preview only (r1). Confirmed by Andrew: phone 617-785-2938, open daily 8 AM–8 PM (live Boston-time status), cash and card. Ivory hero with the real storefront sign; Uber Eats-style catalog of 28 branded products (26 package photos from Andrew\'s list, 2 shown as "photo coming soon") with sample prices, category chips, search, cart with quantities and a checkout preview in demo mode ("Live checkout available after merchant activation"; nothing is ordered or charged). Owner still to confirm: real stock and prices, image rights before any launch, holiday hours, ATM, parking/accessibility, card minimums/EBT, and whether to activate Uber Eats ordering. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.zisis-convenience-preview.pages.dev',
+    pinnedUrl: 'https://93d21a87.zisis-convenience-preview.pages.dev',
+    hosting: 'Cloudflare Pages project zisis-convenience-preview (Andrew personal account), preview branch r1, noindex',
+    thumbnail: { src: '/client-sites/zisis-convenience.jpg', alt: 'Zisis Convenience preview: ivory hero with the real storefront sign and Get Directions button', width: 1200, height: 750 },
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'zisis-convenience-site',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'Andrew',
+        previewUrl: 'https://r1.zisis-convenience-preview.pages.dev',
+        note: 'Preview only; not on a domain. Pinned URL: https://93d21a87.zisis-convenience-preview.pages.dev (built from 784ea781). Built by Codex, finished by President Claude Nov 16. QA on the live preview: 267/267 at 390, 768, 1024 and 1440 wide (catalog, cart math and persistence, checkout preview, focus traps), zero axe violations; Lighthouse 13.6.0 100/100/100 on mobile and desktop (SEO 58 by design: noindex). Product photos are retailer reference images (rights not cleared) and prices are sample prices.',
+        commitSha: '784ea78133c6b8121ee88cfe66e4fb9fee1b47ad',
+        commitMessage: 'Shopping preview: sample prices, cart with quantities and persistence, checkout preview, ordering demo/live switch',
+        commitDate: '2026-11-17T00:50:50Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/zisis-convenience-site/-/commit/784ea78133c6b8121ee88cfe66e4fb9fee1b47ad',
       },
     ],
   },
