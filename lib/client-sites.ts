@@ -235,6 +235,36 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    slug: 'brighton-cellar-gourmet',
+    name: 'Brighton Cellar & Gourmet',
+    client: 'Brighton Cellar & Gourmet · specialty retail / beverage store, 569 Washington Street, Brighton, MA 02135 (owner not contacted)',
+    collection: 'demo',
+    summary: 'Client Demo 06 (the brief asked for 05, which Oliveira already holds), pitch demo, preview only (r1, Nov 17). "The Cellar Experience": premium boutique-retail site on the 8B restaurant template, Cormorant Garamond + Inter on warm ivory, burgundy and olive. Hero, six collection tiles, a filterable and searchable catalog (10 everyday products seen on the merchant listings, photographed from Open Food Facts, plus wine, beer & cider and spirits collection cards; no prices or stock), editorial "A Good Find, Close to Home", atmosphere gallery and a click-to-load Pannellum 360° concept (Poly Haven Warm Bar, labelled illustrative), Uber Eats and DoorDash ordering at merchant level from one config (platform chooser dialog; nothing is ordered on the site), saved list kept in the browser (not a cart), listed store hours with a Boston-time open status, call and directions. All photography is illustrative (Unsplash, Open Food Facts CC BY-SA, Poly Haven CC0); no real store photos yet. Owner to confirm: hours, wordmark, photo shoot or 360° capture, catalog, copy. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.brighton-cellar-gourmet-preview.pages.dev',
+    pinnedUrl: 'https://e47965ce.brighton-cellar-gourmet-preview.pages.dev',
+    hosting: 'Cloudflare Pages project brighton-cellar-gourmet-preview (Andrew personal account), preview branch r1 only (no production deployment), noindex. Not behind Cloudflare Access: the link is unlisted but open.',
+    thumbnail: { src: '/client-sites/brighton-cellar-gourmet.jpg', alt: 'Brighton Cellar & Gourmet preview: wine-shelf hero with the name, Explore the Collection and Order Online buttons', width: 1200, height: 750 },
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'brighton-cellar-gourmet',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'President Claude',
+        previewUrl: 'https://r1.brighton-cellar-gourmet-preview.pages.dev',
+        note: 'First build (Claude Opus 5.5), Nov 17, 2026. Pushed to GitLab (private) after a verified Desktop checkpoint and deployed as Cloudflare Pages preview e47965ce (built from 6f3fd3f0); pinned URL https://e47965ce.brighton-cellar-gourmet-preview.pages.dev. QA 115/115 on the live preview at 375, 390, 768 and 1440 wide (catalog filters and search, detail and ordering dialogs, saved list, 360° load/drag/Escape, hours boundaries incl. DST, reduced motion, no-JS, no external requests), zero axe violations. Lighthouse and physical-device tests not run.',
+        commitSha: '6f3fd3f00675badc493a68cc7db812e2ebeccb59',
+        commitMessage: 'r1: QA results for ae2a53be (115 passed, 0 failed; axe clean at 375/390/768/1440)',
+        commitDate: '2026-11-17T09:22:43Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/brighton-cellar-gourmet/-/commit/6f3fd3f00675badc493a68cc7db812e2ebeccb59',
+      },
+    ],
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {
