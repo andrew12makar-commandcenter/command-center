@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cigars &amp; More · Demo</title>
+  <meta name="description" content="Demonstration website for Cigars & More, a cigar and smoke shop. Preview only; not published or approved by the business.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1C1B1A">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23571E27'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='16' text-anchor='middle' fill='%23F1E8DB'%3EC%26amp;M%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <div class="demo-bar" role="note">
+    <span><strong>Demonstration site.</strong> Not published or approved by the business. Store details are pending verification.</span>
+  </div>
+
+  <header class="nav" data-nav>
+    <div class="nav__inner">
+      <a class="nav__brand" href="#top" aria-label="Cigars &amp; More, back to top">
+        <span class="nav__mark" aria-hidden="true">C&amp;M</span>
+        <span class="nav__name" data-biz="signName">Cigars &amp; More</span>
+      </a>
+      <nav class="nav__links" aria-label="Sections">
+        <a href="#store" data-navlink>The Store</a>
+        <a href="#humidor" data-navlink>The Humidor</a>
+        <a href="#interior" data-navlink>Interior</a>
+        <a href="#visit" data-navlink>Visit</a>
+      </nav>
+      <a class="btn btn--small btn--solid nav__visit" href="#visit">Visit the Store</a>
+      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+        <span class="nav__toggle-bars" aria-hidden="true"></span>
+        <span class="sr-only">Menu</span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobile-menu" hidden data-menu>
+      <nav aria-label="Sections">
+        <a href="#store" data-navlink>The Store</a>
+        <a href="#humidor" data-navlink>The Humidor</a>
+        <a href="#interior" data-navlink>Interior</a>
+        <a href="#visit" data-navlink>Visit</a>
+      </nav>
+      <div class="mobile-menu__visit" data-menu-visit></div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- HERO: the real storefront -->
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero__media" data-hero></div>
+      <div class="hero__shade" aria-hidden="true"></div>
+      <div class="hero__content">
+        <p class="eyebrow eyebrow--light" data-biz="descriptor">Cigar &amp; smoke shop</p>
+        <h1 class="hero__title" id="hero-title"><span>Cigars</span> <em>&amp;</em> <span>More</span></h1>
+        <p class="hero__lede">Cabinets of cigars behind glass, decorative display cases and shelves of accessories, all under the long red sign.</p>
+        <div class="hero__actions">
+          <a class="btn btn--solid" href="#visit">Visit the Store</a>
+          <a class="btn btn--ghost" href="#humidor">Explore the Interior</a>
+        </div>
+      </div>
+      <p class="hero__age" data-age-line></p>
+    </section>
+
+    <!-- STORE: descriptive introduction (no invented history) -->
+    <section class="store section" id="store" aria-labelledby="store-title">
+      <div class="store__grid">
+        <div class="store__text reveal">
+          <p class="eyebrow">Behind the red sign</p>
+          <h2 class="h2" id="store-title">A shop built around <em>its cabinets</em></h2>
+          <div class="store__body" data-story>
+            <p>Step in from the street and the room is lined with wood-and-glass cigar cabinets, lit display cases and shelves of smoking accessories.</p>
+            <p>Every photograph on this site was taken inside the store. Nothing has been staged, generated or borrowed.</p>
+          </div>
+          <a class="link-arrow" href="#humidor">Look inside the cabinets <span aria-hidden="true">→</span></a>
+        </div>
+        <figure class="store__img store__img--a reveal" data-slot="shelves-still"></figure>
+        <figure class="store__img store__img--b reveal" data-slot="glass-still"></figure>
+      </div>
+    </section>
+
+    <!-- DIGITAL HUMIDOR -->
+    <section class="humidor" id="humidor" aria-labelledby="humidor-title">
+      <div class="humidor__head reveal">
+        <p class="eyebrow eyebrow--brass">Explore</p>
+        <h2 class="h2 h2--light" id="humidor-title">The Digital <em>Humidor</em></h2>
+        <p class="humidor__intro">Move between real views of the cigar cabinets. Each view is a photograph or a still from video taken in the store. Open any view full screen to zoom in.</p>
+      </div>
+
+      <div class="viewer reveal" data-viewer>
+        <div class="viewer__stage" data-stage tabindex="-1">
+          <div class="viewer__scenes" data-scenes></div>
+          <div class="viewer__hotspots" data-hotspots></div>
+          <div class="viewer__status" data-status hidden></div>
+          <button class="viewer__arrow viewer__arrow--prev" type="button" data-prev aria-label="Previous view"><span aria-hidden="true">‹</span></button>
+          <button class="viewer__arrow viewer__arrow--next" type="button" data-next aria-label="Next view"><span aria-hidden="true">›</span></button>
+        </div>
+        <div class="viewer__bar">
+          <div class="viewer__meta">
+            <span class="viewer__count" data-count aria-live="polite">01 / 06</span>
+            <span class="viewer__caption" data-caption></span>
+          </div>
+          <button class="btn btn--small btn--outline-light" type="button" data-inspect>
+            <svg aria-hidden="true" viewBox="0 0 20 20" width="16" height="16"><path d="M8.5 3a5.5 5.5 0 0 1 4.38 8.83l3.65 3.64-1.06 1.06-3.64-3.65A5.5 5.5 0 1 1 8.5 3Zm0 1.5a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM9.25 6v1.75H11v1.5H9.25V11h-1.5V9.25H6v-1.5h1.75V6h1.5Z" fill="currentColor"/></svg>
+            Full screen &amp; zoom
+          </button>
+        </div>
+        <div class="viewer__tabs" role="tablist" aria-label="Cabinet views" data-tabs></div>
+      </div>
+    </section>
+
+    <!-- INTERIOR GALLERY -->
+    <section class="gallery section" id="interior" aria-labelledby="interior-title">
+      <div class="gallery__head reveal">
+        <p class="eyebrow">Interior</p>
+        <h2 class="h2" id="interior-title">Glass, wood <em>&amp; shelves</em></h2>
+        <p class="gallery__intro">The decorative display cases, the accessory shelves and the shelving that runs through the shop. Tap any photo to see it larger. Videos play only when you start them.</p>
+      </div>
+      <div class="gallery__grid" data-gallery></div>
+    </section>
+
+    <!-- VISIT -->
+    <section class="visit section" id="visit" aria-labelledby="visit-title">
+      <div class="visit__grid">
+        <figure class="visit__img reveal" data-slot="hero" data-variant="visit"></figure>
+        <div class="visit__info reveal">
+          <p class="eyebrow">Visit</p>
+          <h2 class="h2" id="visit-title">Find the <em>red sign</em></h2>
+          <dl class="facts" data-facts></dl>
+          <div class="visit__actions" data-visit-actions></div>
+          <p class="age-note" data-age-note></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div>
+        <p class="footer__brand">Cigars <em>&amp;</em> More</p>
+        <p class="footer__small" data-footer-address></p>
+      </div>
+      <nav class="footer__links" aria-label="Footer">
+        <a href="#store">The Store</a>
+        <a href="#humidor">The Humidor</a>
+        <a href="#interior">Interior</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <div class="footer__legal">
+        <p data-footer-age></p>
+        <p>This website is for information only. Nothing is sold, shipped or delivered online.</p>
+        <p>Demonstration build. Not affiliated with or approved by the business. Photographs taken at the store.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Full-screen inspector (Humidor + gallery) -->
+  <dialog class="inspector" data-inspector aria-label="Photo viewer">
+    <div class="inspector__top">
+      <p class="inspector__title" data-ins-title></p>
+      <div class="inspector__tools">
+        <button type="button" class="icon-btn" data-zoom-out aria-label="Zoom out">−</button>
+        <span class="inspector__zoom" data-zoom-level aria-live="polite">100%</span>
+        <button type="button" class="icon-btn" data-zoom-in aria-label="Zoom in">+</button>
+        <button type="button" class="icon-btn icon-btn--text" data-zoom-reset>Reset</button>
+        <button type="button" class="icon-btn icon-btn--close" data-close aria-label="Close viewer">×</button>
+      </div>
+    </div>
+    <div class="inspector__canvas" data-canvas>
+      <div class="inspector__frame" data-frame></div>
+      <div class="inspector__status" data-ins-status hidden></div>
+      <button type="button" class="viewer__arrow viewer__arrow--prev" data-ins-prev aria-label="Previous photo"><span aria-hidden="true">‹</span></button>
+      <button type="button" class="viewer__arrow viewer__arrow--next" data-ins-next aria-label="Next photo"><span aria-hidden="true">›</span></button>
+    </div>
+    <p class="inspector__hint">Scroll or pinch to zoom · drag to look around · Esc to close</p>
+  </dialog>
+
+  <script src="business.js"></script>
+  <script src="media-plan.js"></script>
+  <script src="media/media.generated.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
