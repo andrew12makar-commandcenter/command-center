@@ -265,6 +265,36 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    slug: 'kikis-kwikmart',
+    name: 'Kiki’s Kwik-Mart',
+    client: 'Kiki’s Kwik-Mart · neighborhood market, Irish & UK imports and deli, 236 Faneuil Street, Brighton, MA 02135 (owner not contacted)',
+    collection: 'demo',
+    summary: 'Client Demo 07 (the brief asked for 06, which Brighton Cellar already holds), pitch demo, preview only (r1, Nov 17). "A Little Piece of Ireland. Right Here in Brighton.": grocery-app browsing with an Irish neighborhood-market identity (red, cream, burgundy, restrained Irish green; Cormorant Garamond + Inter). Hero with an illustrative storefront rendering that matches the real single-storey building (captioned as a rendering, not a photo), six department cards, a 34-item catalog from the supplied seed (search, chips, detail dialog, basket with quantities and illustrative integer-cent subtotal saved in the browser, mobile basket bar, checkout preview marked "Live checkout not connected"), Kiki’s Deli menu board, Irish & UK imports rail with seasonal caveat, click-to-load 3D mini-market (CC0 pixel-art model, labelled illustrative) whose department buttons filter the catalog, Uber Eats and DoorDash chooser opening Kiki’s own merchant listings (nothing transfers), market (daily 6 AM–10 PM) and deli (Mon–Sat 6 AM–2 PM) open-now in Boston time. Facts from the brief: phone (617) 783-5146, since 1984. Drink photos are manufacturer packshots reused from the earlier convenience-store demo; owner interior photos and shelf crops were not received, so those items show designed photo-free rows. Owner to confirm: prices, stock, photos, hours. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.kikis-kwikmart-preview.pages.dev',
+    pinnedUrl: 'https://58cb9288.kikis-kwikmart-preview.pages.dev',
+    hosting: 'Cloudflare Pages project kikis-kwikmart-preview (Andrew personal account), preview branch r1 only (no production deployment), noindex. Not behind Cloudflare Access: the link is unlisted but open.',
+    thumbnail: { src: '/client-sites/kikis-kwikmart.jpg', alt: 'Kiki’s Kwik-Mart preview: burgundy hero with the headline, Explore the Market and Order From the Deli buttons, and the illustrative storefront rendering', width: 1200, height: 750 },
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'kikis-kwikmart-demo',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'President Claude',
+        previewUrl: 'https://r1.kikis-kwikmart-preview.pages.dev',
+        note: 'First build (Claude Opus 5.5), Nov 17, 2026. Pushed to GitLab (private) after a verified Desktop checkpoint (20261117T185521Z-477ddba771) and deployed as Cloudflare Pages preview 58cb9288 built from 477ddba7; pinned URL https://58cb9288.kikis-kwikmart-preview.pages.dev. QA 181/181 on the live preview at 390, 768, 1024 and 1440 wide (34 unique items, filters and search, detail dialog, basket add/quantity/remove/clear, integer-cent subtotal, reload persistence, checkout preview, merchant links, store/deli hours incl. Sunday, mobile menu, 3D load/drag/close, no external requests), no serious or critical axe findings. Lighthouse and physical-device tests not run.',
+        commitSha: '477ddba771878350197c28d6c4938e7b1f5e88b2',
+        commitMessage: 'r1: Kiki\'s Kwik-Mart client demo 07 — catalog, deli ordering, imports, 3D mini-market, QA',
+        commitDate: '2026-11-17T18:55:17Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/kikis-kwikmart-demo/-/commit/477ddba771878350197c28d6c4938e7b1f5e88b2',
+      },
+    ],
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {
