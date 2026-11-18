@@ -83,10 +83,11 @@ test('Oliveira Deli Market r1 is Client Demo 05 on GitLab with a Pages preview',
   assert.match(site.hosting, /oliveira-deli-preview/);
   assert.match(site.hosting, /no production deployment/);
   assert.equal(site.liveUrl, 'https://r1.oliveira-deli-preview.pages.dev');
-  assert.equal(site.pinnedUrl, 'https://7ad9a4d7.oliveira-deli-preview.pages.dev');
+  assert.equal(site.pinnedUrl, 'https://b68de5a9.oliveira-deli-preview.pages.dev');
   assert.equal(site.branches[0]?.previewUrl, 'https://r1.oliveira-deli-preview.pages.dev');
   assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/tree/r1');
-  assert.equal(site.branches[0]?.commitSha, '463346f28ef70cebc1185d44587f085bcf90a250');
+  assert.equal(site.branches[0]?.commitSha, 'a9a43b07334354c344a2e58b7d78f7cfc717516a');
+  assert.match(site.summary, /AI-generated storefront concept/);
   assert.match(site.summary, /provisional/);
 });
 
