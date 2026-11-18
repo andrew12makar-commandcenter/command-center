@@ -32,17 +32,19 @@ export function buildPitchBrief(i:PitchInput):PitchBrief{
  const b=i.business,q=i.q;
  const gbpLink=classifyGoogleListingLink(b.google_business_url);
  const crmVerified=b.verification_status==='verified'&&b.operational_status==='operating';
- const locationVerified=crmVerified||(q.identityConfirmed&&q.activeConfirmed);
+ // Identity and activity review do not confirm that the business operates at this exact address.
+ const locationVerified=crmVerified;
  const place=formatLocation(b.street_address,b.city,b.state,b.postal_code);
- const location=place+(crmVerified?' (verified, operating)':locationVerified?' (identity and operation confirmed in review'+(q.reviewedAt?' '+q.reviewedAt.slice(0,10):'')+')':' (as recorded; not verified)');
+ const location=place+(crmVerified?' (verified, operating)':q.identityConfirmed&&q.activeConfirmed?
+  ' (identity and operation review recorded'+(q.reviewedAt?' '+q.reviewedAt.slice(0,10):'')+'; this address is not CRM-verified)':
+  ' (as recorded; not verified)');
  const evidence=[...q.reasons.filter(r=>!r.startsWith('Manually set')&&!r.startsWith('Secondary')),
   `Website: ${evidenceStateLabels[q.websiteState]}. GBP: ${evidenceStateLabels[q.gbpState]}.`,
   ...(q.websiteIssues.length?['Free website check found: '+q.websiteIssues.join('; ')+'.']:[]),
   ...(q.reviewNote?['Review note: '+q.reviewNote]:[]),
   ...i.sales.observations.filter(o=>o.kind==='measured').slice(0,4).map(o=>`${o.label}: ${o.value} (${i.sales.sourceLabel}${i.sales.assessedAt?', '+i.sales.assessedAt.slice(0,10):''}).`)];
  const unknowns:string[]=[];
- if(!locationVerified)unknowns.push('Whether the business is currently operating at this location (not yet verified).');
- else if(!crmVerified)unknowns.push('Operating status was confirmed from public listings only; confirm in person.');
+ if(!locationVerified)unknowns.push('Whether the business is currently operating at this exact address (not confirmed in the CRM).');
  if(q.websiteState==='unknown')unknowns.push(q.websitePresence==='official_site_recorded'?'The current state of the recorded website (not yet checked).':'Whether an official website exists that is not yet recorded.');
  if(q.gbpState==='unknown')unknowns.push('Whether a Google Business Profile exists and who manages it.');
  if(i.sales.confidence==='unmeasured'&&q.websiteState!=='verified_missing')unknowns.push(q.websiteIssues.length||q.websiteState==='verified_present'?'Website speed (only a free basics check was run; no Lighthouse audit).':'Website performance and SEO (no audit recorded).');
@@ -51,6 +53,8 @@ export function buildPitchBrief(i:PitchInput):PitchBrief{
  if(q.primaryOpportunity==='geolocation_pages'&&!b.service_area)unknowns.push('The exact areas the business serves.');
  unknowns.push('The owner\'s goals, priorities and ability to invest (never assumed).');
  let offer=q.recommendedOutsideCampaign?offers[q.recommended]+' (Best-supported service; outside the campaign focus of '+opportunityLabels[q.primaryOpportunity]+'.)':offers[q.primaryOpportunity];
+ if(q.primaryOpportunity==='website_design'&&q.websitePresence==='ordering_only')
+  offer='Confirm whether they have an independent website. If not, ask whether a simple site beside their ordering page would be useful; do not assume the ordering page is their only web presence.';
  if(q.primaryOpportunity==='website_design'&&q.websitePresence==='social_only')
   offer='Ask whether they have a website they control. If not, offer a simple concept site built from their real details, shown for feedback only.';
  const doNotClaim=['Do not estimate revenue, traffic, rankings, leads or return on investment.','Do not guarantee results or timelines.'];
@@ -61,8 +65,9 @@ export function buildPitchBrief(i:PitchInput):PitchBrief{
  if(gbpLink.kind==='unverified_link')doNotClaim.push('The stored Google Maps link does not provide a confirmed listing ID. Verify the specific listing before citing it.');
  if(q.legalStructure)doNotClaim.push('Do not describe their industry from the legal structure ('+q.legalStructure+').');
  if(q.websitePresence==='social_only')doNotClaim.push('Do not criticize their social page as a substitute for a website.');
+ if(q.websitePresence==='ordering_only')doNotClaim.push('A third-party ordering page is recorded, but that does not prove whether an independent business website exists.');
  if(i.sales.confidence!=='measured')doNotClaim.push(q.websiteIssues.length?'Do not make speed claims; SEO points are limited to the basics the free check observed.':'Do not make performance or SEO claims; no reliable measurement is recorded.');
- if(!locationVerified)doNotClaim.push('Do not state the business is operating at this address until verified.');
+ if(!locationVerified)doNotClaim.push('Do not state the business is operating at this exact address until the CRM location verification is complete.');
  doNotClaim.push('Do not claim the demo is faster or better-ranking; it has not been benchmarked.');
  for(const c of i.sales.cautions)if(!doNotClaim.includes(c))doNotClaim.push(c);
  const links=[

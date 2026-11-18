@@ -18,7 +18,16 @@ export async function proxy(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     { cookies: adapter }
   );
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user && (request.nextUrl.pathname === '/app' || request.nextUrl.pathname.startsWith('/app/'))) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/login';
+    loginUrl.search = '';
+    loginUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+    return redirectResponse;
+  }
   return response;
 }
 export const config = { matcher: ['/app/:path*', '/login'] };

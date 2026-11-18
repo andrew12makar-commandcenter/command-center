@@ -11,6 +11,9 @@ function comparablePage(url:string):string{
  return parsed.hostname.toLowerCase().replace(/^www\./,'')+
    (parsed.pathname.replace(/\/+$/,'')||'/');
 }
+export function sameLighthousePage(a:string,b:string):boolean{
+ try{return comparablePage(a)===comparablePage(b);}catch{return false;}
+}
 export function interpretLocalLighthouseJson(
  raw:string,expectedWebsite:string,now=new Date()
 ):Assessment{
@@ -25,13 +28,11 @@ export function interpretLocalLighthouseJson(
   throw Error('Lighthouse categories or individual audits are missing.');
  if(typeof report.requestedUrl!=='string'||!report.requestedUrl)
   throw Error('The Lighthouse export is missing the requested page URL.');
- const expected=comparablePage(expectedWebsite);
  // Matching either the requested URL or final redirected URL is legitimate;
  // a local audit of another client, subpage or domain must never be attached.
  const candidates=[report.requestedUrl,report.finalUrl].filter((url):url is string=>typeof url==='string'&&!!url);
- if(!candidates.some(url=>{
-  try{return comparablePage(url)===expected;}catch{return false;}
- }))throw Error('This Lighthouse report does not match the business website. Check the site and homepage URL before importing.');
+ if(!candidates.some(url=>sameLighthousePage(url,expectedWebsite)))
+  throw Error('This Lighthouse report does not match the business website. Check the site and homepage URL before importing.');
  if(typeof report.fetchTime!=='string')throw Error('The report is missing its Lighthouse fetchTime.');
  const measured=Date.parse(report.fetchTime);
  if(!Number.isFinite(measured)||measured>now.getTime()+5*60_000||
@@ -58,5 +59,20 @@ export function interpretLocalLighthouseJson(
  result.findings.provider='Local Chrome Lighthouse';
  result.findings.note+=(result.findings.note?' ':'')+
   'Operator-imported Chrome Lighthouse JSON, not independently authenticated by the PageSpeed API.';
+ return result;
+}
+
+/** Preserve the same parser and safety checks while distinguishing an app-run
+ * local Chrome result from an operator-supplied JSON upload. */
+export function interpretLocalLighthouseExecution(
+ raw:string,expectedWebsite:string,now=new Date()
+):Assessment{
+ const result=interpretLocalLighthouseJson(raw,expectedWebsite,now);
+ result.findings.source_method='local_lighthouse_execution';
+ result.findings.provider='Local Chrome Lighthouse';
+ result.findings.note=result.findings.note.replace(
+  'Operator-imported Chrome Lighthouse JSON, not independently authenticated by the PageSpeed API.',
+  'Chrome Lighthouse executed on the authenticated local development server. No Google PageSpeed API request was made.'
+ );
  return result;
 }

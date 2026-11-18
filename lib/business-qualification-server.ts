@@ -8,8 +8,8 @@ import type {Campaign} from '@/lib/discovery-campaigns';
 export type SourceRow={business_id:string;source_url:string|null;source_type:string|null;confidence:string|null};
 // Split recorded provenance into independent sources vs social/directory profiles.
 export function sourceEvidence(sources:SourceRow[]){
- const profile=sources.find(s=>s.source_type==='social_profile'||['social','listing'].includes(classifyWebPresence(s.source_url).kind));
- const independent=sources.filter(s=>s!==profile&&s.source_type!=='social_profile'&&!['social','listing'].includes(classifyWebPresence(s.source_url).kind));
+ const profile=sources.find(s=>s.source_type==='social_profile'||['social','listing','ordering'].includes(classifyWebPresence(s.source_url).kind));
+ const independent=sources.filter(s=>s!==profile&&s.source_type!=='social_profile'&&!['social','listing','ordering'].includes(classifyWebPresence(s.source_url).kind));
  const best=independent.find(s=>s.confidence==='matched')??independent[0];
  return {sourceUrl:best?.source_url??null,sourceType:best?.source_type??null,profileUrl:profile?.source_url??null,independent};
 }

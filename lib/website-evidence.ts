@@ -1,7 +1,7 @@
 // Free, deterministic first-party website evidence. One page, robots.txt and
 // sitemap.xml only. No crawling, no third-party APIs, no Google Maps.
-export type WebsiteCheckStatus='reachable'|'unreachable'|'denied'|'unsafe'|'error';
-export type WebsiteIssue='no_https'|'no_viewport'|'no_title'|'no_meta_description'|'no_local_business_schema'|'old_copyright'|'no_sitemap'|'name_not_found';
+export type WebsiteCheckStatus='reachable'|'unreachable'|'denied'|'unsafe'|'tls_error'|'error';
+export type WebsiteIssue='no_https'|'tls_certificate_error'|'no_viewport'|'no_title'|'no_meta_description'|'no_local_business_schema'|'old_copyright'|'no_sitemap'|'name_not_found';
 export type WebsiteCheck={
  checked_at:string;url:string;final_url:string|null;status:WebsiteCheckStatus;error_code?:string;
  https:boolean;title:string;description:string;canonical:string|null;viewport:boolean;
@@ -11,6 +11,7 @@ export type WebsiteCheck={
 };
 export const websiteIssueLabels:Record<WebsiteIssue,string>={
  no_https:'Not served over HTTPS',no_viewport:'No mobile viewport tag',no_title:'Missing page title',
+ tls_certificate_error:'TLS certificate does not match or verify for this domain',
  no_meta_description:'Missing meta description',no_local_business_schema:'No LocalBusiness structured data',
  old_copyright:'Copyright year looks out of date',no_sitemap:'No sitemap found',
  name_not_found:'Business name not found on the homepage (identity unconfirmed)'
@@ -74,7 +75,7 @@ export function parseWebsiteHtml(html:string,opts:{finalUrl:string;businessName:
 }
 // Quality issues that indicate a weak site (identity and sitemap are tracked separately).
 export function websiteWeaknessCount(c:WebsiteCheck):number{
- return c.issues.filter(i=>['no_https','no_viewport','no_title','no_meta_description','old_copyright'].includes(i)).length;
+ return c.issues.filter(i=>['no_https','tls_certificate_error','no_viewport','no_title','no_meta_description','old_copyright'].includes(i)).length;
 }
 export function seoGapCount(c:WebsiteCheck):number{
  return c.issues.filter(i=>['no_title','no_meta_description','no_local_business_schema','no_sitemap'].includes(i)).length;

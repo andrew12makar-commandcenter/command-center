@@ -1,20 +1,40 @@
 // Pure identity checks for manually reviewed public business leads.
 // A shared name, website domain or neighborhood is NOT proof two companies are one.
 import {normalizeBusiness} from './csv.ts';
+import {hasEntityRegistryContext} from './registry-import.ts';
 
 export type BusinessIdentity={
  id:string;name:string;city:string|null;street_address:string|null;
- postal_code:string|null;phone:string|null;website_url:string|null;
+ postal_code:string|null;phone:string|null;website_url:string|null;contact_email?:string|null;
 };
 export type StagedIdentity={
- name:string|null;city:string|null;website_url:string|null;phone:string|null;
+ name:string|null;city:string|null;website_url:string|null;phone:string|null;contact_email?:string|null;
  raw_data?:Record<string,unknown>|null
 };
 export type PotentialMatch={id:string;name:string;city:string|null;reason:string;strength:'strong'|'possible'};
 
 function clean(value:unknown):string{return typeof value==='string'?value.trim():'';}
 function digits(value:string):string{return value.replace(/\D/g,'');}
+function comparablePhone(value:string|null|undefined):string{
+ const valueDigits=digits(clean(value));
+ const national=valueDigits.length===11&&valueDigits.startsWith('1')?valueDigits.slice(1):valueDigits;
+ return national.length===10?national:'';
+}
+/** A warning-only check. A number difference is not proof that either source is wrong. */
+export function phonesConflict(source:string|null|undefined,reviewed:string|null|undefined):boolean{
+ const sourcePhone=comparablePhone(source),reviewedPhone=comparablePhone(reviewed);
+ return Boolean(sourcePhone&&reviewedPhone&&sourcePhone!==reviewedPhone);
+}
+const FREE_EMAIL=new Set(['gmail.com','googlemail.com','yahoo.com','hotmail.com','outlook.com','aol.com','icloud.com','proton.me','protonmail.com','live.com']);
+function domain(value:string|null|undefined):string{
+ try{return new URL(value||'').hostname.toLowerCase().replace(/^www\./,'');}catch{return '';}
+}
+function emailDomain(value:string|null|undefined):string{
+ const d=(value||'').trim().toLowerCase().split('@').at(-1)||'';
+ return d.includes('.')&&!FREE_EMAIL.has(d)?d:'';
+}
 export function streetFromRaw(raw:Record<string,unknown>|null|undefined):string{
+ if(hasEntityRegistryContext(raw))return '';
  const street=clean(raw?.street||raw?.streetaddress||raw?.street_address||raw?.address);
  const number=clean(raw?.housenumber||raw?.streetnumber);
  if(!street)return '';
@@ -26,6 +46,7 @@ export function streetFromRaw(raw:Record<string,unknown>|null|undefined):string{
  return (number&&!prefixed?number+' '+street:street).slice(0,180);
 }
 export function postcodeFromRaw(raw:Record<string,unknown>|null|undefined):string{
+ if(hasEntityRegistryContext(raw))return '';
  return clean(raw?.postcode||raw?.postalcode||raw?.postal_code||raw?.zipcode||raw?.zip).slice(0,20);
 }
 export function researchServiceArea(raw:Record<string,unknown>|null|undefined):string{
@@ -56,15 +77,22 @@ export function potentialMatches(
  const rawStreet=normalizeBusiness(streetFromRaw(candidate.raw_data));
  const zip=digits(postcodeFromRaw(candidate.raw_data));
  const phone=digits(candidate.phone||'');
+ const candidateHost=domain(candidate.website_url),candidateEmail=emailDomain(candidate.contact_email);
  const matches:PotentialMatch[]=[];
  for(const b of businesses){
-  if(normalizeBusiness(b.name)!==name)continue;
+  const nameMatch=normalizeBusiness(b.name)===name;
   const cityMatch=Boolean(city)&&city===normalizeBusiness(b.city||'');
   const addressMatch=Boolean(rawStreet)&&rawStreet===normalizeBusiness(b.street_address||'');
   const zipMatch=Boolean(zip)&&zip===digits(b.postal_code||'');
   const phoneMatch=phone.length>=10&&phone===digits(b.phone||'');
-  const strong=addressMatch&&(zipMatch||cityMatch);
-  const reason=strong?'Matching business name and street-level location':
+  const sharedWeb=Boolean(candidateHost)&&candidateHost===domain(b.website_url);
+  const sharedEmail=Boolean(candidateEmail)&&candidateEmail===emailDomain(b.contact_email);
+  // Shared address plus business-specific domain can reveal legal-name/DBA
+  // aliases. This is a review warning only, never an automatic merge.
+  if(!nameMatch&&!(addressMatch&&(zipMatch||cityMatch)&&(sharedWeb||sharedEmail)))continue;
+  const strong=nameMatch&&addressMatch&&(zipMatch||cityMatch);
+  const reason=!nameMatch?'Matching street-level location and business website/email domain; possible legal-name or DBA relationship':
+   strong?'Matching business name and street-level location':
    phoneMatch?'Matching name and phone number (branches can share phones)':
    cityMatch?'Matching name and city (branches may differ)':
    'Matching name only; location not confirmed';

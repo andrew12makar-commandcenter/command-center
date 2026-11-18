@@ -8,6 +8,12 @@ a {color:inherit;text-decoration:none;}
 button,input,select,textarea {font:inherit;}
 .shell {min-height:100vh;}
 .panel {background:linear-gradient(145deg,#121f29,#0c151e);border:1px solid var(--edge);border-radius:20px;box-shadow:0 10px 50px #00000025;}
+.nav-section>summary::-webkit-details-marker,.shortlist-row>summary::-webkit-details-marker {display:none;}
+.nav-section>summary::marker,.shortlist-row>summary::marker {content:"";}
+.nav-chevron,.shortlist-chevron {transition:transform .16s ease;}
+.nav-section[open] .nav-chevron,.shortlist-row[open] .shortlist-chevron {transform:rotate(180deg);}
+.jarvis-brief {background:radial-gradient(ellipse at 12% 0%,#1e526233,transparent 48%),linear-gradient(145deg,#132733,#0c151e);border-color:#315360;}
+.shortlist-row>summary {outline-offset:-3px;}
 .kicker {color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:.17em;font-weight:700;}
 .muted {color:var(--muted);}
 .btn {display:inline-flex;align-items:center;justify-content:center;padding:.75rem 1rem;border:1px solid #326c79;border-radius:11px;background:linear-gradient(140deg,#173b47,#132d37);color:#dbfaff;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap;}

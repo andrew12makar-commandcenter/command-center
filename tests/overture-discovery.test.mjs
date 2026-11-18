@@ -4,7 +4,7 @@ import {mkdtemp,rm,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {DuckDBInstance} from '@duckdb/node-api';
-import {latestReleaseFromCatalog,buildPlacesQuery,placesPath} from '../lib/overture-places.ts';
+import {latestReleaseFromCatalog,buildPlacesQuery,placesPath,normalizeOvertureRow} from '../lib/overture-places.ts';
 import {selectAreas,validBBox,DISCOVERY_AREAS} from '../lib/discovery-regions.ts';
 import {runDiscovery,writeOutputs,parseArgs} from '../scripts/overture-discovery.mjs';
 
@@ -62,8 +62,13 @@ async function fixture(path){
   // Leading zero dropped by a source.
   row('k','Brighton Tailor',-71.155,42.35,{cat:'tailor',zip:'2135',phone:'+16175550444'}),
   // Same chain, two far-apart branches: a branch, not a duplicate.
-  row('l','Citizens Bank',-71.155,42.348,{cat:'bank',site:'https://www.citizensbank.com/',phone:'+16175551111',street:'414 Washington St'}),
+  row('l','Citizens Bank',-71.15,42.35,{cat:'bank',site:'https://www.citizensbank.com/',phone:'+16175551111',street:'414 Washington St'}),
   row('m','Citizens Bank',-71.125,42.355,{cat:'bank',site:'https://www.citizensbank.com/',phone:'+16175552222',street:'200 Harvard Ave',city:'Allston',zip:'02134'})
+  ,row('n','Nakhon ordering listing',-71.155,42.35,{cat:'restaurant',site:'https://order.toasttab.com/online/nakhon-brighton'})
+  ,row('o','Cafe Mirror',-71.155,42.35,{cat:'cafe',site:'https://www.menuism.com/'})
+  ,row('p',"Johnny D's Fruit and Produce",-71.155,42.35,{cat:'food and beverage store',site:'https://www.johnnyseeds.com/'})
+  ,row('q','Faneuil Street Market',-71.155,42.35,{cat:'food and beverage store',site:'https://www.ronansdeli.com/'})
+  ,row('r','Brighton Flower Shop',-71.155,42.35,{cat:'florist',site:'https://www.brightonflower.example.org/',phone:'+16175550991'})
  ];
  await c.run(`COPY (${rows.join(' UNION ALL ')}) TO '${path}' (FORMAT parquet)`);
  c.closeSync?.();
@@ -75,7 +80,7 @@ test('end to end against an Overture-shaped parquet: bounded, attributed, flagge
   const file=join(dir,'places.parquet');await fixture(file);
   const result=await runDiscovery({areas:['allston','brighton','brookline'],ring:null,limit:50,minConfidence:0.6,release:'2026-09-17.0',source:file},()=>{});
   const ids=result.candidates.map(c=>c.externalId).sort();
-  assert.deepEqual(ids,['a','b','c','d','f','k','l','m'],'closed, low-confidence, non-prospect and out-of-postcode records are excluded');
+  assert.deepEqual(ids,['a','b','c','d','f','k','l','m','n','o','p','q','r'],'closed, low-confidence, non-prospect and out-of-postcode records are excluded');
   assert.equal(result.counts.excludedOutsideAreaOrNonProspect>=2,true);
   assert.equal(result.candidates.find(c=>c.externalId==='k').postcode,'02135');
   const l=result.candidates.find(c=>c.externalId==='l');
@@ -90,11 +95,30 @@ test('end to end against an Overture-shaped parquet: bounded, attributed, flagge
   assert.ok(!a.possibleDuplicateOf.some(x=>x.startsWith('c')),'same name far away is not flagged');
   const d=result.candidates.find(c=>c.externalId==='d');
   assert.ok(d.flags.includes('no_street_address_possible_service_area_business'));
-  assert.equal(d.templateHint,'landscaping');
+  assert.equal(d.templateHint,'universal','plumbing uses the trade-safe general layout, not outdoor landscaping');
+  const n=result.candidates.find(c=>c.externalId==='n');
+  assert.equal(n.website,'','a third-party Toast page is not an independent site');
+  assert.deepEqual(n.thirdPartyUrls,['https://order.toasttab.com/online/nakhon-brighton']);
+  assert.ok(result.candidates.indexOf(n)<result.candidates.findIndex(c=>c.externalId==='r'),'third-party-only presence should enter review before a site at the same distance');
+  assert.ok(result.candidates.findIndex(c=>c.externalId==='k')<result.candidates.findIndex(c=>c.externalId==='r'),'a source with no independent website and a street address should enter review before a recorded site at the same distance');
+  assert.ok(result.candidates.every((c,i)=>i===0||result.candidates[i-1].distanceMiles<=c.distanceMiles),'candidate CSV order follows Brighton Center distance');
+  const k=result.candidates.find(c=>c.externalId==='k');
+  assert.ok(!k.flags.includes('individual_practitioner_listing'),'an ordinary storefront name is not a clinician identity');
+  const practitioner=normalizeOvertureRow({id:'v',name:'Dr. Maria Vasilakis, DMD',lon:-71.15,lat:42.35,
+   basic_category:'dentist',confidence:0.9,websites:[],phones:[],addresses:[{freeform:'438 Washington St',locality:'Brighton',postcode:'02135'}]},
+   '2026-09-17.0',DISCOVERY_AREAS);
+  assert.ok(practitioner?.flags.includes('individual_practitioner_listing'),'credentialed clinicians remain a transparent review clue');
+  const o=result.candidates.find(c=>c.externalId==='o');
+  assert.equal(o.website,'');assert.deepEqual(o.thirdPartyUrls,['https://www.menuism.com/']);
+  const p=result.candidates.find(c=>c.externalId==='p');
+  assert.equal(p.website,'');assert.deepEqual(p.unverifiedWebsiteUrls,['https://www.johnnyseeds.com/']);
+  assert.ok(p.flags.includes('possible_website_name_mismatch_review'));
+  const q=result.candidates.find(c=>c.externalId==='q');
+  assert.equal(q.website,'');assert.deepEqual(q.unverifiedWebsiteUrls,['https://www.ronansdeli.com/']);
   assert.equal(result.status,'unverified_discovery_candidates');
   const files=await writeOutputs(result,join(dir,'out'));
   const csv=await readFile(join(dir,'out',files[0]),'utf8');
-  assert.match(csv.split('\n')[0],/^name,city,category,website,phone,source_url,source_type,external_id,street,postcode/);
+  assert.match(csv.split('\n')[0],/^name,city,category,website,phone,source_url,source_type,external_id,street,postcode,region,lat,lon,distance_miles/);
   assert.match(csv,/"'=HYPERLINK\(""x""\)"/,'formula injection neutralized');
   assert.match(csv,/overture_maps_places/);
   assert.match(csv,/Overture Maps Foundation release 2026-09-17\.0/);

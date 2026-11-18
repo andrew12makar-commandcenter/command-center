@@ -35,7 +35,7 @@ export function parseOsm(elements:OsmElement[],area:Area):Candidate[]{
   const web=classifyWebPresence(http(rawWebsite));
   const embeddedProfile=classifyWebPresence(http(rawWebsite));
   const separateProfile=classifyWebPresence(http(t['contact:instagram']||t['contact:facebook']));
-  const profile=embeddedProfile.kind==='social'||embeddedProfile.kind==='listing'?embeddedProfile:separateProfile;
+  const profile=['social','listing','ordering'].includes(embeddedProfile.kind)?embeddedProfile:separateProfile;
   return [{
    name,city:safe(t['addr:city'],100),category:safe(category,140),
    website_url:web.kind==='website'?web.url||'':'',phone:safe(t.phone||t['contact:phone'],100),
@@ -45,7 +45,8 @@ export function parseOsm(elements:OsmElement[],area:Area):Candidate[]{
     street:safe(t['addr:street']),housenumber:safe(t['addr:housenumber']),
     postcode:safe(t['addr:postcode']),lat:String(position?.lat??''),lon:String(position?.lon??''),
     original_category:category,website:rawWebsite,
-    ...(profile.kind==='social'||profile.kind==='listing'?{discovered_social_profile_url:profile.url||''}:{})
+    ...(profile.kind==='social'||profile.kind==='listing'?{discovered_social_profile_url:profile.url||''}:{}),
+    ...(profile.kind==='ordering'?{discovered_ordering_url:profile.url||''}:{})
    }
   }];
  }));
@@ -85,7 +86,8 @@ export function mapBostonCsv(csv:string,download:string,source:'boston-certified
    raw_data:{...Object.fromEntries(Object.entries(raw).slice(0,22)),provider:'City of Boston Open Data',download_url:download,
     external_id,source_row:String(i+2),postcode:zip,neighborhood:neighbor,
     ...(legalStructure?{legal_structure:safe(legalStructure,120)}:{}),
-    ...(web.kind==='social'||web.kind==='listing'?{discovered_social_profile_url:web.url||''}:{})}
+    ...(web.kind==='social'||web.kind==='listing'?{discovered_social_profile_url:web.url||''}:{}),
+    ...(web.kind==='ordering'?{discovered_ordering_url:web.url||''}:{})}
   }];
  });
  return uniqueCandidates(records);

@@ -1,7 +1,8 @@
 import type {SiteBlueprint} from '@/lib/site-blueprint';
-import {contactJourney,selectSectionPresentation} from '@/lib/site-presentation';
+import {contactJourney,primaryContactAction,selectSectionPresentation} from '@/lib/site-presentation';
 import {reviewedSiteFeatures} from '@/lib/reviewed-business-features';
 import {galleryMediaDescription} from '@/lib/site-media-selection';
+import {classifyIndustry} from '@/lib/business-classification';
 
 type Tone={base:string;paper:string;ink:string;soft:string;muted:string;eyebrow:string;border:string};
 type Props={site:SiteBlueprint;theme:Tone;compact:boolean};
@@ -11,11 +12,26 @@ const index=(n:number)=>String(n+1).padStart(2,'0');
 export function IndustryServices({site,theme,compact}:Props){
  if(!site.services.length)return null;
  const {services:layout}=selectSectionPresentation(site);
+ const sector=classifyIndustry(site.businessName,site.category).sector;
  const isClinical=layout==='clinical-index'||layout==='care-editorial';
  const isProject=layout==='project-panels'||layout==='craft-index';
  const heading=site.narrative.servicesHeading;
  const intro=site.narrative.servicesIntro;
  const sectionPad=compact?'py-16 lg:py-20':'py-20 lg:py-28';
+
+ if(sector==='food'||sector==='retail')return <section id="services" data-services-layout={sector==='food'?'menu-index':'storefront-index'}
+  className={`motion-section motion-reveal ${pad} ${sectionPad} ${theme.paper}`}>
+  <div className="mx-auto max-w-[1200px]">
+   <header className="mb-8 border-b border-current/15 pb-6">
+    <p className={`text-xs font-semibold uppercase tracking-[.22em] ${theme.eyebrow}`}>{sector==='food'?'Menu and offerings':'Shop highlights'}</p>
+    <h2 className="mt-4 max-w-3xl text-[clamp(2.1rem,4vw,4rem)] font-semibold leading-tight tracking-[-.04em]">{sector==='food'?'Explore what is listed':'Explore what the business offers'}</h2>
+   </header>
+   <ul className="divide-y divide-current/15">{site.services.map((item,i)=><li key={item+i}
+    className="motion-card grid min-w-0 grid-cols-[40px_minmax(0,1fr)] gap-4 py-5 sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-6 sm:py-7">
+    <span className={`pt-1 text-xs font-semibold tracking-widest ${theme.eyebrow}`}>{index(i)}</span>
+    <span className="break-words text-lg font-medium leading-snug sm:text-xl">{item}</span>
+   </li>)}</ul>
+  </div></section>;
 
  if(layout==='project-panels')return <section id="services" data-services-layout={layout}
   className={`motion-section motion-reveal ${pad} ${sectionPad} ${theme.ink}`}>
@@ -76,6 +92,8 @@ export function IndustryServices({site,theme,compact}:Props){
 }
 
 export function IndustryNextSteps({site,theme,compact}:Props){
+ const sector=classifyIndustry(site.businessName,site.category).sector;
+ if(sector==='food'||sector==='retail')return null;
  const verifiedFeatures=reviewedSiteFeatures(site);
  if(verifiedFeatures.length>=2)return <section data-journey-layout="source-backed" aria-labelledby="reviewed-highlights-title"
   className={'motion-section motion-reveal '+pad+' py-20 lg:py-28 '+theme.paper}>
@@ -166,16 +184,19 @@ export function IndustryHero({site,theme,photo,compact,standalone}:{
  site:SiteBlueprint;theme:Tone&{main:string;accent:string};photo:HeroImage|null;compact:boolean;standalone:boolean
 }){
  const hasServices=site.services.length>0;
- const contact=Boolean(site.content.appointmentUrl||site.contact.email||site.contact.phone);
  const kind=site.template==='landscaping'?'outdoor-showcase':site.template==='medical'?'care-editorial':'studio-brief';
  const isOutdoor=site.template==='landscaping';
  const centered=site.design.composition==='centered';
  const hasPhoto=Boolean(photo);
+ const primaryAction=primaryContactAction(site);
  const heroMin=compact?'min-h-[490px]':'min-h-[570px]';
  const label=site.eyebrow||'LOCAL BUSINESS';
+ const sector=classifyIndustry(site.businessName,site.category).sector;
+ const market=sector==='food'||sector==='retail';
+ const secondaryLabel=sector==='food'?'Explore menu':sector==='retail'?'Explore the shop':site.secondaryAction;
  const commonCtas=<div className="mt-9 flex flex-wrap items-center gap-5">
-  {contact?<a href="#contact" className={`inline-flex min-h-12 items-center rounded-full px-7 py-3 text-sm font-semibold ${theme.main}`}>{site.primaryAction}<span aria-hidden="true" className="ml-3">↗</span></a>:null}
-  {hasServices?<a href="#services" className={`inline-flex min-h-12 items-center text-sm font-semibold underline underline-offset-8 ${isOutdoor?'decoration-white/50':''}`}>{site.secondaryAction}</a>:null}
+  {primaryAction?<a href={primaryAction.href} target={primaryAction.target} rel={primaryAction.rel} className={`inline-flex min-h-12 items-center rounded-full px-7 py-3 text-sm font-semibold ${theme.main}`}>{primaryAction.label}<span aria-hidden="true" className="ml-3">↗</span></a>:null}
+  {hasServices?<a href="#services" className={`inline-flex min-h-12 items-center text-sm font-semibold underline underline-offset-8 ${isOutdoor?'decoration-white/50':''}`}>{secondaryLabel}</a>:null}
  </div>;
  const media=photo?<div className="motion-hero-media motion-media relative min-h-[280px] overflow-hidden rounded-[3px] bg-current/5 sm:min-h-[390px] lg:min-h-0">
   <img src={photo.src} alt={photo.alt} loading="eager" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover"/>
@@ -214,6 +235,18 @@ export function IndustryHero({site,theme,photo,compact,standalone}:{
     <ol className="mt-9 divide-y divide-current/15">{site.services.slice(0,4).map((name,i)=><li key={name+i} className="grid grid-cols-[38px_1fr] items-start gap-3 py-5">
      <span className={`text-xs ${theme.eyebrow}`}>{index(i)}</span><span className="break-words text-lg font-semibold">{name}</span></li>)}</ol>
    </aside>}
+  </div></section>;
+ if(market)return <section id="home" data-hero-layout={sector==='food'?'menu-led':'storefront-led'} data-composition={site.design.composition}
+  className={`motion-section relative overflow-clip ${theme.base}`}>
+  <div className={`mx-auto grid max-w-[1650px] items-center ${hasPhoto?'lg:grid-cols-[minmax(0,1fr)_minmax(0,.9fr)]':'lg:grid-cols-1'}`}>
+   <div className={`motion-hero-copy flex flex-col justify-center px-7 py-16 sm:px-12 lg:px-[7vw] lg:py-24 ${heroMin} ${!hasPhoto?'mx-auto w-full max-w-[1100px] text-center':''}`}>
+    <p className={`text-xs font-semibold uppercase tracking-[.24em] ${theme.eyebrow}`}>{label}</p>
+    <h1 className="mt-7 max-w-[850px] break-words text-[clamp(2.7rem,5vw,5.5rem)] font-semibold leading-[1.05] tracking-[-.055em]">{site.headline||site.businessName}</h1>
+    <p className={`mt-7 max-w-[590px] text-base leading-8 sm:text-lg ${theme.muted} ${!hasPhoto?'mx-auto':''}`}>{site.description}</p>
+    <div className={!hasPhoto?'flex justify-center':''}>{commonCtas}</div>
+    {site.contact.city&&<p className={`mt-10 border-t border-current/15 pt-4 text-xs ${theme.muted}`}>{site.contact.city}</p>}
+   </div>
+   {media}
   </div></section>;
  return <section id="home" data-hero-layout={kind} data-composition={site.design.composition}
   className={`motion-section relative overflow-clip ${theme.base}`}>

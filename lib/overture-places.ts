@@ -6,6 +6,7 @@
 // existing CSV intake, which already checks matches against CRM records.
 import {normalizeBusiness} from './csv.ts';
 import {classifyIndustry} from './business-classification.ts';
+import {classifyWebPresence} from './web-presence.ts';
 import {inBBox,type BBox,type DiscoveryArea} from './discovery-regions.ts';
 
 export const OVERTURE_STAC_CATALOG='https://stac.overturemaps.org/catalog.json';
@@ -91,7 +92,7 @@ export type OvertureRow={
 };
 export type OvertureCandidate={
  externalId:string;name:string;category:string;templateHint:string;lat:number;lon:number;
- street:string;city:string;postcode:string;region:string;phone:string;website:string;email:string;socials:string[];
+ distanceMiles:number;street:string;city:string;postcode:string;region:string;phone:string;website:string;email:string;socials:string[];thirdPartyUrls:string[];unverifiedWebsiteUrls:string[];
  confidence:number|null;operatingStatus:string;datasets:string[];sourceUpdated:string;brand:string;
  areas:string[];release:string;sourceUrl:string;flags:string[];possibleDuplicateOf:string[];
 };
@@ -100,8 +101,24 @@ const text=(v:unknown,n=200)=>typeof v==='string'?v.replace(/\s+/g,' ').trim().s
 const http=(v:unknown)=>{try{const u=new URL(String(v));return ['http:','https:'].includes(u.protocol)&&!u.username&&!u.password?u.href:'';}catch{return '';}};
 const digits=(s:string)=>s.replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');
 const hostOf=(u:string)=>{try{return new URL(u).hostname.replace(/^www\./,'').toLowerCase();}catch{return '';}};
-const social=/(?:facebook|instagram|yelp|linktr\.ee|tiktok|twitter|x\.com|linkedin|google\.com\/maps)/i;
-
+const BRIGHTON_ORIGIN={lat:42.34833,lon:-71.15417};
+const distanceFromBrighton=(lat:number,lon:number)=>{
+ const rad=(v:number)=>v*Math.PI/180, dLat=rad(lat-BRIGHTON_ORIGIN.lat),dLon=rad(lon-BRIGHTON_ORIGIN.lon);
+ const a=Math.sin(dLat/2)**2+Math.cos(rad(BRIGHTON_ORIGIN.lat))*Math.cos(rad(lat))*Math.sin(dLon/2)**2;
+ return Number((3958.7613*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(2));
+};
+const genericNameWords=new Set(['the','and','of','at','in','inc','llc','corp','corporation','company','co','group','agency','services','service','shop','store','restaurant','cafe','coffee','bakery','bar','market','street','st','road','rd','avenue','ave','boston','brighton','ma']);
+function likelyNameMismatch(name:string,url:string):boolean{
+ const words=name.toLowerCase().replace(/&/g,' and ').match(/[a-z0-9]+/g)||[];
+ const informative=[...new Set(words.filter(w=>w.length>=3&&!genericNameWords.has(w)))];
+ if(!informative.length)return false;
+ const host=hostOf(url).replace(/^www\./,'');
+ const matches=informative.filter(word=>host.includes(word)).length;
+ // A single-word brand with no matching domain is a clue, not enough to reject.
+ // Multi-word names need at least two shared brand words to avoid importing an
+ // unrelated scraper/directory URL as the business's official website.
+ return matches===0||(informative.length>=3&&matches<2);
+}
 export function normalizeOvertureRow(row:OvertureRow,release:string,areas:DiscoveryArea[]):OvertureCandidate|null{
  const name=text(row.name,180),lat=Number(row.lat),lon=Number(row.lon);
  if(!name||!row.id||!Number.isFinite(lat)||!Number.isFinite(lon))return null;
@@ -109,8 +126,12 @@ export function normalizeOvertureRow(row:OvertureRow,release:string,areas:Discov
  if(NON_PROSPECT_CATEGORIES.includes(category.toLowerCase()))return null;
  const addr=(row.addresses??[]).find(a=>a&&(a.freeform||a.locality))??{};
  const websites=(row.websites??[]).map(http).filter(Boolean);
- const website=websites.find(w=>!social.test(w))??'';
- const socials=[...(row.socials??[]).map(http),...websites.filter(w=>social.test(w))].filter(Boolean).slice(0,5);
+ const presence=websites.map(url=>({url,kind:classifyWebPresence(url).kind}));
+ const websiteCandidates=presence.filter(x=>x.kind==='website');
+ const mismatches=websiteCandidates.filter(x=>likelyNameMismatch(name,x.url)).map(x=>x.url);
+ const website=websiteCandidates.find(x=>!mismatches.includes(x.url))?.url??'';
+ const socials=[...(row.socials??[]).map(http),...presence.filter(x=>x.kind==='social').map(x=>x.url)].filter(Boolean).slice(0,5);
+ const thirdPartyUrls=presence.filter(x=>x.kind==='listing'||x.kind==='ordering').map(x=>x.url).slice(0,8);
  const phone=text((row.phones??[])[0],40);
  const confidence=row.confidence==null||row.confidence===''?null:Number(row.confidence);
  const city=text(addr.locality,100);
@@ -130,15 +151,21 @@ export function normalizeOvertureRow(row:OvertureRow,release:string,areas:Discov
  if(!category)flags.push('no_category');
  if(!phone&&!website)flags.push('no_contact_or_website');
  if(!text(addr.freeform))flags.push('no_street_address_possible_service_area_business');
+ if(!website)flags.push('no_independent_website_recorded_in_overture');
+ if(mismatches.length)flags.push('possible_website_name_mismatch_review');
+ if(!website&&thirdPartyUrls.some(url=>classifyWebPresence(url).kind==='ordering'))flags.push('third_party_ordering_page_only');
+ if(!website&&thirdPartyUrls.some(url=>classifyWebPresence(url).kind==='listing'))flags.push('third_party_listing_only');
  if(row.operating_status&&row.operating_status!=='open')flags.push('operating_status_'+row.operating_status);
  if(!zip5)flags.push('no_postcode_area_from_coordinates_only');
  if(text(row.brand?.names?.primary))flags.push('national_or_regional_brand');
- if(/^(?:dr\.?\s)?[A-Z][a-z'’-]+(?:\s[A-Z]\.?)?\s[A-Z][a-z'’-]+(?:,?\s(?:MD|DO|DDS|DMD|PhD|NP|PA|LICSW|LMHC|PsyD))?$/.test(name)&&!website)
+ const medicalCategory=/\b(?:doctor|physician|dentist|medical|clinic|health)\b/i.test(category);
+ const clinicianName=/^dr\.?\s/i.test(name)||/\b(?:MD|DO|DDS|DMD|PhD|NP|PA|LICSW|LMHC|PsyD)\b/i.test(name);
+ if(clinicianName&&medicalCategory&&!website)
   flags.push('individual_practitioner_listing');
  return {externalId:String(row.id).slice(0,80),name,category,
   templateHint:classifyIndustry(name,category).template??'unclassified',lat,lon,
-  street:text(addr.freeform,180),city,postcode,region:text(addr.region,40),phone,website,
-  email:text((row.emails??[])[0],140),socials,confidence:Number.isFinite(confidence as number)?confidence:null,
+  distanceMiles:distanceFromBrighton(lat,lon),street:text(addr.freeform,180),city,postcode,region:text(addr.region,40),phone,website,
+  email:text((row.emails??[])[0],140),socials,thirdPartyUrls,unverifiedWebsiteUrls:mismatches,confidence:Number.isFinite(confidence as number)?confidence:null,
   operatingStatus:text(row.operating_status,40),
   datasets:[...new Set((row.sources??[]).map(s=>text(s?.dataset,40)).filter(Boolean))],
   sourceUpdated:(row.sources??[]).map(s=>text(s?.update_time,40)).filter(Boolean).sort().at(-1)??'',
@@ -194,18 +221,22 @@ export function dedupeCandidates(list:OvertureCandidate[]):OvertureCandidate[]{
  return out;
 }
 
-// Plausible independent local businesses first. A ranking for review order,
-// not a sales score: it uses only recorded attributes, never revenue guesses.
-const deprioritize=/^(?:national_or_regional_brand|multi_location_business|institutional_address|individual_practitioner_listing|no_contact_or_website|no_category)/;
+// Brighton Center distance is the primary review order requested by the user.
+// Within equal-distance records, prioritize stronger research clues while
+// keeping this explicitly separate from a sales score. A blank source field is
+// not proof that no site exists.
+const deprioritize=/^(?:national_or_regional_brand|multi_location_business|institutional_address|no_category)/;
 export function reviewOrder(list:OvertureCandidate[]):OvertureCandidate[]{
- const score=(c:OvertureCandidate)=>(c.flags.filter(f=>deprioritize.test(f)).length*10)+(c.website?0:2)+(c.templateHint==='unclassified'?1:0);
- return [...list].sort((a,b)=>score(a)-score(b)||(b.confidence??0)-(a.confidence??0)||a.name.localeCompare(b.name));
+ const score=(c:OvertureCandidate)=>(c.flags.filter(f=>deprioritize.test(f)).length*10)+
+  (c.website?2:c.thirdPartyUrls.length?1:0)+(!c.street?2:0)+(c.templateHint==='unclassified'?1:0);
+ return [...list].sort((a,b)=>a.distanceMiles-b.distanceMiles||score(a)-score(b)||
+  (b.confidence??0)-(a.confidence??0)||a.name.localeCompare(b.name));
 }
 
 // Columns understood by the existing /app/leads/import CSV intake (and by
 // lead-identity.ts duplicate checks against the CRM), plus provenance.
 export const CSV_HEADERS=['name','city','category','website','phone','source_url','source_type','external_id',
- 'street','postcode','region','lat','lon','email','social_profiles','template_hint','search_area','overture_confidence',
+ 'street','postcode','region','lat','lon','distance_miles','email','social_profiles','third_party_urls','possible_website_urls','template_hint','search_area','overture_confidence',
  'overture_operating_status','overture_datasets','overture_source_updated','overture_release','review_flags',
  'possible_duplicate_of','attribution'] as const;
 
@@ -217,7 +248,7 @@ const csvCell=(v:unknown)=>{
 };
 export function candidatesToCsv(list:OvertureCandidate[]):string{
  const rows=list.map(c=>[c.name,c.city,c.category,c.website,c.phone,c.sourceUrl,'overture_maps_places',c.externalId,
-  c.street,c.postcode,c.region,c.lat.toFixed(6),c.lon.toFixed(6),c.email,c.socials.join(' '),c.templateHint,c.areas.join(' '),
+  c.street,c.postcode,c.region,c.lat.toFixed(6),c.lon.toFixed(6),c.distanceMiles,c.email,c.socials.join(' '),c.thirdPartyUrls.join(' '),c.unverifiedWebsiteUrls.join(' '),c.templateHint,c.areas.join(' '),
   c.confidence??'',c.operatingStatus,c.datasets.join(' '),c.sourceUpdated,c.release,c.flags.join(' '),c.possibleDuplicateOf.join(' '),
   'Overture Maps Foundation release '+c.release+'; see '+OVERTURE_ATTRIBUTION_URL]);
  return [CSV_HEADERS.join(','),...rows.map(r=>r.map(csvCell).join(','))].join('\n')+'\n';

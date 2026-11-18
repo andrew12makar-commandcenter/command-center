@@ -28,8 +28,16 @@ test('tracker file is valid and uses only allowed statuses and agents',()=>{
  assert.ok(allowed.includes((raw as {overall_status:string}).overall_status));
  for(const m of (raw as {milestones:{status:string;responsible_agent:string}[]}).milestones){
   assert.ok(allowed.includes(m.status),m.status);
-  assert.ok(['Claude','ChatGPT'].includes(m.responsible_agent));
+ assert.ok(['Claude','ChatGPT','Codex'].includes(m.responsible_agent));
  }
+ assert.equal(s.responsible_agent,'Codex');
+ assert.equal(s.milestones.find(m=>m.id==='M8')?.status,'ready_for_review');
+ assert.ok(s.tests.some(t=>t.command.includes('Local merged dashboard and tracker verification')));
+ assert.ok(s.tests.some(t=>t.command==='Full local tracker checks after recent-history fix (5f3433f)'));
+ const longHistory=normalizeProjectStatus({...raw,tests:Array.from({length:45},(_,i)=>({command:String(i),result:'record',ran_at:''}))});
+ assert.equal(longHistory.tests.length,40);
+ assert.equal(longHistory.tests[0].command,'5');
+ assert.equal(longHistory.tests.at(-1)?.command,'44');
  assert.ok(s.milestones.length>=6);assert.ok(s.next_action.length>0);
  assert.doesNotMatch(JSON.stringify(raw),/(service_role|sk-[a-z0-9]|SUPABASE_[A-Z_]*=|password\s*[:=])/i);
 });

@@ -7,6 +7,8 @@ import {discover,areas,type Area,type Source} from '@/lib/discovery';
 import {collectAllPages,streetFromRaw,postcodeFromRaw,strongLocationKey} from '@/lib/lead-identity';
 import {validateCampaignInput,matchesTargetIndustry,TARGET_INDUSTRIES,type TargetIndustry} from '@/lib/discovery-campaigns';
 import {resolveCampaign} from '@/lib/discovery-campaigns-server';
+import {findCoveredGovernmentReview} from '@/lib/government-location-review';
+import {readLatestGovernmentSnapshot,readGovernmentLocationReviews} from './government-map/records';
 
 export async function scanAndStage(form:FormData){
  const {supabase,organizationId,user}=await requireWorkspace(true);
@@ -32,7 +34,7 @@ export async function scanAndStage(form:FormData){
    redirect('/app/discovery?error='+encodeURIComponent(reason.slice(0,240)));
  }
  // Both collections are paged. Otherwise the first 1,000 records masquerade as a complete deduplication check.
- const [existing,crm]=await Promise.all([
+ const [existing,crm,government,reviews]=await Promise.all([
   collectAllPages<{raw_data:Record<string,unknown>|null;name:string|null;city:string|null;source_type:string}>(async(from,to)=>{
    const {data,error}=await supabase.from('lead_import_rows')
     .select('raw_data,name,city,source_type').eq('organization_id',organizationId)
@@ -44,7 +46,9 @@ export async function scanAndStage(form:FormData){
     .select('name,city,street_address,postal_code').eq('organization_id',organizationId)
     .order('created_at',{ascending:true}).order('id',{ascending:true}).range(from,to);
    return {data,error};
-  })
+  }),
+  readLatestGovernmentSnapshot(),
+  readGovernmentLocationReviews()
  ]);
  const sourceIds=new Set(existing.map(x=>x.source_type+'|'+String(x.raw_data?.external_id||'')).filter(x=>!x.endsWith('|')));
  const locations=new Set<string>();
@@ -56,26 +60,29 @@ export async function scanAndStage(form:FormData){
   const key=strongLocationKey(x.name||'',x.street_address||'',x.city||'',x.postal_code||'');
   if(key)locations.add(key);
  }
- const campaign=await resolveCampaign(supabase,organizationId,user.id,existingCampaign,campaignInput);
- const batchId=randomUUID(),nowRows=[],seen=new Set<string>();
- let skipped=0;
+ const batchId=randomUUID(),selectedRows:typeof candidates=[],seen=new Set<string>();
+ let skipped=0,coveredSkipped=0;
  for(const x of candidates){
+   const covered=government?findCoveredGovernmentReview({name:x.name,address:streetFromRaw(x.raw_data),zip:postcodeFromRaw(x.raw_data)},government.candidates,reviews):null;
+   if(covered){coveredSkipped++;continue;}
    const externalKey=x.source_type+'|'+x.external_id;
    const locationKey=strongLocationKey(x.name,streetFromRaw(x.raw_data),x.city,postcodeFromRaw(x.raw_data));
    if(sourceIds.has(externalKey)||seen.has(externalKey)||
       (locationKey!==null && locations.has(locationKey))){skipped++;continue;}
    seen.add(externalKey);if(locationKey)locations.add(locationKey);
-   nowRows.push({
-    organization_id:organizationId,submitted_by:user.id,batch_id:batchId,row_number:nowRows.length+1,
-    name:x.name,city:x.city,category:x.category,website_url:x.website_url,
-    phone:x.phone,source_url:x.source_url,source_type:x.source_type,
-    raw_data:x.raw_data,review_status:'pending',campaign_id:campaign.id
-   });
-   if(nowRows.length>=max)break;
+   selectedRows.push(x);
+   if(selectedRows.length>=max)break;
  }
- if(!nowRows.length)redirect('/app/discovery?added=0&skipped='+skipped+'&source='+source+'&campaign='+campaign.id);
+ if(!selectedRows.length)redirect('/app/discovery?added=0&skipped='+skipped+'&covered='+coveredSkipped+'&source='+source);
+ const campaign=await resolveCampaign(supabase,organizationId,user.id,existingCampaign,campaignInput);
+ const nowRows=selectedRows.map((x,index)=>({
+  organization_id:organizationId,submitted_by:user.id,batch_id:batchId,row_number:index+1,
+  name:x.name,city:x.city,category:x.category,website_url:x.website_url,
+  phone:x.phone,source_url:x.source_url,source_type:x.source_type,
+  raw_data:x.raw_data,review_status:'pending',campaign_id:campaign.id
+ }));
  const {error}=await supabase.from('lead_import_rows').insert(nowRows);
  if(error)throw Error('Discovery staging failed. No records were imported: '+error.message);
  revalidatePath('/app');revalidatePath('/app/leads/import');revalidatePath('/app/discovery');
- redirect('/app/discovery?added='+nowRows.length+'&skipped='+skipped+'&source='+source+'&campaign='+campaign.id);
+ redirect('/app/discovery?added='+nowRows.length+'&skipped='+skipped+'&covered='+coveredSkipped+'&source='+source+'&campaign='+campaign.id);
 }
