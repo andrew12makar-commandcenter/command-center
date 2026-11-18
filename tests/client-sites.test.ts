@@ -83,11 +83,14 @@ test('Oliveira Deli Market r1 is Client Demo 05 on GitLab with a Pages preview',
   assert.match(site.hosting, /oliveira-deli-preview/);
   assert.match(site.hosting, /no production deployment/);
   assert.equal(site.liveUrl, 'https://r1.oliveira-deli-preview.pages.dev');
-  assert.equal(site.pinnedUrl, 'https://7ad9a4d7.oliveira-deli-preview.pages.dev');
+  assert.equal(site.pinnedUrl, undefined);
   assert.equal(site.branches[0]?.previewUrl, 'https://r1.oliveira-deli-preview.pages.dev');
   assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/tree/r1');
-  assert.equal(site.branches[0]?.commitSha, '463346f28ef70cebc1185d44587f085bcf90a250');
+  assert.equal(site.branches[0]?.commitSha, 'a9a43b07334354c344a2e58b7d78f7cfc717516a');
+  assert.equal(site.branches[0]?.commitUrl, 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/commit/a9a43b07334354c344a2e58b7d78f7cfc717516a');
   assert.match(site.summary, /provisional/);
+  assert.match(site.summary, /a9a43b07/);
+  assert.match(site.summary, /Order on DoorDash/);
 });
 
 test('Zisis Convenience r1 is Client Demo 04 on GitLab with the verified Pages preview and a thumbnail', () => {
@@ -144,7 +147,7 @@ test('Brighton Cellar & Gourmet r1 is one Client Demo on GitLab with the verifie
 });
 
 test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8, Zisis r1, Oliveira r1, Brighton Cellar r1, Kiki\'s r1 and Circle Tavern (sold, also shown as a demo)', () => {
-  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,oliveira-deli,brighton-cellar-gourmet,kikis-kwikmart,circle-tavern');
+  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,oliveira-deli,brighton-cellar-gourmet,kikis-kwikmart,cigars-and-more,circle-tavern');
   const u = getClientSite('universal-barber');
   assert.ok(u);
   assert.equal(u.collection, 'demo');
@@ -194,5 +197,35 @@ test('Kiki’s Kwik-Mart r1 is one Client Demo 07 on GitLab with the verified Pa
   assert.equal(r1?.commitSha, '477ddba771878350197c28d6c4938e7b1f5e88b2');
   assert.equal(r1?.previewUrl, site.liveUrl);
   assert.equal(site.thumbnail?.src, '/client-sites/kikis-kwikmart.jpg');
-  for (const n of ['04', '05', '06', '07']) assert.equal(CLIENT_SITES.filter((s) => s.summary.startsWith(`Client Demo ${n}`) || s.summary.includes(`Client Demo ${n},`) || s.summary.includes(`Client Demo ${n} (`)).length, 1, `Client Demo ${n}`);
+  for (const n of ['04', '05', '06', '07', '08']) assert.equal(CLIENT_SITES.filter((s) => s.summary.startsWith(`Client Demo ${n}`) || s.summary.includes(`Client Demo ${n},`) || s.summary.includes(`Client Demo ${n} (`)).length, 1, `Client Demo ${n}`);
+});
+
+test('Cigars & More r1 is Client Demo 08 on GitLab, not yet deployed', () => {
+  const matches = CLIENT_SITES.filter((s) => /cigars/i.test(`${s.slug} ${s.name}`));
+  assert.equal(matches.length, 1);
+  const site = getClientSite('cigars-and-more');
+  assert.ok(site);
+  assert.equal(site.name, 'Cigars & More');
+  assert.equal(site.collection, 'demo');
+  assert.equal(site.alsoIn, undefined);
+  assert.equal(site.stage, 'In build');
+  assert.match(site.summary, /^Client Demo 08/);
+  assert.match(site.summary, /Digital Humidor/);
+  assert.match(site.summary, /not deployed/i);
+  assert.match(site.hosting, /Not deployed/);
+  assert.equal(site.liveUrl, 'https://gitlab.com/andrew-makar-personal-projects-group/cigars-and-more-site');
+  assert.equal(site.pinnedUrl, undefined);
+  assert.equal(site.thumbnail, undefined);
+  assert.equal(site.repo.host, 'gitlab');
+  assert.equal(site.repo.name, 'cigars-and-more-site');
+  assert.equal(site.repo.defaultBranch, 'r1');
+  assert.equal(repoUrl(site), 'https://gitlab.com/andrew-makar-personal-projects-group/cigars-and-more-site');
+  assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/cigars-and-more-site/-/tree/r1');
+  const r1 = site.branches[0];
+  assert.deepEqual(site.branches.map((b) => b.name), ['r1']);
+  assert.equal(r1?.previewUrl, undefined);
+  assert.equal(r1?.commitSha, '6ff5134b0c7bd9da54b44d96cbdf03aa097e263c');
+  assert.equal(r1?.commitUrl, `https://gitlab.com/andrew-makar-personal-projects-group/cigars-and-more-site/-/commit/${r1?.commitSha}`);
+  assert.match(r1?.note ?? '', /388cc35/);
+  assert.match(r1?.note ?? '', /claude\/cigars-more-storefront-ggh2sl/);
 });
