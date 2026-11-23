@@ -132,14 +132,14 @@ test('Brighton Cellar & Gourmet r1 is one Client Demo on GitLab with the verifie
   assert.match(site.client, /569 Washington Street, Brighton, MA 02135/);
   assert.match(site.summary, /^Client Demo 06/);
   assert.equal(site.liveUrl, 'https://r1.brighton-cellar-gourmet-preview.pages.dev');
-  assert.equal(site.pinnedUrl, 'https://e1ee565f.brighton-cellar-gourmet-preview.pages.dev');
+  assert.equal(site.pinnedUrl, 'https://e2752fc5.brighton-cellar-gourmet-preview.pages.dev');
   assert.match(site.hosting, /Cloudflare Pages.*brighton-cellar-gourmet-preview/);
   assert.equal(repoUrl(site), 'https://gitlab.com/andrew-makar-personal-projects-group/brighton-cellar-gourmet');
   assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/brighton-cellar-gourmet/-/tree/r1');
   const r1 = site.branches[0];
   assert.deepEqual(site.branches.map((b) => b.name), ['r1']);
   assert.equal(r1?.previewUrl, site.liveUrl);
-  assert.equal(r1?.commitSha, '018903f58988fb7ec30236661201129ff87767a3');
+  assert.equal(r1?.commitSha, '13ce29dd811fa3c796bfdb12cde7c6fc45b1c81a');
   assert.equal(r1?.commitUrl, `https://gitlab.com/andrew-makar-personal-projects-group/brighton-cellar-gourmet/-/commit/${r1?.commitSha}`);
   assert.equal(site.thumbnail?.src, '/client-sites/brighton-cellar-gourmet.jpg');
   // demo numbers stay unique: 04 Zisis, 05 Oliveira, 06 Brighton
