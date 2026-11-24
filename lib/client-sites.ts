@@ -362,6 +362,36 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    slug: 'los-amigos-taqueria',
+    name: 'Los Amigos Taqueria (Brighton)',
+    client: 'Los Amigos Taqueria · fast-casual Mexican, Brighton location, 366 Washington Street, Brighton, MA 02135 (owner not contacted)',
+    collection: 'demo',
+    summary: 'Client Demo 12 (Lane B), pitch demo, preview only (r1, Nov 24). Brighton-location concept for a five-location brand that already runs amigosburritos.com, keeping its menu facts and ChowNow ordering. Loud cream, deep green and chili red with heavy condensed type and sticker-style buttons. Hero with Order online, Call and Directions; a build-your-order planner made only from the Brighton menu choices (format, size, tortilla, cheese, rice, beans, protein, salsas with heat, toppings) with a live ticket, heat meter and the add-on surcharges as listed on amigosburritos.com, kept in the browser, copy-to-clipboard; eight specials in the menu’s own words; tacos, fish tacos, sides; CaterCow catering and Square eGift links; Brighton hours (daily 11–9:30) with a Boston-time open status. Every order button opens the Brighton ChowNow page (location 8126); nothing is ordered on the site. Base prices are left to ChowNow. Scroll-driven transitions, hero included, look the same scrolling down and up. Four Unsplash photos, all captioned illustrative; no logo. Owner to confirm: Brighton phone, name variant, Sunday hours, menu typos. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.los-amigos-taqueria-preview.pages.dev',
+    pinnedUrl: 'https://d2e24c37.los-amigos-taqueria-preview.pages.dev',
+    hosting: 'Cloudflare Pages project los-amigos-taqueria-preview (Andrew personal account), preview branch r1 only (no production deployment), noindex. Not behind Cloudflare Access: the link is unlisted but open.',
+    thumbnail: { src: '/client-sites/los-amigos-taqueria.jpg', alt: 'Los Amigos Taqueria Brighton preview: cream and green hero with the name, Order online, Call and Directions buttons, and an illustrative burrito photo', width: 1200, height: 750 },
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'los-amigos-taqueria-site',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'President Claude (Lane B)',
+        previewUrl: 'https://r1.los-amigos-taqueria-preview.pages.dev',
+        note: 'First build (Claude Opus 5.5, Lane B session on the President account), Nov 24, 2026. Facts from amigosburritos.com (Brighton menu and locations) and the ChowNow Brighton location, read Nov 23; sources and owner questions in docs/. Pushed to GitLab (private) after a verified Desktop checkpoint (20261124T014220Z-c408a1659a, bundle verify, restore and fsck PASS) and deployed as Cloudflare Pages preview d2e24c37 built from c408a165. QA 106/106 on the live preview at 375, 390, 768 and 1440 wide (builder logic, heat and add-ons, saved build, order dialog with focus return, ChowNow/call/directions/catering/gift links, hours incl. DST, hero and specials transitions mirrored on scroll-up, reduced motion, no-JS, no external requests), zero axe violations. Lighthouse and physical-device tests not run.',
+        commitSha: 'c408a1659adf5ee7f0fdea1fcfd38a779e23b159',
+        commitMessage: 'r1: Los Amigos Taqueria Brighton concept demo (Client Demo 12)',
+        commitDate: '2026-11-24T01:42:10Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/los-amigos-taqueria-site/-/commit/c408a1659adf5ee7f0fdea1fcfd38a779e23b159',
+      },
+    ],
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {
