@@ -70,27 +70,30 @@ test("Johnny D's r8 is the current Client Demo and is not duplicated", () => {
   assert.equal(site.branches[0]?.commitSha, 'adc086f8887a9bf21ac1be0ed7db9cf2ed9da480');
 });
 
-test('Oliveira Deli Market r1 is Client Demo 05 on GitLab with a Pages preview', () => {
+test('Oliveira Deli Market (Client Demo 05) is live on oliveirasdeli.com with the r1 demo kept as a second branch', () => {
   const matches = CLIENT_SITES.filter((s) => /oliveira/i.test(s.slug) || /oliveira/i.test(s.name));
   assert.equal(matches.length, 1);
   const site = getClientSite('oliveira-deli');
   assert.ok(site);
   assert.equal(site.collection, 'demo');
-  assert.equal(site.stage, 'In review');
+  assert.equal(site.stage, 'Live');
+  assert.equal(site.liveUrl, 'https://oliveirasdeli.com/');
+  assert.equal(site.pinnedUrl, 'https://228ecf5a.oliveira-deli-official.pages.dev');
+  assert.match(site.hosting, /oliveira-deli-official/);
+  assert.match(site.hosting, /oliveirasdeli\.com/);
   assert.equal(site.repo.host, 'gitlab');
   assert.equal(site.repo.name, 'oliveira-deli-site');
-  assert.equal(site.repo.defaultBranch, 'r1');
-  assert.match(site.hosting, /oliveira-deli-preview/);
-  assert.match(site.hosting, /no production deployment/);
-  assert.equal(site.liveUrl, 'https://r1.oliveira-deli-preview.pages.dev');
-  assert.equal(site.pinnedUrl, undefined);
-  assert.equal(site.branches[0]?.previewUrl, 'https://r1.oliveira-deli-preview.pages.dev');
-  assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/tree/r1');
-  assert.equal(site.branches[0]?.commitSha, 'a9a43b07334354c344a2e58b7d78f7cfc717516a');
-  assert.equal(site.branches[0]?.commitUrl, 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/commit/a9a43b07334354c344a2e58b7d78f7cfc717516a');
+  assert.equal(site.repo.defaultBranch, 'main');
+  assert.deepEqual(site.branches.map((b) => b.name), ['main', 'r1']);
+  const main = site.branches[0];
+  assert.equal(main?.previewUrl, site.liveUrl);
+  assert.equal(main?.commitSha, '4a77cd3d559c3586b5f37488b75de1d6d8fbda3c');
+  assert.equal(main?.commitUrl, `https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/commit/${main?.commitSha}`);
+  assert.equal(branchUrl(site, 'main'), 'https://gitlab.com/andrew-makar-personal-projects-group/oliveira-deli-site/-/tree/main');
+  assert.equal(site.branches[1]?.previewUrl, 'https://r1.oliveira-deli-preview.pages.dev');
+  assert.equal(site.branches[1]?.commitSha, 'a9a43b07334354c344a2e58b7d78f7cfc717516a');
   assert.match(site.summary, /provisional/);
-  assert.match(site.summary, /a9a43b07/);
-  assert.match(site.summary, /Order on DoorDash/);
+  assert.match(site.summary, /4a77cd3d/);
 });
 
 test('Zisis Convenience r1 is Client Demo 04 on GitLab with the verified Pages preview and a thumbnail', () => {
