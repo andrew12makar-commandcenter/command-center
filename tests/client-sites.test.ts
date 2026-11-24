@@ -120,7 +120,7 @@ test('Zisis Convenience r1 is Client Demo 04 on GitLab with the verified Pages p
   assert.equal(site.thumbnail?.src, '/client-sites/zisis-convenience.jpg');
   assert.ok((site.thumbnail?.alt ?? '').length > 10);
   // only Zisis and Brighton Cellar carry thumbnails; other entries unchanged
-  assert.deepEqual(CLIENT_SITES.filter((s) => s.thumbnail).map((s) => s.slug), ['zisis-convenience', 'brighton-cellar-gourmet', 'kikis-kwikmart']);
+  assert.deepEqual(CLIENT_SITES.filter((s) => s.thumbnail).map((s) => s.slug), ['zisis-convenience', 'brighton-cellar-gourmet', 'kikis-kwikmart', 'ensueno-skin-care']);
 });
 
 test('Brighton Cellar & Gourmet r1 is one Client Demo on GitLab with the verified Pages preview and a thumbnail', () => {
@@ -150,7 +150,7 @@ test('Brighton Cellar & Gourmet r1 is one Client Demo on GitLab with the verifie
 });
 
 test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8, Zisis r1, Oliveira r1, Brighton Cellar r1, Kiki\'s r1 and Circle Tavern (sold, also shown as a demo)', () => {
-  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,oliveira-deli,brighton-cellar-gourmet,kikis-kwikmart,cigars-and-more,circle-tavern');
+  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,oliveira-deli,brighton-cellar-gourmet,kikis-kwikmart,cigars-and-more,ensueno-skin-care,circle-tavern');
   const u = getClientSite('universal-barber');
   assert.ok(u);
   assert.equal(u.collection, 'demo');
@@ -231,4 +231,22 @@ test('Cigars & More r1 is Client Demo 08 on GitLab, not yet deployed', () => {
   assert.equal(r1?.commitUrl, `https://gitlab.com/andrew-makar-personal-projects-group/cigars-and-more-site/-/commit/${r1?.commitSha}`);
   assert.match(r1?.note ?? '', /388cc35/);
   assert.match(r1?.note ?? '', /claude\/cigars-more-storefront-ggh2sl/);
+});
+
+test('Ensueno Skin Care (Client Demo 10, Lane B) is a preview-only demo on its own Pages project', () => {
+  const matches = CLIENT_SITES.filter((s) => /ensue/i.test(s.slug) || /ensue/i.test(s.name));
+  assert.equal(matches.length, 1);
+  const site = getClientSite('ensueno-skin-care');
+  assert.ok(site);
+  assert.equal(site.collection, 'demo');
+  assert.equal(site.stage, 'In review');
+  assert.equal(site.liveUrl, 'https://r1.ensueno-skin-care-preview.pages.dev');
+  assert.equal(site.pinnedUrl, 'https://bcde5d98.ensueno-skin-care-preview.pages.dev');
+  assert.equal(site.repo.host, 'gitlab');
+  assert.equal(site.repo.name, 'ensueno-skin-care-site');
+  assert.equal(site.repo.defaultBranch, 'r1');
+  assert.equal(repoUrl(site), 'https://gitlab.com/andrew-makar-personal-projects-group/ensueno-skin-care-site');
+  assert.equal(site.branches[0]?.commitSha, 'c245eaabfc6390842ed35e4e64841b5260afcbaf');
+  assert.equal(site.thumbnail?.src, '/client-sites/ensueno-skin-care.jpg');
+  assert.match(site.summary, /No prices shown/);
 });
