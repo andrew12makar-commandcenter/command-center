@@ -332,6 +332,36 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    slug: 'ensueno-skin-care',
+    name: 'Ensueno Skin Care',
+    client: 'Ensueno Skin Care · medical aesthetics clinic, 353 Washington Street, Brighton, MA 02135 (owner not contacted)',
+    collection: 'demo',
+    summary: 'Client Demo 10 (Lane B), pitch demo, preview only (r1, Nov 24). Calm medical-aesthetics page in linen, aubergine and clay rose with a system serif. Hero with Book on Booksy, Call and Directions; eight treatment groups exactly as named on the clinic’s Booksy page (laser hair removal, Laser Genesis, micro dermabrasion & facial, peels, Nu-Derm Program, injectables, skin tags, consultation) with filter chips and an accessible detail dialog; a booking dialog that sends visitors to Booksy (no walk-ins); Nu-Derm / Obagi section quoting the clinic’s own Booksy text; hours as listed on Booksy (Mon–Fri 10–6:30, Sat 12–3, Sunday not listed) with a Boston-time open status. No prices shown (the research fact sheet forbids publishing them before the owner confirms). Scroll-driven transitions, hero included, look the same scrolling down and up. Four Unsplash photos, all captioned illustrative; no clinic photos, logos or staff. Owner to confirm: name spelling, unit #1, prices, Sunday, what the five Botox listings cover. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.ensueno-skin-care-preview.pages.dev',
+    pinnedUrl: 'https://bcde5d98.ensueno-skin-care-preview.pages.dev',
+    hosting: 'Cloudflare Pages project ensueno-skin-care-preview (Andrew personal account), preview branch r1 only (no production deployment), noindex. Not behind Cloudflare Access: the link is unlisted but open.',
+    thumbnail: { src: '/client-sites/ensueno-skin-care.jpg', alt: 'Ensueno Skin Care preview: linen hero with the name, Book on Booksy, Call and Directions buttons, and an illustrative amber dropper bottle', width: 1200, height: 750 },
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'ensueno-skin-care-site',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'President Claude (Lane B)',
+        previewUrl: 'https://r1.ensueno-skin-care-preview.pages.dev',
+        note: 'First build (Claude Opus 5.5, Lane B session on the President account), Nov 24, 2026. Facts re-read on Booksy and Brighton Main Streets Nov 23; sources and owner questions in docs/. Pushed to GitLab (private) after a verified Desktop checkpoint (20261124T011929Z-c245eaabfc, bundle verify, restore and fsck PASS) and deployed as Cloudflare Pages preview bcde5d98 built from c245eaab. QA 105/105 at 375, 390, 768 and 1440 wide (treatment filters, detail and booking dialogs with focus return, Booksy/call/directions links, hours boundaries incl. Saturday, Sunday and DST, hero and card transitions mirrored on scroll-up, reduced motion, no-JS, no external requests), zero axe violations. Lighthouse and physical-device tests not run.',
+        commitSha: 'c245eaabfc6390842ed35e4e64841b5260afcbaf',
+        commitMessage: 'r1: Ensueno Skin Care concept demo (Client Demo 10)',
+        commitDate: '2026-11-24T01:18:00Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/ensueno-skin-care-site/-/commit/c245eaabfc6390842ed35e4e64841b5260afcbaf',
+      },
+    ],
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {
