@@ -1,0 +1,46 @@
+{
+  "name": "command-center",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.ts && node --test tests/*.test.mjs",
+    "audit:local": "node scripts/local-lighthouse.mjs",
+    "benchmark:generator": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/run-generator-benchmarks.ts",
+    "qa:browser": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/browser-qa/run.mjs",
+    "qa:browser:lighthouse": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/browser-qa/run.mjs --lighthouse",
+    "research:local": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/local-site-research.mjs",
+    "discover:overture": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/overture-discovery.mjs",
+    "discover:government": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/download-government-discovery.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.6.0",
+    "@supabase/supabase-js": "^2.0.0",
+    "cheerio": "^1.2.0",
+    "lucide-react": "^0.500.0",
+    "next": "^16.1.0",
+    "proj4": "^2.22.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@duckdb/node-api": "^1.5.6-r.1",
+    "@playwright/test": "^1.64.0",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.1.0",
+    "lighthouse": "^13.0.0",
+    "postcss": "^8.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.9.0"
+  }
+}

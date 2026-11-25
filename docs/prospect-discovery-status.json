@@ -1,0 +1,1014 @@
+{
+  "project": "Prospect Discovery MVP",
+  "agent_goal_anchor": {
+    "objective": "Identify 40 high-value prospects near Brighton. A missing or unusable first-party website is required, plus a separate, concrete improvement such as Google Business Profile or Maps setup, booking, ordering, or another owner-actionable digital need.",
+    "source": "Current ChatGPT goal, mirrored into the project tracker",
+    "sync_mode": "manual_snapshot",
+    "last_synced": "2026-10-17"
+  },
+  "branch": "integration/release-candidate-oct14",
+  "worktree": "Local release-candidate checkout at HEAD 3025add6de065ec8db58f24e858c6644afd9dfd2 with uncommitted lead-intake, local Lighthouse, government cross-check and source-quality audit changes; all three reviewed feature branch heads remain merge ancestors; local only, unpushed",
+  "current_milestone": "Strict Brighton website-gap plus second-need shortlist in progress: 40 candidate rows; original 40 preserved. Cambridge Street Auto Service is in the review queue after redevelopment evidence; Volmmer\u2019s Haircutting is included only if its operator is distinct from Monica\u2019s Hair Salon. Current table count: 24 A, 16 B, zero Hold, zero C; grades describe support for the separate need, not likelihood to buy. Eight exact Maps checks on Oct. 16 (Boston local) refreshed rows 9\u201320; the 40 remain researched prospects, not confirmed buyers, with owner and operation checks open.",
+  "overall_status": "in_progress",
+  "last_updated": "2026-10-16",
+  "responsible_agent": "Codex",
+  "safe_for_other_agent_to_edit": false,
+  "latest_commit": {
+    "sha": "3025add6de065ec8db58f24e858c6644afd9dfd2",
+    "message": "docs(tracker): record current local preview verification"
+  },
+  "next_action": "Continue exact live Maps and independent first-party website checks for the remaining shortlist rows, starting with rows 21\u201332, then recheck any conditional row before finalizing all 40. Keep only candidates with a usable first-party website gap plus a separate owner-actionable improvement and current-operation evidence. Do not import, contact, edit public listings, or make production changes.",
+  "blockers": [
+    "The merged branch is local and unpushed, so exact-head GitHub Actions results are not available. Existing passing runs apply to ancestor c8d5ef7 only.",
+    "Docker and Supabase CLI/runtime are unavailable locally; disposable authenticated recovery/concurrency/RLS/UI tests were not rerun on this merged source.",
+    "Historical CRM orphan rows, production RPC/schema and owner-Mac runtime were not inspected. No production writes, migrations, deploy, push or main merge were made."
+  ],
+  "known_limitations": [
+    "The app still uses the one connected Supabase project for real discovery, review, CRM, audits and demos. The new rehearsal route is a browser-only fictional practice queue; it does not exercise those shared-data write paths.",
+    "Official Massachusetts entity search and municipal DBA records are manual cross-checks in the current build. No bulk state-registry connector exists. Registry matches support legal-name research only; they do not prove a customer-facing address, current operation, GBP state, or service need.",
+    "Boston\u2019s official city data catalog currently exposes active food establishment permits, active Licensing Board permits and a certified-vendor subset as public CSV downloads. A Brighton ZIP 02135 check returned 146, 154 and 16 source rows respectively; these overlap and are not unique leads. The Boston business-certificate page describes public trade-name/address registration, but a bulk export path was not verified.",
+    "The live Peka Restaurant intake Lighthouse run saved and rendered its report but was marked inconclusive after incomplete collection. The UI correctly kept its 63 performance and 92 SEO scores out of lead ranking. This is a successful persistence/guardrail check, not a reliable site benchmark.",
+    "The government-first plan uses Brighton Center as an approximate origin, free downloadable local sources, locally computed straight-line distance, and staged human review. It will not represent every Massachusetts business; municipal records, license coverage and sole-proprietor DBA requirements vary by city and business type.",
+    "Saved GBP links may be Maps search URLs rather than exact listing IDs. Search URLs are not treated as verified listings; business ownership is unverified.",
+    "Decision makers have not been identified for the current prospects; no outreach was performed.",
+    "Existing draft demos still require business-owner fact approval and media-rights decisions before client presentation or publication.",
+    "The free website check reads one page plus robots.txt and sitemap.xml; it does not establish site-wide performance or SEO results.",
+    "Operator review evidence is stored under lead_import_rows.raw_data.review; source keys remain unchanged.",
+    "Migration 0008 privilege hardening is prepared but unapplied.",
+    "Test exclusion is based on campaign names beginning with Test; untagged historical test data may affect counts until classified.",
+    "Integration code prevents the known scan-area and GBP-search contamination paths, but historical rows were not inspected or repaired in this audit.",
+    "Exact-head hosted CI and disposable authenticated Supabase recovery/concurrency/RLS/UI tests remain unverified on the current local branch. Previous green Actions runs apply to ancestor c8d5ef7.",
+    "Current dashboard business, intake and demo counts were read from the UI but not independently reconciled against direct database queries.",
+    "Automated responsive QA passed for eight fictional benchmark sites across desktop, tablet and mobile. Human visual review and client-approved content remain open.",
+    "The fresh 9-site exported responsive browser run did not complete: the isolated harness dependency install required an uncached npm package and registry access was unavailable; local server binding was also denied. The existing 8-site responsive run is earlier evidence and does not cover the new retail fixture or current source changes.",
+    "Current desktop UI review confirms the connected-data notice, need-first prospect queue, and food/retail layouts. Mobile/tablet and fresh Lighthouse results for the current working tree remain open.",
+    "The 11/33 sidebar checkpoint is source-controlled local baseline evidence. No Supabase roadmap activity or business records were written; remaining roleplay findings are listed in docs/phase-3-integration-audit.md. A new 2026-10-16 direct Chrome check of Volmmer\u2019s Haircutting found a 79 Harvard Ave Maps profile marked Add website; the profile title includes payment terms and the same address is shared with Monica\u2019s Hair Salon. The lead is counted as a separate prospect only if the operators are distinct. Cambridge Street Auto Service was moved to review queue based on the 445\u2013449 Cambridge Street redevelopment record.",
+    "Second operator-supplied 50-case rehearsal reports 3 pursue, 20 research more, 9 hold and 18 skip. It displayed the shared-data warning and performed no writes. Business observations are user-provided and have not been independently rechecked; see docs/phase-3-integration-audit.md.",
+    "Local source fixes cover directory raw-website fallback, conservative employee-band parsing, same-address business-domain duplicate warnings, target-fit clues, and registry evidence capture. Unified readiness and stale-demo protection remain open.",
+    "The rehearsal UI was reviewed live and its session-only decision/reset behavior was tested. It does not simulate discovery scans, imports, CRM, or demo generation against a disposable database.",
+    "Current source changes have not received fresh responsive/Lighthouse, exact-head hosted CI, or disposable authenticated Supabase recovery/concurrency/RLS/UI verification.",
+    "The new government map is a coordinate plot, not a road map; 33 records remain unplaced and the municipal certificate bulk export has not been verified. All 316 rows are source records, not unique businesses or qualified prospects. The current nearest rows include obvious chains and overlapping permits, so identity, operation, Google presence and commercial fit still need human review.",
+    "No diamond-level or sales-qualified lead has been established from the 1,277 map candidates. Nakhon is the current first verification candidate; current merchant ordering and local coverage do not prove a sales need, owner interest, or willingness to buy.",
+    "Boston City Clerk DBA search is available as a manual, single-candidate cross-check. No official free bulk export was verified; the public search can show owner details, which are intentionally excluded from prospect notes.",
+    "No diamond-level or sales-qualified lead has been established from the 1,277 map candidates. Nakhon remains the first human verification candidate; online evidence does not establish owner interest or a service need."
+  ],
+  "manual_steps": [
+    "Open http://localhost:3001/app/rehearsal for fictional browser-only practice. Open /app/roadmap for the source-controlled checkpoint count. The real prospect queue remains connected to shared sales records.",
+    "Use the Massachusetts entity search and relevant city/town DBA records as identity clues. The official sources currently link from each candidate review; record the direct URL and exact name/address match. Do not infer current operation from registration.",
+    "Download filtered, source-dated Boston government CSV snapshots to a local review folder, retain only business/location/license fields, confirm locations, dedupe conservatively, and expand from Brighton outward. Do not import to connected CRM until a separately approved review step.",
+    "Open /app/discovery/government-map for nearest-first source review. The local snapshot has 316 source rows (283 mapped, 33 unplaced), not 316 verified leads; do not import it into connected CRM.",
+    "Use official state entity search as a manual legal-name cross-check; do not scrape its interactive search or imply state registration lists every storefront.",
+    "Run fresh responsive/Lighthouse export QA, exact-head CI and isolated authenticated Supabase tests.",
+    "Inspect historical CRM orphans and production RPC/schema only through an approved read-only connection; keep the prepared 0008 privilege migration unapplied until separately reviewed.",
+    "The local /app/roadmap currently displays SETUP REQUIRED / Connect Supabase in Chrome; roadmap source and this JSON checkpoint are updated, but a live tracker refresh is not verified until local app configuration is restored.",
+    "For the 40-prospect roster, continue exact current Maps and first-party-site checks for rows 21\u201332, then do a final cross-check across all 40. Confirm current operation and separate owners for co-located records; validate each second-service offer with the operator before claiming buyer readiness. Cambridge Street Auto Service stays in review queue until current operation/relocation is resolved. Verify A and I Auto Repair\u2019s newly surfaced website destination before claiming a site gap. No outreach or public listing changes."
+  ],
+  "tests": [
+    {
+      "command": "Local Brighton snapshot integrity and distance-order check",
+      "result": "PASS: 316 candidate/source rows; 283 mapped and sorted monotonically by straight-line distance from Brighton Center; 33 unplaced; contact-free CSV exists (148,166 bytes); no owner/manager/applicant/phone/contact columns; snapshot file mode 0600",
+      "ran_at": "2026-10-15T09:10:00Z"
+    },
+    {
+      "command": "Authenticated browser: government map and tracker",
+      "result": "PASS desktop: /app/discovery/government-map renders 316 source rows, 283 mapped, 33 unplaced, nearest-first table, local CSV control; sidebar displays local-business progress at 19/40 (48%) with public-presence review active. Row selection displays source/address/distance. Mobile/tablet QA not run.",
+      "ran_at": "2026-10-15T09:10:00Z"
+    },
+    {
+      "command": "npm test",
+      "result": "PASS: 254 TypeScript tests + 41 MJS tests; 0 failures. Includes updated roadmap current/next-state assertions.",
+      "ran_at": "2026-10-15T09:10:00Z"
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "PASS",
+      "ran_at": "2026-10-15T09:10:00Z"
+    },
+    {
+      "command": "npm run lint",
+      "result": "PASS: 0 errors, 14 warnings (existing)",
+      "ran_at": "2026-10-15T09:10:00Z"
+    },
+    {
+      "command": "npx next build --webpack",
+      "result": "PASS: production build and government map route",
+      "ran_at": "2026-10-15T09:10:00Z"
+    },
+    {
+      "command": "Browser verification",
+      "result": "NOT performed (needs Supabase env, sign-in and approved migration 0007)",
+      "ran_at": "2026-10-13T23:34:40Z"
+    },
+    {
+      "command": "Supabase pre-check (read-only) on lxdnoxflwqmsvnoforgl",
+      "result": "0001-0004 present; 0005, 0006, 0007 absent; businesses=7, lead_import_rows=25",
+      "ran_at": "2026-10-13T23:55:05Z"
+    },
+    {
+      "command": "apply 0005_project_roadmap (Supabase apply_migration)",
+      "result": "success; table, 3 checks, PK, 2 FKs, index, RLS + 3 policies, grants verified; row counts unchanged",
+      "ran_at": "2026-10-14T04:51:57Z"
+    },
+    {
+      "command": "apply 0006_roadmap_execution_log",
+      "result": "cancelled before execution; verified nothing applied",
+      "ran_at": "2026-10-14T04:51:57Z"
+    },
+    {
+      "command": "apply 0006_roadmap_execution_log (retry)",
+      "result": "cancelled again before execution; verified nothing applied; fingerprints unchanged",
+      "ran_at": "2026-10-14T05:47:24Z"
+    },
+    {
+      "command": "SQL Editor: apply 0006_roadmap_execution_log and 0007_prospect_discovery; reconcile Supabase migration history",
+      "result": "passed; both migrations applied and recorded as 0006_roadmap_execution_log and 0007_prospect_discovery",
+      "ran_at": "2026-10-14T05:50:59Z"
+    },
+    {
+      "command": "Post-migration database verification",
+      "result": "passed; roadmap/discovery tables, policies, triggers and constraints present; businesses=7; lead_import_rows=25; all 25 triage_status=review_needed; all new business qualification fields remain null",
+      "ran_at": "2026-10-14T05:50:59Z"
+    },
+    {
+      "command": "Browser 1: /app/project-status and /app/roadmap (signed in, localhost:3107)",
+      "result": "PASS: tracker page renders status/milestones/tests; roadmap renders (9/31 checkpoints); sidebar sync shows ready (0005/0006 live); Project Status nav link present",
+      "ran_at": "2026-10-14T07:00:12Z"
+    },
+    {
+      "command": "Browser 2: campaign Test: Brighton website design (Website design, Any industry, Boston certified, Brighton, max 25)",
+      "result": "PASS: staged 16 new (dataset has 16 Brighton matches), 0 skipped; campaign e81054d6 recorded; 16 rows carry campaign_id",
+      "ran_at": "2026-10-14T07:00:12Z"
+    },
+    {
+      "command": "Browser 3: repeat scan into same campaign",
+      "result": "PASS: added 0, skipped 16; DB shows 0 duplicate source/external_id pairs; lead_import_rows 25 -> 41",
+      "ran_at": "2026-10-14T07:00:12Z"
+    },
+    {
+      "command": "Browser 4: queue cards and filters (campaign view)",
+      "result": "PASS: 16 cards show campaign, area, industry, website presence, GBP status, opportunity/strength, confidence, readiness, next action, status, rationale; filter counts: website official=1, none=15, opp gbp=16, website_design=0, strength moderate=16, readiness ready=16, confidence medium=16, area Brighton=3, industry other=16, name search=1, no-campaign=24. Observation: all 16 rank GBP Moderate (street address, no GBP link) even in a website-design campaign; Boston certified category maps to legal entity type, so industry hint is Other business",
+      "ran_at": "2026-10-14T07:02:32Z"
+    },
+    {
+      "command": "Browser 5: shortlist, hold, restore, disqualify validation, restore",
+      "result": "PASS: candidate A shortlisted; candidate B held then restored; candidate C: empty reason blocked client-side, 5-char reason rejected server-side (row unchanged), valid reason disqualified, then restored with reason cleared. Observation: server validation errors surface as the Next.js error overlay (dev) / error page, not an inline message",
+      "ran_at": "2026-10-14T07:02:32Z"
+    },
+    {
+      "command": "Browser 6: import one clear-identity candidate (candidate A: city-certified record, official site domain matches name, no duplicate warning)",
+      "result": "PASS: CRM record created; campaign_id, primary_opportunity=gbp, evidence_confidence=medium, next_action=confirm_gbp, rationale carried; priority_score null; contact name/email from source; 1 source row; staged row review_status=imported",
+      "ran_at": "2026-10-14T07:04:41Z"
+    },
+    {
+      "command": "Browser 7: CRM, Opportunity Board, internal demo, pitch brief",
+      "result": "PASS: CRM qualification panel with pitch/demo/board links; board campaign filter shows 1 business with qualification line and Pitch brief/Website demo links (board total 8); demo generated via existing createDemo as status=draft (generated imagery ack only, business-image reuse NOT authorized, no external API); pitch brief shows all sections, links the draft demo, Copy as Markdown works (Copied), print CSS loaded",
+      "ran_at": "2026-10-14T07:04:41Z"
+    },
+    {
+      "command": "Post-test DB integrity",
+      "result": "Original 7 businesses and 25 staged rows: fingerprints identical to pre-migration baseline (new columns excluded); totals now 8 businesses, 41 staged rows, 1 campaign, 1 new demo draft by this test; no activities, no outreach",
+      "ran_at": "2026-10-14T07:04:41Z"
+    },
+    {
+      "command": "npm test (.ts) after M6 refactor",
+      "result": "196 passed, 0 failed",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npm test (.mjs)",
+      "result": "41 passed, 0 failed",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "result": "passed",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npx eslint .",
+      "result": "0 errors, 14 pre-existing warnings",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npx next build",
+      "result": "succeeded",
+      "ran_at": "2026-10-14T08:39:31Z"
+    },
+    {
+      "command": "npm test (.ts) at e9d01f7",
+      "result": "199 passed, 0 failed",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npm test (.mjs) at e9d01f7",
+      "result": "41 passed, 0 failed",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "result": "passed",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npx eslint .",
+      "result": "0 errors, 14 pre-existing warnings",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "npx next build",
+      "result": "succeeded",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: queue next-10, filters, campaign-lane scoring, test records excluded",
+      "result": "PASS (localhost:3107, signed in)",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: inline disqualification error",
+      "result": "PASS: short reason returned inline card error; record unchanged; no error overlay",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: campaign dedupe on real campaign",
+      "result": "PASS: 14 staged, 19 known skipped",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "Browser: free website check x8, review saves x10, triage, 5 imports, 3 demos, 5 pitch briefs, board",
+      "result": "PASS",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "DB integrity after batch",
+      "result": "Original 7 businesses and 25 staged rows fingerprints unchanged; test campaign rows and Welland record untouched; 0 activities; all demos draft",
+      "ran_at": "2026-10-14T09:06:33Z"
+    },
+    {
+      "command": "GitHub Actions run 38625679812 (generator-media branch before fixes)",
+      "result": "FAIL: 202 TS pass, 3 fail (stale cursor); browser export build could not resolve missing selector file. Fixed in later commits; post-fix run unverified.",
+      "ran_at": "2026-10-14T19:42:08Z"
+    },
+    {
+      "command": "Integration CI / authenticated lead-intake QA",
+      "result": "Exact-head runs verified via GitHub Actions API: full CI run 38681092310 and isolated authenticated intake run 38681092336 both SUCCESS at c8d5ef7. Details recorded below.",
+      "ran_at": "2026-10-14T21:37:41.176Z"
+    },
+    {
+      "command": "GitHub Actions 38643007467 on isolated integration 61aa593",
+      "result": "PASS: 221 TypeScript and 41 MJS tests, TS typecheck, lint (14 warnings / 0 errors), Next.js production build, standalone exported-site build, browser/Lighthouse QA on 8 fictional sites (0 blocking, 0 warnings). Not signed-in intake or DB E2E.",
+      "ran_at": "2026-10-14T21:56:00Z"
+    },
+    {
+      "command": "Recovery branch deterministic staged/CRM and source UUID + manual GBP guardrails",
+      "result": "SOURCE COMMITTED; latest CI still pending; no staging row or CRM record imported or altered, no migration.",
+      "ran_at": "2026-10-14T22:18:00Z"
+    },
+    {
+      "command": "Release-candidate GitHub Actions full CI #38660487729 and authenticated isolated DB/UI #38660487749 at da817a9",
+      "result": "PASS as verified in previous checkpoint; applies to da817a9, not current phase-3 HEAD",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Phase 3 documentation commits 27b2e2e, 17da2cc, 9ea724f",
+      "result": "Source commits confirmed; exact-head CI NOT VERIFIED; no database, Mac, or deployment tests performed",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "GitHub Actions full CI run 38681092310 at c8d5ef7",
+      "result": "PASS: unit tests, typecheck, lint, Next.js build, clean client export; Chromium browser QA and local Lighthouse passed. Exact SHA c8d5ef7b55cd984a0f2f96cc06c24a57909282e7.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "GitHub Actions isolated authenticated intake run 38681092336 at c8d5ef7",
+      "result": "PASS: disposable Supabase stack, concurrency/fault recovery/RLS tests, signed-in Next.js import UI QA and cleanup. Exact SHA c8d5ef7b55cd984a0f2f96cc06c24a57909282e7.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Local isolated-copy generator correction checks",
+      "result": "PASS on commit 4c441172c1b050a74ec717d1405b91a113e202a3: 270 tests, typecheck, lint (0 errors, 14 existing warnings), 8/8 generator benchmarks at score 100. Plumbing uses a universal trade-safe presentation and estimate path.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Local production build and client export smoke",
+      "result": "PASS on source commit 4c44117: webpack production build and exported standalone client build. Follow-up clean temporary install on local HEAD f4e2d3a installed 48 packages from the registry and completed an optimized Next.js production build. Targeted responsive browser/Lighthouse QA passed separately.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Owner-Mac localhost tracker read-only check",
+      "result": "Mission Control and /app/roadmap loaded in the authenticated browser; /app/project-status returned 404. No writes were made. Current isolated repo production build lists the project-status route; the owner-Mac server may be stale or differ from the checkout.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Semantic comparison of active branches against c8d5ef7",
+      "result": "PASS: Opportunity Board changes are already present; the GBP branch is an older subset and the release retains the exact-link and import-recovery guards; intake-auth/recovery branches are ancestors of c8. Foundation renderer/sidebar deltas were rejected where they remove approved-media selection, roadmap evidence or newer routes. No blind cherry-picks or branch-history merges were made.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Final local tests after exported-client manifest fix",
+      "result": "PASS on commit 4c44117: npm test 270/270 (229 TypeScript, 41 MJS), typecheck, lint (0 errors, 14 existing warnings), npx next build --webpack.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Targeted holdout-plumbing responsive browser/Lighthouse QA",
+      "result": "PASS on commit 4c44117: exported plumbing holdout at desktop 1440x900, tablet 834x1112 and mobile 390x844 had 0 blocking and 0 warning findings. Lighthouse: performance 100, accessibility 98, best practices 100, SEO 100. A neutral concept favicon fixed the initial desktop 404. This covers one holdout, not owner sign-off.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Local isolated Supabase recovery/concurrency/RLS/UI stack",
+      "result": "NOT RUN: retried; Docker/Supabase CLI and Docker runtime are absent in this environment. GitHub Actions isolated intake run 38681092336 passed on exact c8d5ef7; it does not cover the local generator/export patch. Did not dispatch a workflow on c8 because it would not test local HEAD f4e2d3a; push remains unauthorized.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Final generator benchmark on release-candidate commit 4c44117",
+      "result": "PASS: 8/8 core and holdout fixtures accepted at score 100, including holdout plumbing as universal trade-safe presentation.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Three-branch merged release-candidate verification (HEAD 3a97c199b629e3ecb1cf5b162c17d48ebc0a5dbd)",
+      "result": "PASS: merged feature heads verified as ancestors. npm test 232 TypeScript + 41 MJS tests; typecheck; lint 0 errors/14 existing warnings; npx next build --webpack; generator benchmarks 8/8 score 100; clean exported-site install (48 packages) and optimized production build; responsive browser QA for 8 fictional sites at desktop/tablet/mobile with 0 blocking/0 warning findings. Lighthouse ranges: performance 76\u2013100, accessibility 98\u2013100, best practices 100, SEO 100. Authenticated Supabase recovery/concurrency/RLS/UI NOT RUN locally (Docker/Supabase CLI unavailable); exact-head CI NOT RUN because local branch remains unpushed.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Fresh merged-software verification on local HEAD 08554bb29b03785517669d695d9df0ff78f1d599",
+      "result": "PASS: npm test 232 TypeScript + 41 MJS; npm run typecheck; npm run lint (0 errors, 14 existing warnings); npx next build --webpack; generator benchmark 8/8 score 100; clean exported-client install (48 packages) and production build; responsive Chromium/Chrome QA on 8 exported sites x desktop/tablet/mobile (24 viewports), 0 blocking and 0 warning findings. Browser QA used installed Google Chrome because Playwright bundled Chromium is not installed. Lighthouse was not rerun in this pass; earlier responsive/Lighthouse results remain recorded above. Exact-head GitHub Actions and authenticated disposable Supabase tests NOT RUN; local Docker/Supabase CLI unavailable and branch remains unpushed.",
+      "ran_at": "2026-10-15"
+    },
+    {
+      "command": "Full local tracker checks after recent-history fix (5f3433f)",
+      "result": "PASS: npm test 232 TypeScript + 41 MJS; typecheck; lint 0 errors/14 warnings; webpack production build. Includes Codex owner, latest-40 ordering and latest-visible checkpoint regression assertions.",
+      "ran_at": "2026-10-15T02:00:15-04:00"
+    },
+    {
+      "command": "Branch ancestry audit (local release candidate)",
+      "result": "PASS: remote tips b9881e2, a7a11b6 and 32374f8 are ancestors via reviewed merge commits 15d8e54, 3427757 and 3a97c19. No branch tip is missing from local history.",
+      "ran_at": "2026-10-15T01:59:00-04:00"
+    },
+    {
+      "command": "Local merged dashboard and tracker verification (localhost:3001)",
+      "result": "PASS: authenticated /app/roadmap sidebar shows 10/32 (31%); branch-integration checkpoint is complete. /app/project-status shows M8 Ready for review, responsible agent Codex, correct 10/15 date, and latest 40 test records including the merged build checks. Read-only; no DB writes.",
+      "ran_at": "2026-10-15T02:00:15-04:00"
+    },
+    {
+      "command": "Read-only 50-business roleplay remediation on release-candidate working tree (HEAD 3025add6de065ec8db58f24e858c6644afd9dfd2 plus uncommitted changes)",
+      "result": "PASS: npm test 236 TypeScript + 41 MJS; npm run typecheck; npm run lint (0 errors, 14 existing warnings); npx next build --webpack; generator benchmark 9/9 accepted at score 100; browser UI confirmed shared-data warning, need-first queue, restaurant menu layout and retail shop layout; /app/roadmap shows 11/33 (33%) with a local source-controlled evidence checkpoint. Full exported responsive/Lighthouse QA for this working tree NOT RUN: isolated npm install lacked cached @tailwindcss/postcss and registry access; local server bind was denied. No Supabase writes.",
+      "ran_at": "2026-10-15T03:32:54-04:00"
+    },
+    {
+      "command": "Second roleplay source-fidelity regression suite",
+      "result": "PASS: 240 TypeScript tests, 0 failures; includes raw-source website fallback, less-than-ten employee parsing, same-address domain alias warning and free-email exclusion.",
+      "ran_at": "2026-10-15T08:02:34Z"
+    },
+    {
+      "command": "npm run typecheck (second roleplay fixes)",
+      "result": "PASS: TypeScript completed with no errors.",
+      "ran_at": "2026-10-15T08:02:34Z"
+    },
+    {
+      "command": "npm run lint (second roleplay fixes)",
+      "result": "PASS: 0 errors; 14 existing warnings.",
+      "ran_at": "2026-10-15T08:02:34Z"
+    },
+    {
+      "command": "npx next build --webpack (second roleplay fixes)",
+      "result": "PASS: production build and route generation completed.",
+      "ran_at": "2026-10-15T08:02:34Z"
+    },
+    {
+      "command": "Live Command Center UI: roadmap and Agent Checkpoints",
+      "result": "PASS: authenticated browser loaded /app/roadmap (12/34, 35%) and /app/project-status; shared-data banner and updated source tracker are visible. Read-only; no connected records changed.",
+      "ran_at": "2026-10-15T08:02:34Z"
+    },
+    {
+      "command": "Lead intake source and target-fit regression suite",
+      "result": "PASS: npm test completed with 246 TypeScript and 41 MJS tests. New cases verify target-fit clues, official-registry evidence boundaries, and entity-filing addresses remaining separate from storefront locations.",
+      "ran_at": "2026-10-15T08:26:00Z"
+    },
+    {
+      "command": "Lead Intake Rehearsal human-facing browser check",
+      "result": "PASS: /app/rehearsal rendered 12 fictional cases. Marking a case Research more updated its visible count; Reset practice cleared the session-only entry. No scan, import, Supabase write or demo creation occurred.",
+      "ran_at": "2026-10-15T08:20:00Z"
+    },
+    {
+      "command": "Typecheck, lint and production build for intake update",
+      "result": "PASS: serial npm run typecheck; npm run lint (0 errors, 14 existing warnings); npx next build --webpack. Build includes /app/rehearsal. Default Turbopack build hit a sandbox process-bind EPERM; Webpack production build succeeded.",
+      "ran_at": "2026-10-15T08:26:00Z"
+    },
+    {
+      "command": "Staged-lead local Lighthouse integration",
+      "result": "PASS: browser confirms Run mobile Lighthouse appears on pending candidates with independent websites. The local Chrome/Lighthouse runner completed a read-only scan of the reserved example.com test domain and returned a fresh native report. Corrected execution provenance now flows through the same parser used by intake. No prospect scan or shared-data write was performed.",
+      "ran_at": "2026-10-15T08:36:00Z"
+    },
+    {
+      "command": "Current source regression tests after Lighthouse intake integration",
+      "result": "PASS: 250 TypeScript and 41 MJS tests. Matching local Lighthouse findings can influence qualification; mismatched or operator-uploaded reports cannot. Execution provenance, freshness, and website aliases are checked.",
+      "ran_at": "2026-10-15T08:36:00Z"
+    },
+    {
+      "command": "npm test",
+      "result": "PASS: 264 TypeScript tests and 41 MJS tests; 0 failures.",
+      "ran_at": "2026-10-15T10:22:55Z"
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "PASS: TypeScript check on the current local working tree.",
+      "ran_at": "2026-10-15T10:22:55Z"
+    },
+    {
+      "command": "npm run lint",
+      "result": "PASS: 0 errors, 14 warnings in renderer/config files.",
+      "ran_at": "2026-10-15T10:22:55Z"
+    },
+    {
+      "command": "npx next build --webpack",
+      "result": "PASS: optimized production build includes /app/discovery/overture and the updated roadmap.",
+      "ran_at": "2026-10-15T10:22:55Z"
+    },
+    {
+      "command": "Authenticated browser: read-only Cafe Mirror review and sidebar progress",
+      "result": "PASS: /app/discovery/overture?q=Cafe%20Mirror shows one matching row, third-party menu link, exact Active Food Establishment Licenses match and source caveats. Sidebar shows 23/44 verified checkpoints (52%), source-quality audit Done, public-presence review Active. Connected-data warning visible; no write action taken.",
+      "ran_at": "2026-10-15T10:22:55Z"
+    },
+    {
+      "command": "npm test",
+      "result": "PASS: 265 TypeScript tests and 41 MJS tests; 0 failures.",
+      "ran_at": "2026-10-15T10:28:22Z"
+    },
+    {
+      "command": "npm run lint",
+      "result": "PASS: 0 errors, 14 warnings in renderer/config files.",
+      "ran_at": "2026-10-15T10:28:22Z"
+    },
+    {
+      "command": "npx next build --webpack",
+      "result": "PASS: optimized production build includes /app/discovery/overture and the updated roadmap.",
+      "ran_at": "2026-10-15T10:28:22Z"
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "PASS: current local working tree.",
+      "ran_at": "2026-10-15T10:28:22Z"
+    },
+    {
+      "command": "Authenticated browser: Overture Nakhon review and left progress tracker",
+      "result": "PASS: /app/discovery/overture?q=Nakhon shows 1,277 candidates, 655 URLs in source, 311 possible site mismatches, 78 exact Boston record matches, 56 possible city-name variations, and 213 food records needing status review. Nakhon Southern Thai at 296 Washington shows a Toast ordering link and two Active city rows named Nakhon as possible variations, not exact matches. Sidebar displays 23/44 verified checkpoints (52%) and public-presence review Active. Connected-data warning visible; this page is read-only and no CRM write action was taken.",
+      "ran_at": "2026-10-15T10:28:22Z"
+    },
+    {
+      "command": "npm test after government-source and lead-review changes",
+      "result": "PASS: 265 TypeScript tests and 41 MJS tests; 0 failures.",
+      "ran_at": "2026-10-15T10:32:23Z"
+    },
+    {
+      "command": "npm run lint after government-source and lead-review changes",
+      "result": "PASS: 0 errors, 14 existing warnings in renderer/config files.",
+      "ran_at": "2026-10-15T10:32:23Z"
+    },
+    {
+      "command": "npx next build --webpack after government-map DBA lookup integration",
+      "result": "PASS: production build and government-map route generated.",
+      "ran_at": "2026-10-15T10:32:23Z"
+    },
+    {
+      "command": "npm run typecheck after government-map DBA lookup integration",
+      "result": "PASS: current local working tree.",
+      "ran_at": "2026-10-15T10:32:23Z"
+    },
+    {
+      "command": "Authenticated browser: Brighton government map with official DBA lookup",
+      "result": "PASS: /app/discovery/government-map renders 316 ZIP 02135 source rows, 283 mapped, 33 unplaced, nearest-first table and all three source links; new manual City Clerk DBA lookup section is visible. Sidebar remains 23/44 (52%) with public-presence review Active. Connected-data notice visible; local map and lookup section have no CRM write action.",
+      "ran_at": "2026-10-15T10:32:23Z"
+    },
+    {
+      "command": "Research-first candidate triage, full local verification and signed-in browser review",
+      "result": "PASS: 270 TypeScript tests + 41 MJS tests; typecheck passed; lint passed with 0 errors and 14 existing warnings; webpack production build passed. Browser visibly confirmed 1,277 candidates, 655 accepted website URLs, 311 possible URL mismatches, 622 without an accepted first-party URL (311 have no accepted or suspect URL), research-first order selected, and roadmap at 24/45 (53%). Read-only public-source backtests found a Demma Aesthetics website absent from Overture, a possible Performance and Recovery URL with uncertain address identity, an Ensueno third-party URL clue, and conflicting Academy Hill directory claims. No CRM/database writes.",
+      "ran_at": "2026-10-15T10:43:04Z"
+    },
+    {
+      "command": "Brighton Main Streets and directory-link identity back-test",
+      "result": "PASS: Brighton Main Streets lists Ensueno Body and Skin Care at 353 Washington St with phone 617-783-2100; YellowPages links its website button to cosmeticosensueno.com, whose live homepage identifies a Barcelona, Spain cosmetics company with a different address and phone. Academy Hill Plumbing aggregator evidence conflicts with Brighton Main Streets listing Harry\u2019s Foreign & American Auto Service at the same number/address. Both remain human-review cases; no operation, Google listing, lead qualification or purchase intent inferred. No contact or CRM writes.",
+      "ran_at": "2026-10-15T10:46:08Z"
+    },
+    {
+      "command": "npm run typecheck and npx next build --webpack after active roadmap evidence update",
+      "result": "PASS: TypeScript check and full production build completed successfully; roadmap copy compiled and all routes generated.",
+      "ran_at": "2026-10-15T10:46:08Z"
+    },
+    {
+      "command": "Research-first queue precision regression and final local suite",
+      "result": "PASS: added a rule that candidates with no recorded business category cannot enter the first research band. Academy Hill Plumbing now sorts after Ensueno; signed-in browser confirmed Ensueno first, Academy Hill later, research-first selection and 24/45 tracker. Full suite: 271 TypeScript + 41 MJS tests passed; typecheck passed; lint passed with 0 errors and 14 existing warnings; webpack production build passed again after the final roadmap evidence update. No CRM/database writes or candidate imports.",
+      "ran_at": "2026-10-15T10:48:19Z"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M0",
+      "title": "Shared tracker",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "Searched for an existing tracker: /app/roadmap is DB-backed and not readable from the repo, so a JSON tracker was added",
+        "docs/prospect-discovery-status.json + docs/prospect-discovery-handoff.md",
+        "Read-only /app/project-status page, linked in the sidebar and from Prospect Discovery"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "docs/prospect-discovery-status.json",
+        "docs/prospect-discovery-handoff.md",
+        "lib/project-status.ts",
+        "app/app/project-status/page.tsx",
+        "app/app/layout.tsx"
+      ],
+      "commit": "e50cf9d"
+    },
+    {
+      "id": "M1",
+      "title": "Campaign-based discovery",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "Migration 0007: discovery_campaigns (RLS, org-scoped), campaign_id on lead_import_rows and businesses, same-org trigger, validated status constraints",
+        "Discovery form: new or existing campaign, target service, target industry + keyword filter, source, area",
+        "Scans and CSV intake attach campaign_id to staged rows; existing OSM/Boston/CSV/dedupe/manual review preserved",
+        "Campaign list on Discovery links to the queue filtered by campaign"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "supabase/migrations/0007_prospect_discovery.sql",
+        "lib/discovery-campaigns.ts",
+        "lib/discovery-campaigns-server.ts",
+        "app/app/discovery/actions.ts",
+        "app/app/discovery/page.tsx",
+        "app/app/leads/actions.ts",
+        "app/app/leads/import/page.tsx",
+        "tests/discovery-campaigns.test.ts"
+      ],
+      "commit": "e50cf9d"
+    },
+    {
+      "id": "M2",
+      "title": "Deterministic qualification",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "lib/prospect-qualification.ts: pure deterministic qualifyProspect + staged-row and CRM adapters",
+        "Rules: missing website -> find website; missing GBP link -> confirm GBP; social-only = research, not proof; inconclusive audit != problem; geolocation needs real service-area/multi-location evidence (scan area excluded); closed/won/lost/disqualified never priority",
+        "Strength and contact readiness derived, not stored; manual overrides for opportunity, confidence and next action",
+        "20 tests incl. banned-claim check (no budget/revenue/traffic/rankings)"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "lib/prospect-qualification.ts",
+        "tests/prospect-qualification.test.ts"
+      ],
+      "commit": "ee5656b"
+    },
+    {
+      "id": "M3",
+      "title": "Usable research queue",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "Queue rebuilt as compact grouped cards (business | qualification | next action + rationale | actions) with an expandable action panel; no wide table",
+        "Each candidate shows campaign, area, industry, website presence, GBP status, opportunity, strength, confidence, contact readiness, next action, research status, duplicate warning, rationale",
+        "Filters: campaign, opportunity, strength, confidence, readiness, research status tabs, area, industry, website presence, search; sorted strongest-first",
+        "Actions: shortlist, hold, disqualify (evidence reason required), restore, override opportunity/confidence/next action, import to CRM, link duplicate, skip",
+        "Falls back to read-only qualification with a banner if migration 0007 is not yet applied"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "app/app/leads/import/page.tsx",
+        "app/app/leads/actions.ts"
+      ],
+      "commit": "37c94bc"
+    },
+    {
+      "id": "M4",
+      "title": "CRM, Opportunity Board and demo handoff",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "Import carries campaign_id, primary_opportunity, evidence_confidence, next_action and qualification_rationale into businesses; also recorded email/contact/GBP link from CSV evidence; priority_score never set",
+        "Disqualified candidates cannot be imported until restored; import falls back to the legacy insert if 0007 is missing",
+        "Linking a duplicate only fills an empty campaign_id; never overwrites CRM data",
+        "CRM detail: qualification panel (campaign, opportunity, strength, confidence, readiness, next action, rationale), editable with blank = recompute from evidence; links to pitch brief, website demo section and board",
+        "Opportunity Board: qualification line per business, campaign and opportunity filters, Pitch brief and Website demo links; same board, same generator (createDemo), no auto-publish"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "app/app/leads/actions.ts",
+        "app/app/leads/[id]/page.tsx",
+        "app/app/leads/import/page.tsx",
+        "app/app/opportunities/page.tsx",
+        "lib/business-qualification-server.ts"
+      ],
+      "commit": "8db2002"
+    },
+    {
+      "id": "M5",
+      "title": "Pitch brief",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": true,
+      "completed": [
+        "lib/pitch-brief.ts: pure, tested brief builder",
+        "/app/leads/[id]/pitch: printable and copyable",
+        "Linked from CRM qualification panel and Opportunity Board",
+        "Final verification: tests, typecheck, lint, production build"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "lib/pitch-brief.ts",
+        "tests/pitch-brief.test.ts",
+        "app/app/leads/[id]/pitch/page.tsx",
+        "components/pitch-brief-actions.tsx",
+        "app/globals.css"
+      ],
+      "commit": "24ed0d0"
+    },
+    {
+      "id": "M6",
+      "title": "Campaign-aligned scoring, source semantics, daily workflow",
+      "status": "ready_for_review",
+      "responsible_agent": "Claude",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Campaign service is always the primary lane; website design, GBP, local SEO and geolocation scored independently (0-30 need each)",
+        "Transparent 100-point model: need 30, fit 20, observable value 20, reachability 15, evidence confidence 15, with documented penalties (identity, inactivity, unit-number ambiguity, no contact, duplicate, conflict)",
+        "Evidence states: verified present / verified missing / likely weak / unknown / conflicting; missing GBP or website stays unknown",
+        "Legal structure (LLC, Corporation...) no longer treated as industry; Boston mapping stores it as legal_structure; 'Industry not yet verified' shown",
+        "Free website check (one page + robots.txt + sitemap.xml, DNS-guarded) and manual review form stored under raw_data.review (source keys untouched)",
+        "Queue: 'Your next 10 prospects' with score, service, strength, confidence, one-sentence reason, tasks, next action and progress; filters, score breakdown, source record and advanced controls collapsed; test campaigns excluded by default",
+        "Inline server-action errors; pitch-brief location no longer repeats; pitch brief adds score breakdown and verify-before-contact list",
+        "Recommendation flag: when the campaign lane is unsupported, a better-supported lane is shown as \"Better fit\" without changing the campaign-lane score",
+        "Reviewed public contact routes and verified address fill gaps without overwriting source values",
+        "Pitch brief: review-confirmed identity/operation, observed website issues, review notes, accurate GBP/SEO claim limits",
+        "First real Brighton batch: campaign c049ce1e (OpenStreetMap, website design, max 25): 14 staged, 19 skipped as known; 10 manually reviewed with free website checks and Google panel checks; 3 brand/franchise stores disqualified with reasons; 1 held; 5 qualified, shortlisted and imported; 3 internal draft demos (generated imagery only, business images not authorized) with sourced copy; 5 pitch briefs"
+      ],
+      "in_progress": [],
+      "remaining": [],
+      "files_changed": [
+        "app/app/leads/[id]/page.tsx",
+        "app/app/leads/[id]/pitch/page.tsx",
+        "app/app/leads/actions.ts",
+        "app/app/leads/import/page.tsx",
+        "app/app/opportunities/page.tsx",
+        "components/prospect-ui.tsx",
+        "lib/action-errors.ts",
+        "lib/business-classification.ts",
+        "lib/business-qualification-server.ts",
+        "lib/discovery-campaigns.ts",
+        "lib/discovery.ts",
+        "lib/pitch-brief.ts",
+        "lib/prospect-qualification.ts",
+        "lib/website-evidence-server.ts",
+        "lib/website-evidence.ts",
+        "tests/action-errors.test.ts",
+        "tests/pitch-brief.test.ts",
+        "tests/prospect-qualification.test.ts",
+        "tests/website-evidence.test.ts"
+      ],
+      "commit": "e9d01f7"
+    },
+    {
+      "id": "M7",
+      "title": "Cross-agent build ledger and accurate Opportunity Board counts",
+      "status": "complete",
+      "responsible_agent": "ChatGPT",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Opened canonical cross-branch GitHub issue #3 with task claims and checkpoint protocol",
+        "Added docs/agent-coordination.md and issue links to Project Status and Roadmap",
+        "Aligned Opportunity Board tile totals and filtered list using a shared visibility helper; navigation preserves test record toggle",
+        "Added four source-level regression tests for stage totals, filters and test visibility",
+        "Filtered test-count indicator now reflects search/opportunity/campaign; fifth regression case added.",
+        "Five shared-filter regression tests and full local eight-site responsive browser QA passed; merged release tree test results are recorded below."
+      ],
+      "in_progress": [],
+      "remaining": [
+        "Exact-head CI and authenticated Supabase tests require an approved isolated runner; the merged branch remains unpushed.",
+        "Do not deploy, migrate production, publish demos or contact prospects"
+      ],
+      "files_changed": [
+        "docs/agent-coordination.md",
+        "lib/opportunity-board-filter.ts",
+        "tests/opportunity-board-filter.test.ts",
+        "app/app/opportunities/page.tsx",
+        "app/app/project-status/page.tsx",
+        "app/app/roadmap/page.tsx",
+        "app/app/layout.tsx",
+        "docs/prospect-discovery-status.json",
+        ".github/workflows/ci.yml"
+      ],
+      "commit": "00fd19089a59f1213b8c6ea0936dce694c4db125"
+    },
+    {
+      "id": "M8",
+      "title": "Cross-branch intake integration and generator media verification",
+      "status": "ready_for_review",
+      "responsible_agent": "ChatGPT",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Integrated byte-identical Opportunity Board files and tests from b9881e2",
+        "Integrated GBP evidence-guardrail files from a7a11b6, extending import-specific URL safety",
+        "Integrated corrected generator media selector/export code from 5fd2cf4",
+        "Added cross-module intake regression and prevented scan area from being stored as service area",
+        "Recorded source audit and blockers in docs/prospect-discovery-integration-audit-oct14.md",
+        "Full automated integrated CI at 61aa593 verified: 221 TS + 41 MJS, typecheck, lint, build, export and zero-warning eight-site browser QA.",
+        "Isolated staged-import recovery with deterministic CRM and provenance IDs, resume UI, error handling, manual GBP guardrails and regression tests committed for review.",
+        "Created normal local merge commit 15d8e5476d4b43bf459e4e88cd488e6297232b41 containing origin/codex/agent-ledger-board-counts-oct14 at b9881e2.",
+        "Created normal local merge commit 3427757282f4d061161b2ff93ebffe49047e96ed containing origin/codex/gbp-evidence-guardrails-oct14 at a7a11b6.",
+        "Created normal local merge commit 3a97c199b629e3ecb1cf5b162c17d48ebc0a5dbd containing origin/feature/nextjs-foundation at 32374f8 while retaining newer safeguards.",
+        "Restored and regression-tested safe primary contact actions: validated booking URL, telephone, or email.",
+        "On the merged source tree: full tests, typecheck, lint, webpack build, all 8 generator benchmarks, standalone cold export build, and responsive browser/Lighthouse QA passed; details below.",
+        "Reconciled tracker after full branch audit: all three requested branch heads are ancestors of the locally verified release candidate; screenshot mismatch traced to the older localhost:3001 checkout."
+      ],
+      "in_progress": [
+        "Exact-head hosted CI and disposable authenticated Supabase recovery/concurrency/RLS/UI verification; these gates do not have results on this unpushed HEAD."
+      ],
+      "remaining": [
+        "Run exact-head CI and authenticated database/UI tests on an approved isolated runner.",
+        "Review historical orphan rows and production RPC/schema through an approved read-only connection."
+      ],
+      "files_changed": [
+        "tests/prospect-intake-combined.test.ts",
+        "lib/lead-identity.ts",
+        "tests/lead-identity.test.ts",
+        "lib/google-listing-link.ts",
+        "app/app/leads/actions.ts",
+        "tests/google-listing-link.test.ts",
+        "docs/prospect-discovery-integration-audit-oct14.md",
+        "lib/staged-import-recovery.ts",
+        "tests/staged-import-recovery.test.ts",
+        "app/app/leads/import/page.tsx",
+        "app/app/leads/new/page.tsx",
+        "app/app/leads/[id]/page.tsx",
+        "docs/lead-intake-recovery-oct14.md"
+      ],
+      "commit": "e6b85e2"
+    },
+    {
+      "id": "M9",
+      "title": "Target-fit intake and safe rehearsal foundation",
+      "status": "ready_for_review",
+      "responsible_agent": "Codex",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Added deterministic local-customer, poor-fit, unclear-fit and chain-ownership clues with a review filter and ordering. These clues never auto-disqualify a business.",
+        "Added candidate-level official entity/municipal registry evidence capture with government-host validation and direct Massachusetts research links.",
+        "Kept registry matches separate from storefront operation, Google Business Profile state and service need; qualification regression tests cover the boundary.",
+        "Added a browser-only practice route with fictional cases, session-only notes and decisions, a reset control and Markdown export. It performs no connected-data actions.",
+        "Kept legal-entity filing addresses in registry-only fields so qualification, area matching, identity display and duplicate checks do not treat them as storefronts.",
+        "Verified the new route in the signed-in browser, including a practice decision and reset; 246 TypeScript and 41 MJS tests, typecheck, lint and webpack production build passed."
+      ],
+      "in_progress": [],
+      "remaining": [
+        "Official entity and municipal registry intake remains manual. Inspect source coverage and CSV formats before building bulk adapters.",
+        "The browser-only practice room does not test the actual scan/import/CRM/demo flow. A disposable authenticated Supabase dataset is still required.",
+        "Unified readiness/demo identity, responsive/Lighthouse QA, and exact-head hosted CI remain open."
+      ],
+      "files_changed": [
+        "lib/target-fit.ts",
+        "lib/registry-import.ts",
+        "lib/prospect-qualification.ts",
+        "app/app/leads/import/page.tsx",
+        "app/app/leads/actions.ts",
+        "app/app/rehearsal/page.tsx",
+        "app/app/discovery/page.tsx",
+        "app/app/layout.tsx",
+        "lib/project-roadmap.ts",
+        "tests/prospect-qualification.test.ts",
+        "tests/registry-import.test.ts"
+      ],
+      "commit": "local uncommitted changes on 3025add6de065ec8db58f24e858c6644afd9dfd2"
+    },
+    {
+      "id": "M10",
+      "title": "Local Lighthouse in staged prospect intake",
+      "status": "in_progress",
+      "responsible_agent": "Codex",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Added a Run mobile Lighthouse action to pending lead cards in the authenticated local development app. It uses the existing Chrome and open-source Lighthouse runner on the Mac, without PageSpeed API usage.",
+        "Saved normalized score, measurement, warning, insight and evidence details with the staged prospect, preserving existing source and operator-review fields.",
+        "Fresh reports for the exact current website feed conservative performance and SEO signals into prospect qualification; mismatched sites, stale reports, operator uploads and inconclusive runs do not increase need scores.",
+        "Browser-confirmed the action on staged candidates. A local Chrome run against reserved example.com returned a fresh native report. Added regression tests; 250 TypeScript and 41 MJS tests pass, along with typecheck, lint and Webpack production build."
+      ],
+      "in_progress": [
+        "Run the button against a specifically approved candidate and verify the Mac Chrome execution and saved report on that staged record. The action writes to the shared sales workspace, so the current source-only verification did not run it."
+      ],
+      "remaining": [
+        "Check the report's usefulness in the human-facing lead review and pitch flow. Treat one mobile lab run as a lead-research clue, not real-user performance, search ranking or guaranteed savings.",
+        "Complete disposable authenticated Supabase recovery/concurrency/RLS testing, fresh exported responsive QA and exact-head hosted CI."
+      ],
+      "files_changed": [
+        "app/app/leads/actions.ts",
+        "app/app/leads/import/page.tsx",
+        "lib/lighthouse-import.ts",
+        "lib/prospect-qualification.ts",
+        "tests/lighthouse-import.test.ts",
+        "tests/prospect-qualification.test.ts",
+        "lib/project-roadmap.ts"
+      ],
+      "commit": "local uncommitted changes on 3025add6de065ec8db58f24e858c6644afd9dfd2"
+    },
+    {
+      "id": "M11",
+      "title": "Brighton lead ordering back-test and source mismatch review",
+      "status": "complete",
+      "responsible_agent": "Codex",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Replayed the free cached Overture Brighton candidate set and kept uncertain name/domain matches out of the official-website field.",
+        "Read-only browser audit exposed unknown-need candidates ranking above checked sites; queue ordering now puts verified need signals first and labels the remaining list as research.",
+        "Updated the visible roadmap to 21/42 checkpoints (50%), marking the read-only candidate review screen complete while the broader Overture qualification work remains active.",
+        "Reviewed four public business cases to test the no-website inference: directory URLs and inconsistent contact fields can turn an empty Overture website field into a false lead.",
+        "Added and browser-verified the read-only Overture review page. Fixed snapshot selection to use download time, so the live view now matches the latest corrected local file: 1,277 candidates, 655 accepted URLs, 311 suspect URLs and 311 without an accepted URL, sorted from Brighton Center by distance.",
+        "The browser displayed the closest records at 0.01 miles and kept possible website mismatches separate from official URLs. No CRM writes were made."
+      ],
+      "in_progress": [
+        "Continue checking actual Brighton candidates for current operation, exact Google Business Profile identity, first-party website and local SEO evidence.",
+        "The 50-case rehearsal's three pursue decisions remain unverified for outreach and do not establish a repeatable niche."
+      ],
+      "remaining": [
+        "Disposable authenticated Supabase flow for safe discovery, qualification, demo and recovery testing.",
+        "Verify current operation, exact GBP identity, owner contact, first-party site and local SEO evidence for any pitch candidate.",
+        "Do not convert source-row counts, a missing URL or an inconclusive Lighthouse run into a sales-qualified lead."
+      ],
+      "files_changed": [
+        "lib/prospect-qualification.ts",
+        "app/app/leads/import/page.tsx",
+        "app/app/discovery/overture/page.tsx",
+        "app/app/discovery/page.tsx",
+        "lib/project-roadmap.ts",
+        "tests/prospect-qualification.test.ts",
+        "tests/project-roadmap.test.ts",
+        "docs/brighton-lead-engine-backtest.md",
+        "docs/prospect-discovery-status.json"
+      ],
+      "commit": "local uncommitted changes on 3025add6de065ec8db58f24e858c6644afd9dfd2"
+    },
+    {
+      "id": "M12",
+      "title": "Brighton 1,277-candidate source-quality back-test",
+      "status": "complete",
+      "responsible_agent": "Codex",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Cross-checked the 1,277-row nearest-first Overture snapshot against the three downloaded Boston source files: 78 exact name/street matches, 404 separate same-street-number clues, 56 possible name variations shown only as review clues, 795 candidates with no match in these files, and 213 food candidates needing a current-status check.",
+        "Recorded stale Bangkok Bistro and the false no-website inference for Little Pizza King as source-quality failures, not sales opportunities.",
+        "Reviewed low-confidence plumbing records that appear only in directory sources and carry weakly corroborated 617-206-26xx contact data; retained them as research, not verified prospects.",
+        "Prioritized Nakhon Southern Thai, 296 Washington Street, for the next human verification based on the user-supplied roleplay, a February 2026 local opening report, a current merchant menu at the same address, and two active city records under the shorter name Nakhon. Its independent website, exact Google listing, current decision maker, customer-acquisition need and purchase interest remain unverified. This is a candidate, not a confirmed diamond lead.",
+        "Kept Cafe Mirror, 362 Washington Street, as a nearby alternate with an exact active food permit and local family-business evidence; website ownership and current need remain unknown.",
+        "Updated the left roadmap, read-only candidate UI, regression coverage and this back-test with the possible-name-variation review clue. The browser confirms two Nakhon city records are surfaced without being treated as exact matches. No lead was qualified, imported, contacted or changed in CRM.",
+        "Integrated the official Boston City Clerk DBA lookup into the Brighton map for individual identity checks, with a visible warning that certificates do not prove current operation and owner home addresses should stay out of prospect notes. The City Clerk lookup is not in the local CSV; no free bulk export was verified, and no paid state extract was used.",
+        "Back-tested the user-provided Beef & Turkey Convenience pursuit: its name is absent from the 1,277-row Overture sample; Brighton Main Streets lists it at 290 Washington, while the current downloaded city files show active Cafe Lava & Bento permits at 290-298 Washington. Recorded this as a source-coverage and identity/occupancy conflict requiring a manual DBA or storefront check, not as proof either record is wrong or as a qualified lead."
+      ],
+      "in_progress": [
+        "Verify current operation, exact Google listing, independent website ownership, decision maker and actual need for Nakhon; resolve the Beef & Turkey / Cafe Lava identity and occupancy conflict; continue nearest-first checks across local directory and map sources."
+      ],
+      "remaining": [
+        "Do not call or message prospects, import to shared CRM, or claim service need until identity and opportunity are individually verified.",
+        "Disposable authenticated database tests, exact-head CI and fresh responsive/Lighthouse QA remain separate release checks."
+      ],
+      "files_changed": [
+        "app/app/discovery/government-map/page.tsx",
+        "app/app/discovery/overture/page.tsx",
+        "docs/brighton-lead-engine-backtest.md",
+        "docs/prospect-discovery-status.json",
+        "lib/overture-government-match.ts",
+        "lib/project-roadmap.ts",
+        "tests/overture-government-match.test.ts"
+      ],
+      "commit": "local uncommitted changes on 3025add6de065ec8db58f24e858c6644afd9dfd2"
+    },
+    {
+      "id": "M13",
+      "title": "Research-first map triage and source false-negative back-test",
+      "status": "complete",
+      "responsible_agent": "Codex",
+      "completed": [
+        "Added a transparent, read-only research-first order based on target-fit clues, listed contact path, and accepted first-party website evidence; kept it separate from qualification and sales scoring.",
+        "Corrected the map counts so rows with possible URL mismatches are not mislabeled as having no accepted or suspect URL.",
+        "Added focused candidate-triage regression tests and verified the full local test suite, typecheck, lint, and webpack production build.",
+        "Reviewed public-source false negatives and conflicts for Demma Aesthetics, Performance and Recovery, Ensueno Body & Skin Care, and Academy Hill Plumbing. Each remains an unqualified research candidate pending identity, operation and need checks.",
+        "Signed-in browser confirmed 1,277 map candidates, the revised source-evidence counts, selected research-first sort, and 24/45 (53%) visible roadmap progress.",
+        "Used Brighton Main Streets as an independent local directory cross-check: Ensueno is listed at 353 Washington Street with phone 617-783-2100, and its YellowPages website destination identifies a Barcelona cosmetics company; Academy Hill Plumbing has a same-address conflict with Brighton Main Streets listing Harry\u2019s Foreign & American Auto Service. Recorded both as review evidence, not verified sales leads.",
+        "After the public-source back-test, changed the research order so map rows with no business category are held for an identity check instead of occupying the first review band. A regression test confirms Academy Hill Plumbing sorts after Ensueno; live browser confirms the new order."
+      ],
+      "in_progress": [
+        "Human-verify Ensueno storefront operation, exact Google listing, mismatched website control, decision maker and specific need; expand local-directory back-tests for false positive and false negative rates."
+      ],
+      "remaining": [
+        "No diamond-level or sales-qualified lead is established. Do not import, contact, or mark a candidate qualified without individual evidence.",
+        "Fresh responsive/Lighthouse QA, exact-head hosted CI, and disposable authenticated Supabase recovery/concurrency/RLS/UI verification remain open."
+      ],
+      "files_changed": [
+        "app/app/discovery/overture/page.tsx",
+        "lib/candidate-triage.ts",
+        "lib/target-fit.ts",
+        "lib/project-roadmap.ts",
+        "tests/candidate-triage.test.ts",
+        "docs/brighton-lead-engine-backtest.md",
+        "docs/prospect-discovery-status.json"
+      ],
+      "commit": "local uncommitted changes on 3025add6de065ec8db58f24e858c6644afd9dfd2"
+    },
+    {
+      "id": "M14",
+      "title": "Strict Brighton 40 website-gap plus second-need prospect shortlist",
+      "status": "in_progress",
+      "responsible_agent": "Codex",
+      "safe_for_other_agent_to_edit": false,
+      "completed": [
+        "Preserved the earlier 40-prospect baseline as a separate file.",
+        "Set the stricter baseline: no usable business-controlled website plus a distinct, concrete Maps, booking, ordering, quote, hours, or public-information improvement.",
+        "Created a 40-row, 40-name nearest-first candidate list and a separate starter batch ranked by documented offer bundles.",
+        "Recorded current-date public-source checks for all 40 rows; direct Chrome follow-ups are documented for selected exact Maps profiles and destinations. The current evidence split is 25 A and 15 B; these grades describe evidence for the add-on, not likelihood to buy.",
+        "Downgraded Aviksis Plumbing from A to B after current Google Maps search resolved to an address page rather than a standalone profile; its service address remains a confirmation question.",
+        "Reopened exact Google Maps and website destinations for Classic Barber Shop, Zisis Convenience Store, Ensueno Skin Care, and Colin Bradley INC. Electrician in Chrome.",
+        "Confirmed Classic Barber Shop Maps points to Booksy, the neighborhood-directory business.site destination returns Google 404, and three public listings publish different phone numbers.",
+        "Confirmed Zisis Convenience Store Maps shows 617-785-2938 while Brighton Main Streets and Waze list 617-562-0400; current operation remains conditional on reconfirmation.",
+        "Confirmed Ensueno\u2019s current Booksy page has active services, hours and 49 reviews; Maps still lacks hours and website and a separate directory destination is unrelated. Preserve existing booking.",
+        "Corrected Colin Bradley\u2019s earlier Maps claim: the profile currently has an hours field. Only compare the full weekly schedule with the Chamber listing after expanding it.",
+        "Reopened exact Maps pages for Oliveira Deli Market, Kiki\u2019s Laundromat, Outluks Hair Studio, Lessard\u2019s Barber Shop, and both Ramos Landscaping profiles.",
+        "Confirmed Oliveira\u2019s Maps destination is Instagram while Maps provides a separate order action and DoorDash supports delivery; preserve existing ordering.",
+        "Confirmed Kiki\u2019s Maps listing lacks both a phone and first-party website and shows a photo added five days ago; offer a contact path only if the operator wants calls.",
+        "Confirmed Outluks Maps links to StyleSeat as its website destination and a current directory lists a conflicting phone; preserve StyleSeat booking.",
+        "Confirmed Lessard\u2019s Maps profile has a website gap and an hours question across public listings; owner must confirm hours before any correction.",
+        "Confirmed Ramos has two Maps listings with a shared phone and missing websites, an advertised domain that currently fails DNS, and a third directory address. Treat all listed addresses as unconfirmed service/location clues.",
+        "Reopened exact Google Maps searches for Huntington Markets, J & K Auto Body Inc., and Beacon Convenience.",
+        "Confirmed Huntington Markets at 1795 Commonwealth Ave has \u201cAdd website,\u201d and its 10 PM versus 10:30 PM closing-time discrepancy is corroborated by current public listings.",
+        "Confirmed J & K Auto Body maps profile at 586 Washington St has \u201cAdd website,\u201d 4.7/82 reviews, and recent customer activity; no estimate request path is listed on Maps.",
+        "Confirmed Beacon Convenience search result at 1912 Beacon St shows phone 617-396-8683, 24-hour status, and 4.7/153 reviews; preserve the conditional delivery-path and name-consistency questions.",
+        "Reopened exact Maps for NCS Boston: 21 Lawrence St, phone 857-615-6188, 5.0/13, posted hours, and Add website. Keep the separate quote-intake idea conditional and reconfirm operation.",
+        "Reopened exact Maps for Cheema Supermarket: 562 Cambridge St, 617-783-9800, 4.2/404, Add website, delivery attribute, and no visible order action. Preserve its existing phone and confirm the preferred delivery link.",
+        "Reopened exact Maps for VIP Master Barbershop: 159 Harvard Ave, 857-265-1235, 5.0/34, Instagram destination, recent activity, and no Maps booking action. Preserve Booksy and Instagram; offer a direct connection only if the operator wants it.",
+        "Reopened exact Maps for Hair Screen: 164 Brighton Ave, 617-787-1735, 4.4/80, Add website, and posted hours. A four-month-old negative appointment review is unverified and excluded as pitch evidence; its second need is provisional and requires replacement or operator confirmation.",
+        "Reopened exact Maps for Harvard Convenience: 157 Brighton Ave, 617-331-2822, 4.4/221, Add website, curbside pickup attribute, and no visible order action. Confirm the operator-approved Uber Eats/pickup path.",
+        "Reopened exact Maps for Town Line Variety Store: 138 Tremont St, 617-999-6158, 4.3/10, Add website; preserve its conflict with directory phone 617-787-4466 for owner confirmation.",
+        "Reopened exact Maps for One Stop Cleaners: 94 Harvard Ave, 617-254-9854, 4.5/71, Add website and posted hours; retain generic-directory destination and conflicting schedule as the separate operator-confirmation opportunity.",
+        "Reopened exact Maps for Monica\u2019s Hair Salon: 79 Harvard Ave, 617-782-0320, 5.0/39, Add website, and recent photo activity; retain generic Yellow Pages destination and call-only booking as owner-confirmation questions.",
+        "Reopened exact Maps for Hair Design Center: 1236 Commonwealth Ave, 617-739-1323, 4.8/61, Add website, and photo from 27 days ago; Yellow Pages destination is a live unrelated air-plant store, with no claim about who caused or controls it.",
+        "Reopened exact Maps for Shivalic Food & Spice: 310 Broadway #10, 617-666-9095, 3.3/60, Add website, and delivery/pickup attributes; preserve the current Grubhub path and ask whether it should be linked from Maps.",
+        "Reopened exact Maps for Taj Mahal Desi Bazaar: 274 Broadway, 617-764-3362, 4.2/421, recent activity, and Facebook as its Maps destination; Yellow Pages points to a generic LocalSearch destination.",
+        "Reconfirmed the 40 table rows remain unique and the prior 40 remains a separate file. Hair Screen is explicitly provisional; the draft row count is not a qualified-prospect count.",
+        "Expanded Colin Bradley\u2019s exact Maps hours: Monday\u2013Saturday 7 AM\u20135 PM and Sunday closed. The Chamber listing says 7 AM\u20135 PM daily, so only Sunday is a specific operator-confirmation discrepancy.",
+        "Reopened Brighton Nails exact Maps profile: 8 Tremont St, 617-782-6160, 4.4/119, Add website; a seven-month-old customer review mentions unavailable prices, while current prices still require owner confirmation.",
+        "Reopened Kiki\u2019s exact Maps profile: 249 Faneuil St, Add place\u2019s phone number, Add website, 3.3/38, current hours, and a photo five days ago. Do not publish a phone without operator approval.",
+        "Rechecked City Tails in Maps and Chrome: Maps still shows Add website; Brighton Main Streets links citytailsboston.com, which now redirects to an unrelated Banggood retailer. Loc8, crawled within two weeks, repeats the business address/phone/hours and shows reviews through Aug 2025. Treat as a wrong-destination lead, not hacking proof; confirm current operation and domain control.",
+        "Reopened exact Maps for Brighton Barbers: profile title remains malformed, the Reserve/Open booking actions go to a generic Brighton Barber Co. search, while the website action reaches the existing Booksy flow. Preserve the Booksy booking and ask the operator to confirm the name and appointment destination.",
+        "Reopened exact Maps for Cafe Mirror: 362 Washington St, 617-779-9662, 4.4/327, Add website, an Order online action, delivery/takeout attributes, and 7 AM Saturday opening. Preserve the current order path; verify the separate hours discrepancy with the operator before correcting it.",
+        "Replaced provisional Hair Screen with CCC\u2019s Cleveland Circle Convenience after live Chrome verification: exact Maps shows Add website and Offers delivery but no direct order action; exact address/phone and recent public activity were corroborated.",
+        "Live-checked Quality Market and excluded it because the website gap had no separate owner-actionable digital issue; preserved Hair Screen in the reserve queue for the same strict-qualification reason.",
+        "Finished the exact Maps pass for shortlist rows 1\u201320 with the provisional Hair Screen row replaced by the live-checked CCC\u2019s Cleveland Circle Convenience; unresolved operation, identity, domain control, and owner preference remain explicitly conditional.",
+        "Fresh Chrome checks for Hong Kong Hair Place II, North Beacon Auto, and NCS Boston updated current-operation evidence; NCS has no recent visible review or owner reply and stays on hold for operation confirmation.",
+        "Rechecked Cheema Supermarket\u2019s exact Maps page and Morris Shoe Repair\u2019s linked domain in Chrome. Cheema advertises delivery without a direct order action; Morris\u2019s domain displays a teacher-shirt catalog under the repair-shop name and address with a different support contact, so owner control must be confirmed.",
+        "Fresh Chrome checks updated Town Line Variety Store (Maps phone conflict, generic directory destination, old review activity, and an official Boston licensing notice whose outcome is unknown), VIP Master Barbershop (recent Maps activity, Instagram destination, no booking action), Harvard Convenience (Maps curbside pickup without an order link; same-address Uber Eats menu verified), and A and I Auto Repair (current Maps activity and advertised domain still failing DNS).",
+        "Opened Beacon Convenience\u2019s exact Google Maps profile in Chrome: 1912 Beacon St, 617-396-8683, 24-hour hours, 4.7/153, \u201cAdd website,\u201d and \u201cOffers delivery\u201d; the profile has no direct order action. Keep the delivery/name consistency offer conditional on operator preference.",
+        "Reopened Cambridge Street Auto Service\u2019s exact Maps profile in Chrome: 445 Cambridge St, 617-254-7900, \u201cAdd website,\u201d 4.3/180, and a Services link to cambridgestauto.com/Allston-auto-service-repair.html; direct navigation to that link returned ERR_NAME_NOT_RESOLVED. Newest visible review is eight months old, so reconfirm current operation before a demo.",
+        "Reopened One Stop Cleaners\u2019 exact Maps profile in Chrome: 94 Harvard Ave, 617-254-9854, \u201cAdd website,\u201d dry-cleaner category, 4.5/71, and a customer review four months ago. A focused exact-name/address search surfaced onestopcleaners.com as a directory-advertised domain; opening it showed a GoDaddy for-sale landing page. Owner control is unknown. Public directories show generic destination pages and varying hours; confirm services/hours before any listing correction.",
+        "Moved NCS Boston Cleaning Services to reserve after a direct Nextdoor profile check found its latest visible business post dated March 18, 2024; its Maps reviews/owner replies are also about one year old. Website gap and quote-intake fit remain documented, but current operation is too weakly evidenced to count it among 40.",
+        "Replaced NCS Boston with Factory Auto Service after exact Maps/domain checks: Maps shows \u201cAdd website,\u201d 446 B Western Ave, 617-922-4913, 5.0/45, and recent activity; MechanicAdvisor matches the domain/address/phone. Direct Chrome load of factoryautoservice.com shows a \u201cLaunching Soon\u201d placeholder with a generic contact form and no service information. Count this as an unusable-site opportunity; domain control and the separate Maps/estimate workflow remain owner-confirmation items.",
+        "2026-10-17 public-source cross-check: Cambridge Street Auto Service moved to HOLD because a Boston public notice describes demolition of the existing 445\u2013449 Cambridge Street structures for a proposed 200-unit project. This leaves 39 unheld rows toward the 40 target. Town Line\u2019s May 2026 license notice and phone discrepancy were confirmed; VIP\u2019s same-address Booksy booking page is live while Maps points to Instagram; Cheema has a current Loc8 delivery action but no Maps order action; Factory Auto\u2019s branded site is a generic Launching Soon page; A and I Auto has a newer aggregator-linked allstonautobrokers.com destination that is not verified as the repair shop site. Allston Convenience Store is only a replacement candidate because its directory website goes to MoneyGram and current operation/route intent need confirmation. Strict target remains in progress; no buyer or owner intent is claimed."
+      ],
+      "next_actions": [
+        "Continue exact current-profile and independent website checks for rows 21\u201332; move uncertain business identity, operation, or second need to reserve and replace only with evidence meeting both list requirements.",
+        "Rank offers by concrete customer-path or public-information fixes while preserving any existing booking and order routes.",
+        "Keep every candidate conditional until owner confirms decision-maker, listing/domain control, service need, and interest."
+      ],
+      "blockers": [
+        "Public sources cannot confirm owner intent, business control of disputed domains/listings, decision-maker identity, or a willingness to buy.",
+        "No CRM import, outreach, or business-profile edits are authorized."
+      ]
+    }
+  ],
+  "review_checkpoint": {
+    "sha": "3e2f75738a016bead7084eefaea96001345bd974",
+    "contains": [
+      "e50cf9d",
+      "ee5656b",
+      "37c94bc",
+      "8db2002",
+      "24ed0d0",
+      "4fb857b",
+      "e8c8cfb",
+      "855c8a1",
+      "90dd90b",
+      "235f637"
+    ],
+    "tested_at": "2026-10-13T23:34:40Z",
+    "phase3_note": "Historical roadmap migrations are already present under canonical 0005/0006; original 0004/0005 copies archived as non-deployable documentation. See docs/phase-3-integration-audit.md. Do not infer roadmap status completion."
+  }
+}

@@ -1,0 +1,110 @@
+name: Command Center checks
+# Skip redundant long-running site audits when a newer push to the same branch
+# supersedes the commit. Keep separate branches and PRs independent.
+concurrency:
+  group: command-center-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+on:
+  push:
+    branches:
+      - feature/nextjs-foundation
+      - integration/claude-roadmap-oct12
+      - codex/generator-intelligence-checkpoints-oct12
+      - codex/generator-media-context-oct14
+      - integration/prospect-intake-generator-oct14
+      - codex/intake-recovery-guard-oct14
+      - codex/intake-auth-isolated-qa-oct14
+      - codex/intake-atomic-isolated-oct14
+      - integration/release-candidate-oct14
+  pull_request:
+    branches:
+      - main
+jobs:
+  typecheck-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Preference engine tests
+        run: npm run test
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
+      - name: Build a standalone exported client website
+        run: node scripts/smoke-client-export.mjs
+  browser-qa:
+    # Renders every benchmark through the real client export in Chromium at
+    # desktop, tablet and mobile widths. Technical defects fail the job; the
+    # screenshots are uploaded for the separate human design review.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Browser QA with local Lighthouse
+        run: node scripts/browser-qa/run.mjs --lighthouse --out artifacts/browser-qa/ci
+      - name: Upload screenshots and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-qa
+          path: artifacts/browser-qa/ci
+          retention-days: 14
+
+  ledger-checkpoint:
+    # Reports the actual outcomes of this branch's push jobs, not claimed
+    # agent results. No privileges for tests; only this reporter can comment.
+    if: ${{ always() && github.event_name == 'push' && github.ref_name == 'integration/prospect-intake-generator-oct14' }}
+    needs: [typecheck-build, browser-qa]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Record CI run in issue 3 (deduplicated by SHA)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = `<!-- cc-ci-integration:${context.sha} -->`;
+            const build = '${{ needs.typecheck-build.result }}';
+            const browser = '${{ needs.browser-qa.result }}';
+            const url = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const {owner,repo} = context.repo;
+            const head = await github.rest.repos.getBranch({owner,repo,branch:'integration/prospect-intake-generator-oct14'});
+            if(head.data.commit.sha !== context.sha){core.info('Skipping stale integration checkpoint');return;}
+            const body = [
+              marker,
+              `**Command Center integration CI | ${context.sha.slice(0,12)} | GitHub Actions**`,
+              `Branch: \`integration/prospect-intake-generator-oct14\`. [Run logs](${url}).`,
+              `- Unit tests (TS and MJS), typecheck, lint, production build, exported-site smoke: **${build}**. These execute sequentially in the typecheck-build job; on failure, later steps may be skipped.`,
+              `- Fictional business exported-site Chromium / Lighthouse QA: **${browser}**. This is NOT signed-in admin intake testing.`,
+              '- Authenticated lead import, DB transactions and Mac localhost behavior: **NOT TESTED** by this workflow.',
+              '- This is automated evidence, not an approval to merge, publish, deploy, or modify Supabase.'
+            ].join('\n');
+            const comments = await github.paginate(github.rest.issues.listComments,{owner,repo,issue_number:3,per_page:100});
+            const prior = comments.find(c=>c.body?.includes(marker));
+            if(prior) {
+              if(prior.body !== body) await github.rest.issues.updateComment({owner,repo,comment_id:prior.id,body});
+            } else {
+              await github.rest.issues.createComment({owner,repo,issue_number:3,body});
+            }
