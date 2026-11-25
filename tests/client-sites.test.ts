@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CLIENT_SITES, branchUrl, getClientSite, isOpenState, openItems, parseStatusMarkdown, repoUrl, sitesInCollection } from '../lib/client-sites.ts';
+import { CLIENT_SITES, branchUrl, getClientSite, hasHostedPreview, isOpenState, openItems, parseStatusMarkdown, repoUrl, sitesInCollection } from '../lib/client-sites.ts';
 
 const SAMPLE = `# Status: 2 Nov 2026
 
@@ -265,4 +265,15 @@ test('Los Amigos Taqueria Brighton (Client Demo 12, Lane B) is a preview-only de
   assert.equal(site.branches[0]?.commitSha, 'c408a1659adf5ee7f0fdea1fcfd38a779e23b159');
   assert.equal(site.thumbnail?.src, '/client-sites/los-amigos-taqueria.jpg');
   assert.match(site.summary, /ChowNow/);
+});
+
+test('sites with nothing deployed are not framed; deployed previews are', () => {
+  const cigars = getClientSite('cigars-and-more');
+  assert.ok(cigars);
+  assert.equal(hasHostedPreview(cigars), false);
+  for (const slug of ['ensueno-skin-care', 'los-amigos-taqueria', 'brighton-cellar-gourmet', 'circle-tavern']) {
+    const site = getClientSite(slug);
+    assert.ok(site);
+    assert.equal(hasHostedPreview(site), true, slug);
+  }
 });

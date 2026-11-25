@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ExternalLink, GitBranch, GitPullRequest } from 'lucide-react';
 import { requireWorkspace } from '@/lib/workspace';
-import { branchUrl, getClientSite, openItems, repoHost, repoUrl } from '@/lib/client-sites';
+import { branchUrl, getClientSite, hasHostedPreview, openItems, repoHost, repoUrl } from '@/lib/client-sites';
 import { getSiteActivity, getSiteStatus } from '@/lib/client-sites-server';
 import { formatWhen, StageBadge } from '../ui';
 
@@ -19,6 +19,7 @@ export default async function ClientSitePage({ params }: { params: Promise<{ slu
   const primaryLabel = site.collection === 'demo' ? 'Open preview' : 'Open live site';
   const previewHeading = site.collection === 'demo' ? 'Preview' : 'Live site';
   const githubHosted = repoHost(site) === 'github';
+  const hosted = hasHostedPreview(site);
 
   return <main className="max-w-6xl">
     <p className="kicker"><Link href="/app/client-sites" className="hover:underline">Client Builds &amp; Demos</Link> · {site.client}</p>
@@ -29,29 +30,37 @@ export default async function ClientSitePage({ params }: { params: Promise<{ slu
     <p className="muted mt-3 max-w-3xl text-sm leading-6">{site.summary}</p>
     {site.saleNote && <p className="mt-3 text-sm text-emerald-100">{site.saleNote}</p>}
     <div className="mt-5 flex flex-wrap gap-3">
-      <a className="btn" href={site.liveUrl} target="_blank" rel="noopener noreferrer">{primaryLabel} <ExternalLink size={15} className="ml-2" /></a>
+      {hosted && <a className="btn" href={site.liveUrl} target="_blank" rel="noopener noreferrer">{primaryLabel} <ExternalLink size={15} className="ml-2" /></a>}
       {site.pinnedUrl && <a className="btn" href={site.pinnedUrl} target="_blank" rel="noopener noreferrer">Pinned URL <ExternalLink size={15} className="ml-2" /></a>}
       <a className="btn" href={repoUrl(site)} target="_blank" rel="noopener noreferrer">Repository <ExternalLink size={15} className="ml-2" /></a>
     </div>
 
-    <section className="panel mt-7 overflow-hidden" aria-labelledby="preview-heading">
-      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
-        <div><p id="preview-heading" className="kicker">{previewHeading}</p><p className="muted mt-1 break-all text-xs">{site.liveUrl} · {site.hosting}</p></div>
-        <a className="text-sm font-semibold text-cyan-200 underline" href={site.liveUrl} target="_blank" rel="noopener noreferrer">Open in new tab ↗</a>
-      </div>
-      <div className="relative aspect-[4/5] w-full border-t border-[#243b47] bg-black sm:aspect-video">
-        <iframe
-          src={site.liveUrl}
-          title={`${site.name} ${site.collection === 'demo' ? 'preview' : 'live site'}`}
-          className="absolute inset-0 h-full w-full"
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          allow="fullscreen; gyroscope; accelerometer; autoplay"
-          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-        />
-      </div>
-      <p className="muted border-t border-[#243b47] px-5 py-3 text-xs">If the preview stays blank, the site may block embedding. Use “Open in new tab”.</p>
-    </section>
+    {hosted ? (
+      <section className="panel mt-7 overflow-hidden" aria-labelledby="preview-heading">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <div><p id="preview-heading" className="kicker">{previewHeading}</p><p className="muted mt-1 break-all text-xs">{site.liveUrl} · {site.hosting}</p></div>
+          <a className="text-sm font-semibold text-cyan-200 underline" href={site.liveUrl} target="_blank" rel="noopener noreferrer">Open in new tab ↗</a>
+        </div>
+        <div className="relative aspect-[4/5] w-full border-t border-[#243b47] bg-black sm:aspect-video">
+          <iframe
+            src={site.liveUrl}
+            title={`${site.name} ${site.collection === 'demo' ? 'preview' : 'live site'}`}
+            className="absolute inset-0 h-full w-full"
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            allow="fullscreen; gyroscope; accelerometer; autoplay"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+          />
+        </div>
+        <p className="muted border-t border-[#243b47] px-5 py-3 text-xs">If the preview stays blank, the site may block embedding. Use “Open in new tab”.</p>
+      </section>
+    ) : (
+      <section className="panel mt-7 p-6" aria-labelledby="preview-heading">
+        <p id="preview-heading" className="kicker">{previewHeading}</p>
+        <p className="mt-2 text-lg font-semibold">Not deployed yet</p>
+        <p className="muted mt-2 max-w-2xl text-sm leading-6">This site has no hosted preview, so there is nothing to show here. {site.hosting}</p>
+      </section>
+    )}
 
     <section className="panel mt-6 p-6" aria-labelledby="branches-heading">
       <p id="branches-heading" className="kicker">Releases · previews · owners</p>
