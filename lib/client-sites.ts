@@ -392,6 +392,41 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    "slug": "little-pizza-king",
+    "name": "Little Pizza King",
+    "client": "Little Pizza King · 389 Washington Street, Brighton, MA 02135 (owner not contacted)",
+    "collection": "demo",
+    "summary": "Client Demo 16 (Lane B). Concept preview with a searchable menu, catering tray planner, Greek kitchen section, Boston-time hours and holiday closures. Ordering opens the shop’s Toast page. All photography is illustrative. Owner questions cover the two websites, differing phones and prices, and the 2731 address prefix.",
+    "stage": "In review",
+    "liveUrl": "https://r1.little-pizza-king-preview.pages.dev",
+    "pinnedUrl": "https://dafe419c.little-pizza-king-preview.pages.dev",
+    "hosting": "Cloudflare Pages little-pizza-king-preview, preview branch r1, noindex, no custom domain.",
+    "thumbnail": {
+      "src": "/client-sites/little-pizza-king.jpg",
+      "alt": "Little Pizza King concept preview with an illustrative pizza photograph and menu and ordering links",
+      "width": 1200,
+      "height": 750
+    },
+    "repo": {
+      "host": "gitlab",
+      "owner": "andrew-makar-personal-projects-group",
+      "name": "little-pizza-king-site",
+      "defaultBranch": "r1"
+    },
+    "branches": [
+      {
+        "name": "r1",
+        "owner": "President Lane B (Claude build; Codex release)",
+        "previewUrl": "https://r1.little-pizza-king-preview.pages.dev",
+        "note": "Built from first-party sources read November 25. Local QA 113/113. Verified Desktop bundle and independent restore before push.",
+        "commitSha": "915ba7cf005667603bef2b1a1ac8407859b97931",
+        "commitMessage": "r1: Little Pizza King Brighton concept demo (Client Demo 16)",
+        "commitDate": "2026-11-25T01:08:51-05:00",
+        "commitUrl": "https://gitlab.com/andrew-makar-personal-projects-group/little-pizza-king-site/-/commit/915ba7cf005667603bef2b1a1ac8407859b97931"
+      }
+    ]
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {
