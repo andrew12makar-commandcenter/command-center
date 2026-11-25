@@ -452,6 +452,36 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    slug: 'hippopo-kitchen',
+    name: 'Hippopo Kitchen',
+    client: 'Hippopo Kitchen · Chinese restaurant (Sichuan and takeout classics), 241 Market Street, Brighton, MA 02135 (owner not contacted)',
+    collection: 'demo',
+    summary: 'Client Demo 20 (Lane B), pitch demo, preview only (r1, Nov 25). Concept for a restaurant whose Google Maps website link points to an unofficial third-party page. Dark lacquer, chili red and gold with serif type and a rotating mapo-tofu hero. The 93-dish menu from the restaurant’s Uber Eats store is split into 49 Sichuan and house dishes and 44 numbered takeout classics, with filters, a “know the number?” lookup, chili marks only where the listing mentions chili, and a call list saved in the browser. Three real ordering routes: call (617) 783-5469, the restaurant’s own Chowbus pickup page, and Uber Eats. Hours with a Boston-time open status and holiday notice. No prices (Uber Eats and Chowbus disagree), reviews or ratings; the unofficial site is not linked. Scroll-driven transitions, hero included, look the same scrolling down and up. Three Unsplash photos, all captioned illustrative; no logo. Owner to confirm: name (Hippo vs Hippopo), second phone on Chowbus, hours, featured dishes. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.hippopo-kitchen-preview.pages.dev',
+    pinnedUrl: 'https://347b61d6.hippopo-kitchen-preview.pages.dev',
+    hosting: 'Cloudflare Pages project hippopo-kitchen-preview (Andrew personal account), preview branch r1 only (no production deployment), noindex. Not behind Cloudflare Access: the link is unlisted but open.',
+    thumbnail: { src: '/client-sites/hippopo-kitchen.jpg', alt: 'Hippopo Kitchen preview: dark hero with the name in cream and red serif type, Call, Order online and Directions buttons, and an illustrative mapo tofu photo', width: 1200, height: 750 },
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'hippopo-kitchen-site',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'President Claude (Lane B)',
+        previewUrl: 'https://r1.hippopo-kitchen-preview.pages.dev',
+        note: 'First build (Claude Opus 5.5, Lane B session on the President account), Nov 25, 2026. Facts from the restaurant’s Google Maps listing, Chowbus page and Uber Eats store, and Brighton Main Streets, read Nov 25 (no reviews used); sources and owner questions in docs/. Pushed to GitLab (private) after a verified Desktop checkpoint (20261125T170844Z-b99e6ad12f, bundle verify, restore and fsck PASS) and deployed as Cloudflare Pages preview 347b61d6 built from b99e6ad1. QA 104/104 on the live preview at 375, 390, 768 and 1440 wide (menu modes, number lookup, call list incl. reload, order dialog with focus return, call/Chowbus/Uber Eats/directions links, hours incl. DST and holidays, hero and dish transitions mirrored on scroll-up, reduced motion, no-JS, no external requests), zero axe violations. Lighthouse and physical-device tests not run.',
+        commitSha: 'b99e6ad12f2dc6e33a6a08444acadec131644d79',
+        commitMessage: 'r1: Hippopo Kitchen Brighton concept demo (Client Demo 20)',
+        commitDate: '2026-11-25T17:07:54Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/hippopo-kitchen-site/-/commit/b99e6ad12f2dc6e33a6a08444acadec131644d79',
+      },
+    ],
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {
