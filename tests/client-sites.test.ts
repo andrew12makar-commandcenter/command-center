@@ -120,7 +120,7 @@ test('Zisis Convenience r1 is Client Demo 04 on GitLab with the verified Pages p
   assert.equal(site.thumbnail?.src, '/client-sites/zisis-convenience.jpg');
   assert.ok((site.thumbnail?.alt ?? '').length > 10);
   // only Zisis and Brighton Cellar carry thumbnails; other entries unchanged
-  assert.deepEqual(CLIENT_SITES.filter((s) => s.thumbnail).map((s) => s.slug), ['zisis-convenience', 'brighton-cellar-gourmet', 'kikis-kwikmart', 'ensueno-skin-care', 'los-amigos-taqueria']);
+  assert.deepEqual(CLIENT_SITES.filter((s) => s.thumbnail).map((s) => s.slug), ['zisis-convenience', 'brighton-cellar-gourmet', 'kikis-kwikmart', 'ensueno-skin-care', 'los-amigos-taqueria', 'little-pizza-king']);
 });
 
 test('Brighton Cellar & Gourmet r1 is one Client Demo on GitLab with the verified Pages preview and a thumbnail', () => {
@@ -150,7 +150,7 @@ test('Brighton Cellar & Gourmet r1 is one Client Demo on GitLab with the verifie
 });
 
 test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8, Zisis r1, Oliveira r1, Brighton Cellar r1, Kiki\'s r1 and Circle Tavern (sold, also shown as a demo)', () => {
-  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,oliveira-deli,brighton-cellar-gourmet,kikis-kwikmart,cigars-and-more,ensueno-skin-care,los-amigos-taqueria,circle-tavern');
+  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,oliveira-deli,brighton-cellar-gourmet,kikis-kwikmart,cigars-and-more,ensueno-skin-care,los-amigos-taqueria,little-pizza-king,circle-tavern');
   const u = getClientSite('universal-barber');
   assert.ok(u);
   assert.equal(u.collection, 'demo');
@@ -276,4 +276,14 @@ test('sites with nothing deployed are not framed; deployed previews are', () => 
     assert.ok(site);
     assert.equal(hasHostedPreview(site), true, slug);
   }
+});
+
+
+test('Little Pizza King has a hosted preview and a matching source revision', () => {
+  const site = getClientSite('little-pizza-king');
+  assert.ok(site);
+  assert.equal(site.collection, 'demo');
+  assert.equal(site.liveUrl, 'https://r1.little-pizza-king-preview.pages.dev');
+  assert.equal(hasHostedPreview(site), true);
+  assert.equal(site.branches[0]?.commitSha, '915ba7cf005667603bef2b1a1ac8407859b97931');
 });
