@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {classifyGoogleListingLink,exactGoogleListingUrl} from '../lib/google-listing-link.ts';
+import {classifyGoogleListingLink,exactGoogleListingUrl,editableCrmListingUrl} from '../lib/google-listing-link.ts';
 
 test('maps search URL is a search even if it returns one business',()=>{
  const result=classifyGoogleListingLink('https://www.google.com/maps/search/?api=1&query=Nakhon+Brighton');
@@ -30,4 +30,17 @@ test('imported CRM listing URL requires exact identifier while staged search evi
  assert.equal(exactGoogleListingUrl(direct),direct);
  // Raw evidence stays in the staged row; conversion only decides the CRM field.
  assert.equal(classifyGoogleListingLink(search).url,search);
+});
+
+test('manual CRM entry requires listing-specific URL while preserving legacy links unchanged',()=>{
+ const search='https://www.google.com/maps/search/?api=1&query=Brighton+Dentist';
+ const exact='https://maps.google.com/?cid=12345';
+ assert.equal(editableCrmListingUrl(exact),exact);
+ assert.equal(editableCrmListingUrl(null),null);
+ assert.throws(()=>editableCrmListingUrl(search),/listing-specific/);
+ assert.throws(()=>editableCrmListingUrl('https://maps.app.goo.gl/alias'),/listing-specific/);
+ assert.equal(editableCrmListingUrl(search,search),search,
+  'editing unrelated fields must not silently erase a historical search link');
+ assert.equal(editableCrmListingUrl(null,search),null,'explicit clearing stays possible');
+ assert.throws(()=>editableCrmListingUrl('https://www.google.com/maps/place/Foo',search),/listing-specific/);
 });

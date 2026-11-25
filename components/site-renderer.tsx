@@ -4,6 +4,7 @@ import {IndustryServices,IndustryNextSteps,IndustryGallery,IndustryHero} from '@
 import {orderRenderableSections,type SectionKey} from '@/lib/site-section-order';
 import type {GeneratedConceptSet} from '@/lib/concept-imagery';
 import {selectSiteMedia} from '@/lib/site-media-selection';
+import {classifyIndustry} from '@/lib/business-classification';
 import {ArrowRight,ArrowUpRight,CalendarDays,Check,Mail,MapPin,Menu,Phone} from 'lucide-react';
 
 const schemes={
@@ -42,7 +43,9 @@ export default function SiteRenderer({site,standalone=false,conceptMedia}:Render
  // "Practice" is clinical vocabulary; a plumber or restaurant is not a practice.
  const aboutNav=site.template==='medical'?'Practice':'About';
  const aboutLabel=site.template==='medical'?'The practice':site.template==='landscaping'?'The company':'About';
- const navLinks=[hasServices&&{href:'#services',label:'Services'},hasAbout&&{href:'#about',label:aboutNav},
+ const sector=classifyIndustry(site.businessName,site.category).sector;
+ const servicesNav=sector==='food'?'Menu':sector==='retail'?'Shop':'Services';
+ const navLinks=[hasServices&&{href:'#services',label:servicesNav},hasAbout&&{href:'#about',label:aboutNav},
   gallery.length>0&&{href:'#gallery',label:'Visuals'},hasContact&&{href:'#contact',label:'Contact'}]
   .filter((x):x is {href:string;label:string}=>Boolean(x));
  // Keep DOM, keyboard and visible section order synchronized. Previously the

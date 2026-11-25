@@ -9,6 +9,7 @@ import type {AuditRecord} from '@/lib/opportunity-board';
 import {targetServiceLabels} from '@/lib/discovery-campaigns';
 import {OPPORTUNITIES,CONFIDENCES,NEXT_ACTIONS,opportunityLabels,strengthLabels,confidenceLabels,readinessLabels,nextActionLabels,websitePresenceLabels} from '@/lib/prospect-qualification';
 import {classifyWebPresence} from '@/lib/web-presence';
+import {classifyGoogleListingLink} from '@/lib/google-listing-link';
 import { createDemo } from '@/app/app/demos/actions';
 import {classifyIndustry,industryLabel} from '@/lib/business-classification';
 
@@ -22,7 +23,7 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
   if(error||!b) notFound();
   const industry=classifyIndustry(b.name,b.category);
   const presence=classifyWebPresence(b.website_url);
-  const profileOnly=presence.kind==='social'||presence.kind==='listing';
+  const profileOnly=presence.kind==='social'||presence.kind==='listing'||presence.kind==='ordering';
   const [{data:sources},{data:activities},{data:demos},{data:audits},campaign]=await Promise.all([
     supabase.from('business_sources').select('*').eq('organization_id',organizationId).eq('business_id',id).order('recorded_at',{ascending:false}),
     supabase.from('business_activities').select('*').eq('organization_id',organizationId).eq('business_id',id).order('occurred_at',{ascending:false}).limit(30),
@@ -38,9 +39,9 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
     <div className="mt-7 flex flex-wrap items-start justify-between gap-4">
       <div><p className="kicker">{b.city||'Location pending'} · {b.category||'Category pending'}</p>
       <h1 className="mt-2 text-4xl font-semibold">{b.name}</h1>
-      <p className="muted mt-3">Verification: {b.verification_status} · Operational status: {b.operational_status}</p></div>
+      <p className="muted mt-3">CRM record status: verification {b.verification_status} · operation {b.operational_status}. Research evidence is shown separately below.</p></div>
       <div className="flex gap-3">{presence.url && <a className="btn" target="_blank" rel="noopener noreferrer" href={presence.url}>{profileOnly?'Visit '+presence.provider+' profile ↗':'Visit website ↗'}</a>}
-        {b.google_business_url && <a className="btn" target="_blank" rel="noreferrer" href={b.google_business_url}>Google profile ↗</a>}</div>
+        {b.google_business_url && <a className="btn" target="_blank" rel="noreferrer" href={b.google_business_url}>{classifyGoogleListingLink(b.google_business_url).kind==='specific_id'?'Google listing reference ↗':classifyGoogleListingLink(b.google_business_url).kind==='search'?'Google Maps search (unverified) ↗':'Google Maps link (unverified) ↗'}</a>}</div>
     </div>
     <section id="qualification" className="panel mt-7 scroll-mt-6 p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -59,7 +60,7 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
         <div><dt className="muted text-xs">Contact readiness</dt><dd className="mt-1 font-semibold">{readinessLabels[q.contactReadiness]}</dd></div>
         <div><dt className="muted text-xs">Next action</dt><dd className="mt-1 font-semibold">{nextActionLabels[q.nextAction]}</dd></div>
         <div><dt className="muted text-xs">Website</dt><dd className="mt-1 font-semibold">{websitePresenceLabels[q.websitePresence]}</dd></div>
-        <div><dt className="muted text-xs">GBP</dt><dd className="mt-1 font-semibold">{q.gbpStatus==='recorded'?'Recorded':'Not confirmed'}</dd></div>
+        <div><dt className="muted text-xs">GBP link</dt><dd className="mt-1 font-semibold">{!b.google_business_url?'No link recorded':classifyGoogleListingLink(b.google_business_url).kind==='specific_id'?'Listing-specific link recorded':'Maps reference recorded'}</dd></div>
       </dl>
       <p className="mt-4 text-sm leading-6 text-[#c4d6dd]">{q.summary}</p>
       {b.qualification_rationale&&<p className="muted mt-1 text-xs">Recorded at import: {b.qualification_rationale}</p>}
@@ -79,14 +80,14 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
       </details>
     </section>
     <section className="panel mt-7 flex flex-wrap items-center justify-between gap-4 p-5">
-      <div><p className="kicker">Sales opportunity brief</p><h2 className="mt-2 text-lg font-semibold">Evidence-led website refresh</h2>
-      <p className="muted mt-2 text-sm">Trace measured speed issues, prioritize demo work and keep the before/after comparison unclaimed until benchmarked.</p></div>
+      <div><p className="kicker">Sales opportunity brief</p><h2 className="mt-2 text-lg font-semibold">{q.websitePresence==='official_site_recorded'?'Evidence-led website review':'Confirm website opportunity'}</h2>
+      <p className="muted mt-2 text-sm">{q.websitePresence==='official_site_recorded'?'Review measured website evidence and keep before/after claims unmade until benchmarked.':'No independent website is recorded. Confirm whether the business has a site before proposing a refresh.'}</p></div>
       <Link href={'/app/leads/'+id+'/brief'} className="btn">Open opportunity brief →</Link>
     </section>
     <section className="panel mt-7 flex flex-wrap items-center justify-between gap-4 p-5">
       <div><p className="kicker">Website Intelligence</p><h2 className="mt-2 text-lg font-semibold">Inspect performance and technical SEO</h2>
-      <p className="muted mt-2 text-sm">{profileOnly?'A social or directory profile is recorded, not an independent business website. Do not run PageSpeed on this link.':'Evidence-backed mobile PageSpeed results, separate from your manual sales priority.'}</p></div>
-      {profileOnly?<span className="text-sm text-amber-200">Website research needed</span>:<Link href={'/app/intelligence?business='+id} className="btn">Open website audits →</Link>}
+      <p className="muted mt-2 text-sm">{presence.kind==='ordering'?'A third-party ordering page is recorded, not an independent business website. Confirm whether the business has its own site before running an audit.':profileOnly?'A social or directory profile is recorded, not an independent business website. Do not run PageSpeed on this link.':presence.kind!=='website'?'No independent website is recorded. Confirm the official site before running an audit.':'Evidence-backed mobile PageSpeed results, separate from your manual sales priority.'}</p></div>
+      {presence.kind==='website'?<Link href={'/app/intelligence?business='+id} className="btn">Open website audits →</Link>:<span className="text-sm text-amber-200">Website research needed</span>}
     </section>
     <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
       <div className="space-y-6">
@@ -101,7 +102,7 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
             <label className="text-sm">Contact name<input name="contact_name" className="mt-2" defaultValue={b.contact_name??''}/></label>
             <label className="text-sm">Contact email<input name="contact_email" type="email" className="mt-2" defaultValue={b.contact_email??''}/></label>
             <label className="text-sm">Independent business website<input name="website_url" type="url" className="mt-2" defaultValue={profileOnly?'':b.website_url??''} placeholder="https://official-business-site.com"/></label>
-            <label className="text-sm">Google Business Profile link, if found<input name="google_business_url" type="url" className="mt-2" defaultValue={b.google_business_url??''} placeholder="https://maps.google.com/…"/></label>
+            <label className="text-sm">Google listing-specific link<input name="google_business_url" type="url" className="mt-2" defaultValue={b.google_business_url??''} placeholder="https://maps.google.com/?cid=…"/><small className="muted mt-2 block">New or changed links must contain a listing-specific CID or Place ID. An unchanged historical search link stays unverified.</small></label>
             <p className="muted text-xs md:col-span-2">Website field is for independent business sites only. Instagram, Facebook, and Google listings are separate research evidence. An unrecorded website does not prove the business has none.</p>
             <label className="text-sm">Priority score (0–100)<input name="priority_score" type="number" min="0" max="100" className="mt-2" defaultValue={b.priority_score??''}/></label>
             <label className="text-sm">Evidence behind score<input name="score_rationale" className="mt-2" defaultValue={b.score_rationale??''} placeholder="Observed, checkable reasons"/></label>
@@ -163,7 +164,7 @@ export default async function LeadDetail({params}:{params:Promise<{id:string}>})
           <p className="muted mt-3 text-sm">Industry suggestion: <strong>{industryLabel(industry)}</strong>. {industry.explanation}. Check or correct the industry category above before creating a draft. Old mismatched drafts are not silently overwritten.</p>
           <form action={createDemo} className="mt-5 grid gap-3"><input type="hidden" name="business_id" value={id}/>
           <div className="flex flex-wrap gap-3">
-          <select name="template" aria-label="Website industry template"><option value="auto">Auto-match industry (recommended)</option>{[['landscaping','Home services if unclassified'],['medical','Medical / dental if unclassified'],['universal','Professional / general if unclassified']].map(([key,name])=><option key={key} value={key}>{name}</option>)}</select>
+          <select name="template" aria-label="Website industry template"><option value="auto">Auto-match industry (recommended)</option>{[['landscaping','Landscaping if unclassified'],['medical','Medical / dental if unclassified'],['universal','General / trade-safe if unclassified']].map(([key,name])=><option key={key} value={key}>{name}</option>)}</select>
           <select name="visual_variant" aria-label="Design style">
             <option value="auto">Auto style</option>
             <option value="editorial">Editorial</option>

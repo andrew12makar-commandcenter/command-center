@@ -17,7 +17,7 @@ export default async function NewLead() {
       <label className="text-sm">ZIP code<input className="mt-2" name="postal_code" /></label>
       <label className="text-sm md:col-span-2">Service area for mobile businesses<input className="mt-2" name="service_area" placeholder="Greater Boston, no storefront" /></label>
       <label className="text-sm">Independent business website<input className="mt-2" type="url" name="website_url" placeholder="https://official-business-site.example" /><small className="muted mt-2 block">Do not paste Instagram, Facebook or directory listings here. Add those as social research evidence in the CRM after creating the prospect.</small></label>
-      <label className="text-sm">Google Business Profile URL<input className="mt-2" name="google_business_url" placeholder="https://…" /></label>
+      <label className="text-sm">Google listing-specific URL<input className="mt-2" name="google_business_url" type="url" placeholder="https://maps.google.com/?cid=…" /><small className="muted mt-2 block">Use a listing-specific CID or Place ID link. A Google Maps search is not proof of a business listing.</small></label>
       <label className="text-sm">Phone<input className="mt-2" name="phone" /></label>
       <label className="text-sm">Contact person (if known)<input className="mt-2" name="contact_name" /></label>
       <label className="text-sm md:col-span-2">Contact email<input type="email" className="mt-2" name="contact_email" /></label>

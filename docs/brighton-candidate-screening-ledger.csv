@@ -1,0 +1,53 @@
+business,address,discovery_source,checked,decision,reason_code,reason,evidence_url
+King Window Cleaning & Dryer vent cleaning,25 Leicester St,Prior research pass,2026-10-17,held,stale_activity,Exact Maps match and no website but the three visible reviews are nine years old and no hours are listed.,https://www.google.com/maps/search/King+Window+Cleaning+25+Leicester+St+Brighton+MA
+McKinnon Painting & Carpentry Inc.,41 Waverly St,Prior research pass,2026-10-17,excluded,no_gap,Current first-party site and working Jobber request link with recent reviews.,
+Brighton House of Pizza,218 Market St,Prior research pass,2026-10-17,excluded,no_gap,Exact Maps links a first-party website and menu flows with recent activity; not the 344 Washington St identity.,
+Brighton Laundry & Dry Cleaners,430 Washington St,Prior research pass,2026-10-17,excluded,no_gap,Maps links the first-party site and pickup/delivery details with recent owner activity.,
+Boston Threading,386 Washington St,Prior research pass,2026-10-17,excluded,no_gap,Maps links the first-party site and booking flow with recent reviews.,
+Momma's Grocery,525 Western Ave,Brighton Main Streets directory,2026-10-17,held,identity_unresolved,Google profile attaches a Cambridge business site; Brighton operator and opening state unconfirmed.,
+Blow-Out Hair Design,547 Washington St,Brighton Main Streets directory,2026-10-17,held,stale_activity,Maps shows Add website and Add hours but the three visible reviews are four to seven years old.,
+Brighton Auto Service,25 Chestnut Hill Ave,Brighton Main Streets directory,2026-10-17,excluded,no_gap,Maps links a current first-party website with service and scheduling pages.,
+CLASSIC 2 BARBERSHOP,580 Washington St,Brighton Main Streets directory,2026-10-17,held,identity_unresolved,Directory labels the address The 34 Barbershop; resolve the name and operator first.,
+Lucky Mobile Car Detailing,Service area,Brighton Main Streets directory,2026-10-17,excluded,no_gap,Current first-party site and booking path; service-area listing without a Brighton street address.,
+Boston Auto Sales,482 Western Ave,Brighton Main Streets directory,2026-10-17,excluded,no_gap,Current dealer site with inventory and contact paths.,
+Hoshi Ya Sushi,529 Washington St,Brighton Main Streets directory,2026-10-17,excluded,no_gap,Maps has website and order links plus a recent owner post.,
+Daniel's Bakery,395 Washington St,Brighton Main Streets directory,2026-10-17,excluded,no_gap,First-party site and custom-cake menu link with recent activity.,
+Matt's Barber Shop,408 Market St,Prior 40 baseline,2026-10-17,excluded,no_second_need,Site lists address prices hours and policy; the earlier missing-address claim is stale.,
+La Flaca y el Gordo Inc.,304 Washington St,Boston Licensing Board record,2026-10-17,excluded,identity_unresolved,Storefront is now Peka Restaurant with a current site; licensing name does not match the customer brand.,
+Super Bien,525 Western Ave,Brighton Main Streets directory,2026-10-17,excluded,closed,Maps marks the business permanently closed.,
+House of Art and Craft LLC,525 Western Ave,Boston certified-vendor record,2026-10-17,held,identity_unresolved,No exact Maps match by that name at the shared Speedway address.,
+MoonLight Nails & Spa,416 Market St,Brighton Main Streets directory,2026-10-18,excluded,no_gap,First-party site confirms address phone hours and a contact form.,https://moonlightnailsspabrighton.com/contact
+Queen Bee Nails Spa,579 Washington St,Brighton Main Streets directory,2026-10-18,excluded,no_gap,First-party site has services hours appointment links and gift cards.,https://queenbeenailspa.com/
+Wunderkind Planet Daycare,320 Washington St,Prior 40 baseline,2026-10-18,excluded,no_gap,Current site has a Brighton location page and tour form; the discovery missing-website signal was false.,https://wunderkindplanet.com/preschool
+Michael's Sports Massage,17 Henshaw St,Brighton Main Streets directory,2026-10-18,excluded,no_gap,First-party site plus MassageBook booking.,https://michaelsmassage.massagetherapy.com/
+Boston Wedding Officiant Ceremonies,26 Shanley St,Discovery data,2026-10-18,held,stale_activity,Official site present but all three Maps reviews are three to six years old.,https://bostonceremonies.com/
+Academy Hill Plumbing,19 Academy Hill Rd,Discovery data,2026-10-18,excluded,not_found,No exact current Maps listing or active operation established.,
+NB Plumbing,120 N Beacon St,Discovery data,2026-10-18,excluded,not_found,Only old directory entries; no exact current Maps listing.,
+Brighton Bodega,328 Washington St,Boston active food license,2026-10-18,held,no_second_need,Maps menu link opens a Page Not Found URL but no separate second need was verified.,https://brightonbodega.com/menu
+New Hong Kong,14 Tremont St,Boston active food license,2026-10-18,excluded,no_gap,Current Maps profile with matching website and ordering links; low rating is not a need.,
+Wok n Talk,525 Washington St,Boston active food license,2026-10-18,excluded,no_gap,Maps matches the current site and Chowbus order page.,https://www.wokntalk.com/
+Tho's Upholstery,341 Washington St,Prior 40 baseline,2026-10-17,held,stale_activity,Site typo and no inquiry form persist but recent dated activity was not re-established.,https://www.thoupholstery.com/
+Missing Sock Laundromat,1846A Commonwealth Ave,Prior 40 baseline,2026-10-17,held,no_second_need,One site pricing conflict with no separate verified second need.,https://www.missing-sock.com/prices/
+Lee's Market,1591 Commonwealth Ave,Prior 40 baseline,2026-10-17,held,unverified,Square site renders client-side; directions destination could not be re-read.,https://leesliquorandgrocery.square.site/
+Center Salon,363 Washington St,Brighton Main Streets directory,2026-10-18,excluded,no_gap,Maps links a working official site and Square booking; only the directory's old domain is broken.,https://centersalonma.com/
+Cleo Salon,1 Henshaw St,Brighton Main Streets directory,2026-10-18,held,no_second_need,Book Now stays on the homepage but the site has address hours and a request form and Maps is complete.,https://www.cleosalonboston.com/
+Harry's Foreign & American Auto Service,19 Academy Hill Rd,Brighton Main Streets directory,2026-10-18,excluded,not_found,No matching Maps listing at the address.,http://harrysforeignamerican.com/
+Sunday Bakery,418 Market St,Brighton Main Streets directory,2026-10-18,excluded,closed,Maps marks it permanently closed.,http://sundaybakeryma.com/
+Mama Stella's Pizza,429 Faneuil St,Brighton Main Streets directory,2026-10-18,excluded,closed,Maps marks it temporarily closed.,http://www.pizza-etc.com/
+Big Dog Walkin',162 Chestnut Hill Ave,Brighton Main Streets directory,2026-10-18,excluded,stale_identity,No current listing; Maps resolves the address to Sam's Pet Patrol.,
+Universal Barber Shop,4 Chestnut Hill Ave,Brighton Main Streets directory,2026-10-18,held,no_gap,Out-of-area phone code is consistent across Maps site and directory and not proven wrong; booking works.,https://universal-barbershop.vercel.app/
+Phil's Hair Design,581 Washington St,Brighton Main Streets directory,2026-10-18,held,no_gap,Contact page has address hours and text-to-book instructions.,https://philshairdesign.com/contact/
+Glasser Coffee Co.,589 Washington St,Brighton Main Streets directory,2026-10-18,held,no_second_need,Thin homepage contact details but Maps is complete and active.,https://www.glassercoffee.co/
+Lakon Paris Patisserie,407 Washington St,Brighton Main Streets directory,2026-10-18,held,no_second_need,Homepage lacks Brighton contact details but Maps is complete and active.,https://lakonparis.com/
+Huntington Market,818 Huntington Ave,Prior research pass,2026-10-17,held,duplicate,May share an operator with Huntington Markets at 1795 Commonwealth Ave (counted).,
+Cambridge Street Auto Service,445 Cambridge St,Prior 40 baseline,2026-10-17,held,identity_unresolved,Boston records describe a planned redevelopment of 445-449 Cambridge St; current operation at the address unconfirmed.,
+NCS Boston Cleaning Services,Service area,Prior research pass,2026-10-17,held,stale_activity,Latest business post March 2024 and newest reviews about a year old.,
+Hair Screen,164 Brighton Ave,Prior 40 baseline,2026-10-17,held,no_second_need,No-website baseline visible but the only second offer was a speculative booking path.,
+Exclusive Barber Shop,250 Brighton Ave,Prior 40 baseline,2026-10-17,held,no_second_need,Second offer depended on guessing that the shop wants online booking.,
+Allston Convenience Store,165 Allston St,Prior research pass,2026-10-17,excluded,no_second_need,Website gap only; no distinct second need.,
+Q Nails and Spa,31 N Beacon St,Prior research pass,2026-10-17,excluded,no_gap,Maps website and booking actions open the correct Fresha page.,
+Beef & Turkey Convenience,290 Washington St,Brighton Main Streets directory,2026-10-17,held,identity_unresolved,City permit at the address names Cafe Lava & Bento; current operator unconfirmed.,
+Kiki's Kwik-Mart,236 Faneuil St,Prior 40 baseline,2026-10-17,held,no_second_need,Working site; menu typos are the only issue.,https://kikiskwikmart.com/
+Quality Market,140 N Beacon St,Prior research pass,2026-10-17,excluded,no_second_need,Maps shows Add website but no separate owner-actionable issue.,
+LR Hair Salon,591 Washington St,Prior 40 baseline,2026-10-16,held,no_second_need,Only extra offer was a possible online appointment path.,
+Cafe Mirror,362 Washington St,Core 40 roster (Boston active food license),2026-10-18,held,conflicting_evidence,Kept in the Core 40 for continuity but not counted: the Core row's second need was a Yellow Pages hours difference while the Oct 18 check found no independent second need.,https://brightonmainstreets.org/shops/cafe-mirror/

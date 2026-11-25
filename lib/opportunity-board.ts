@@ -54,8 +54,11 @@ export function scoreOpportunity(
  const industry=classifyIndustry(business.name,business.category);
  const webPresence=classifyWebPresence(business.website_url);
  const researchScore=researchPriority(business.name,business.category,independentWebsite(business.website_url),null,business.city);
- const sector=industry.confidence==='unknown'?'Industry not classified':industry.template==='medical'?
-  'Medical/clinical sector hint':industry.template==='landscaping'?'Home/field-services sector hint':'Other recorded industry';
+ const sector=industry.confidence==='unknown'?'Industry not classified':industry.sector==='medical'?
+  'Medical/clinical sector hint':industry.sector==='landscaping'?'Landscaping sector hint':
+  industry.sector==='trades'?'Contractor/home-service sector hint':industry.sector==='food'?
+  'Food/hospitality sector hint':industry.sector==='retail'?'Retail/storefront sector hint':industry.sector==='professional'?
+  'Professional/retail sector hint':'Other recorded industry';
  let stage:BoardStage,reason:string;
  if(business.operational_status==='closed'||business.pipeline_status==='won'||business.pipeline_status==='lost'){
   stage='inactive';
@@ -64,7 +67,9 @@ export function scoreOpportunity(
    'Previously marked lost; do not automatically restart outreach.';
  }else if(webPresence.kind!=='website'){
   stage='research_website';
-  reason=webPresence.kind==='social'||webPresence.kind==='listing'?
+  reason=webPresence.kind==='ordering'?
+    webPresence.provider+' page recorded, not an independent business website. Research whether a separate website exists.':
+   webPresence.kind==='social'||webPresence.kind==='listing'?
     webPresence.provider+' profile recorded, not an independent business website. Research whether a separate website exists.':
     sector+'; independent website not recorded or URL invalid. This does not prove the business has no website.';
  }else if(!latest){

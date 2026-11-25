@@ -52,6 +52,8 @@ test('standalone project has no CRM login, removes research notes, and never ove
   assert.ok(raw.quality.evaluation);
   assert.ok((await readFile(join(target,'app','page.tsx'),'utf8')).includes('standalone'));
   assert.ok((await readFile(join(target,'components','site-renderer.tsx'),'utf8')).includes('SiteRenderer'));
+  assert.match(await readFile(join(target,'lib','business-classification.ts'),'utf8'),/classifyIndustry/);
+  assert.match(await readFile(join(target,'app','icon.svg'),'utf8'),/<svg/);
   assert.ok((await readFile(join(target,'lib','site-evaluation.ts'),'utf8')).includes('evaluateSiteBlueprint'));
   assert.ok((await stat(join(target,'package.json'))).size>10);
   const tsconfig=JSON.parse(await readFile(join(target,'tsconfig.json'),'utf8'));

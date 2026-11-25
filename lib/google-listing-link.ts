@@ -32,3 +32,14 @@ export function exactGoogleListingUrl(value:string|null|undefined):string|null{
  const link=classifyGoogleListingLink(value);
  return link.kind==='specific_id'?link.url:null;
 }
+
+/** Manual CRM edits must not turn a Maps search into a verified listing URL.
+ * Preserve an unchanged historical value until someone reviews it, rather
+ * than blocking edits to unrelated lead fields or silently erasing evidence. */
+export function editableCrmListingUrl(value:string|null,previous:string|null=null):string|null{
+ if(value===previous)return previous;
+ if(!value)return null;
+ const exact=exactGoogleListingUrl(value);
+ if(!exact)throw new Error('Use a listing-specific Google Maps URL with a CID or Place ID. A search link or shortcut does not identify an exact listing.');
+ return exact;
+}

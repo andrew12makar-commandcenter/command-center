@@ -1,9 +1,13 @@
 import {classifyIndustry,isLegalStructure} from './business-classification.ts';
-import {classifyWebPresence} from './web-presence.ts';
+import {classifyWebPresence,recordedWebsite} from './web-presence.ts';
 import {classifyGoogleListingLink} from './google-listing-link.ts';
 import {DISCOVERY_AREAS} from './discovery-regions.ts';
 import type {TargetService} from './discovery-campaigns.ts';
 import {isWebsiteCheck,websiteWeaknessCount,seoGapCount,websiteIssueLabels,type WebsiteCheck} from './website-evidence.ts';
+import {assessTargetFit,type TargetFit} from './target-fit.ts';
+import {hasEntityRegistryContext} from './registry-import.ts';
+import {sameLighthousePage} from './lighthouse-import.ts';
+import type {Assessment} from './website-intelligence.ts';
 
 // Deterministic, evidence-only qualification. No AI call. No revenue, budget, traffic,
 // ranking or purchase-probability estimates. Missing data is "unknown", never proof.
@@ -28,8 +32,8 @@ export const EVIDENCE_STATES=['verified_present','verified_missing','likely_weak
 export type EvidenceState=typeof EVIDENCE_STATES[number];
 export const PROGRESS=['discovered','needs_review','qualified','imported','demo_ready','pitch_ready','outreach_ready'] as const;
 export type Progress=typeof PROGRESS[number];
-export type WebsitePresence='official_site_recorded'|'social_only'|'none_recorded';
-export type GbpStatus='recorded'|'unconfirmed';
+export type WebsitePresence='official_site_recorded'|'social_only'|'ordering_only'|'none_recorded';
+export type GbpLinkStatus='recorded'|'unconfirmed';
 
 export const researchStatusLabels:Record<ResearchStatus,string>={
  review_needed:'Review needed',shortlisted:'Shortlisted',held:'Held',disqualified:'Disqualified',imported:'Imported'};
@@ -45,7 +49,8 @@ export const nextActionLabels:Record<NextAction,string>={
  prepare_opportunity_brief:'Prepare opportunity brief',generate_website_demo:'Generate website demo',
  hold:'Hold',disqualify:'Disqualify',none:'None'};
 export const websitePresenceLabels:Record<WebsitePresence,string>={
- official_site_recorded:'Official site recorded',social_only:'Social / directory only',none_recorded:'None recorded'};
+ official_site_recorded:'Official site recorded',social_only:'Social / directory only',
+ ordering_only:'Third-party ordering page only',none_recorded:'None recorded'};
 export const evidenceStateLabels:Record<EvidenceState,string>={
  verified_present:'Verified present',verified_missing:'Verified missing',likely_weak:'Likely weak',unknown:'Unknown',conflicting:'Conflicting evidence'};
 export const progressLabels:Record<Progress,string>={
@@ -55,19 +60,30 @@ export const progressLabels:Record<Progress,string>={
 // ---- Operator review evidence (stored under raw_data.review on staged rows; source keys untouched) ----
 export type ManualReview={
  website?:EvidenceState;website_url?:string|null;gbp?:EvidenceState;gbp_url?:string|null;
+ registry_result?:'found_match'|'possible_match'|'not_found';registry_url?:string|null;registry_note?:string|null;
  identity?:'confirmed'|'unclear'|'unknown';active?:'confirmed'|'possibly_inactive'|'unknown';
  location_type?:'storefront'|'office'|'home_based'|'service_area'|'unknown';
  service_area?:string|null;note?:string|null;reviewed_at?:string;reviewed_by?:string;
  // Public contact routes found during review (business phone/email only; never personal data).
  phone?:string|null;email?:string|null;contact_name?:string|null;address?:string|null;
 };
-export type ReviewEvidence={manual?:ManualReview;website_check?:WebsiteCheck};
+export type StagedLocalLighthouse=Assessment&{website_url:string;assessed_at:string};
+export type ReviewEvidence={manual?:ManualReview;website_check?:WebsiteCheck;local_lighthouse?:StagedLocalLighthouse};
+function isStagedLocalLighthouse(value:unknown):value is StagedLocalLighthouse{
+ if(!value||typeof value!=='object')return false;
+ const v=value as Record<string,unknown>,findings=v.findings as Record<string,unknown>|null;
+ return typeof v.website_url==='string'&&typeof v.assessed_at==='string'&&
+  ['verified_gaps','no_gaps','inconclusive'].includes(String(v.status))&&
+  !!findings&&typeof findings==='object'&&findings.source_method==='local_lighthouse_execution'&&
+  typeof findings.analyzed_url==='string';
+}
 export function readReview(raw:Record<string,unknown>|null|undefined):ReviewEvidence{
  const r=raw?.review;
  if(!r||typeof r!=='object')return {};
  const o=r as Record<string,unknown>;
  return {manual:o.manual&&typeof o.manual==='object'?o.manual as ManualReview:undefined,
-  website_check:isWebsiteCheck(o.website_check)?o.website_check:undefined};
+  website_check:isWebsiteCheck(o.website_check)?o.website_check:undefined,
+  local_lighthouse:isStagedLocalLighthouse(o.local_lighthouse)?o.local_lighthouse:undefined};
 }
 
 export type AuditSummary={
@@ -92,17 +108,25 @@ export type ScorePart={key:'need'|'fit'|'value'|'reach'|'confidence';label:strin
 export type Penalty={key:string;label:string;points:number};
 export type LaneScore={lane:Lane;need:number;state:EvidenceState;eligible:boolean;why:string};
 export type Qualification={
- researchStatus:ResearchStatus;websitePresence:WebsitePresence;gbpStatus:GbpStatus;
+ researchStatus:ResearchStatus;websitePresence:WebsitePresence;gbpLinkStatus:GbpLinkStatus;
  websiteState:EvidenceState;gbpState:EvidenceState;
  primaryOpportunity:Opportunity;opportunityStrength:Strength;evidenceConfidence:Confidence;
  contactReadiness:Readiness;nextAction:NextAction;rationale:string;reasons:string[];summary:string;
  score:number;parts:ScorePart[];penalties:Penalty[];lanes:LaneScore[];secondary:Lane[];
  // The campaign lane drives the score; the recommendation may point to a better-supported lane, flagged as outside the campaign focus.
  recommended:Lane;recommendedOutsideCampaign:boolean;
- identityConfirmed:boolean;activeConfirmed:boolean;reviewNote:string|null;reviewedAt:string|null;websiteIssues:string[];
+ identityConfirmed:boolean;activeConfirmed:boolean;targetFit:TargetFit;targetFitLabel:string;targetFitReason:string;
+ reviewNote:string|null;reviewedAt:string|null;websiteIssues:string[];
  tasks:string[];qualified:boolean;unmet:string[];progress:Progress;industry:string;legalStructure:string|null;
  isPriorityLead:boolean;excludedReason:string|null;overridden:('primaryOpportunity'|'evidenceConfidence'|'nextAction')[];
 };
+export function compareQualificationNeed(a:Qualification,b:Qualification):number{
+ // Observed gaps matter more for sales prioritization than an unknown state,
+ // even when unknown carries a small research score.
+ if(a.isPriorityLead!==b.isPriorityLead)return a.isPriorityLead?-1:1;
+ const need=(q:Qualification)=>q.parts.find(part=>part.key==='need')?.points??0;
+ return need(b)-need(a)||b.score-a.score;
+}
 const has=(v:string|null|undefined)=>Boolean(v&&v.trim());
 const clamp=(n:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,n));
 const scanAreaLabels=new Set(DISCOVERY_AREAS.map(a=>a.label.toLowerCase()));
@@ -133,6 +157,7 @@ function websiteStateOf(i:QualificationInput,site:boolean):{state:EvidenceState;
  const m=i.review?.manual,c=i.review?.website_check;
  if(m?.website&&m.website!=='unknown')return {state:m.website,why:'Website manually reviewed: '+evidenceStateLabels[m.website].toLowerCase()+'.',check:c};
  if(c){
+  if(c.status==='tls_error')return {state:'likely_weak',why:'The website TLS certificate could not be verified for this domain. Confirm in a browser before pitching a repair.',check:c};
   if(c.status==='reachable'){
    const weak=websiteWeaknessCount(c);
    if(c.name_match===false)return {state:'conflicting',why:'Website loads but the business name was not found on it.',check:c};
@@ -167,10 +192,11 @@ export function qualifyProspect(input:QualificationInput):Qualification{
  const operatorSite=classifyWebPresence(m?.website_url||null);
  const site=recordedSite.kind==='website'||operatorSite.kind==='website';
  const profileKind=classifyWebPresence(i.profileUrl).kind;
- const profile=['social','listing'].includes(recordedSite.kind)||profileKind==='social'||profileKind==='listing';
- const websitePresence:WebsitePresence=site?'official_site_recorded':profile?'social_only':'none_recorded';
+ const profile=['social','listing','ordering'].includes(recordedSite.kind)||['social','listing','ordering'].includes(profileKind);
+ const orderingOnly=recordedSite.kind==='ordering'||profileKind==='ordering';
+ const websitePresence:WebsitePresence=site?'official_site_recorded':orderingOnly?'ordering_only':profile?'social_only':'none_recorded';
  const gbpLink=classifyGoogleListingLink(m?.gbp_url||i.gbpUrl);
- const gbpStatus:GbpStatus=gbpLink.kind==='specific_id'?'recorded':'unconfirmed';
+ const gbpLinkStatus:GbpLinkStatus=gbpLink.kind==='specific_id'?'recorded':'unconfirmed';
  const researchStatus:ResearchStatus=i.imported?'imported':i.triageStatus;
  const excludedReason=i.triageStatus==='disqualified'?'Disqualified'+(has(i.disqualificationReason)?': '+i.disqualificationReason!.trim():'')+'.':
   i.operationalStatus==='closed'?'Marked closed; not a new lead.':
@@ -179,6 +205,7 @@ export function qualifyProspect(input:QualificationInput):Qualification{
  const legalStructure=isLegalStructure(i.legalStructure)?i.legalStructure!.trim():isLegalStructure(i.category)?i.category!.trim():null;
  const industryText=[i.industryEvidence,i.category].find(x=>has(x)&&!isLegalStructure(x)&&!/^(certified business|food establishment)$/i.test(x!.trim()))||null;
  const industryDecision=classifyIndustry(i.name,industryText);
+ const targetFit=assessTargetFit(i.name,industryText||i.category);
  const industryVerified=Boolean(industryText)&&industryDecision.confidence==='category';
  const industry=industryVerified?industryText!.replace(/^(amenity|shop|craft|office|cuisine):\s*/i,'').slice(0,80):'Industry not yet verified';
  const web=websiteStateOf(i,site),gbp=gbpStateOf(i);
@@ -217,7 +244,6 @@ export function qualifyProspect(input:QualificationInput):Qualification{
  const supported=lanes.filter(l=>l.eligible&&l.need>=15).sort((a,b)=>b.need-a.need||LANES.indexOf(a.lane)-LANES.indexOf(b.lane));
  const primaryLaneScore=lanes.find(l=>l.lane===primaryLane)!;
  const recommended:Lane=primaryLaneScore.eligible&&primaryLaneScore.need>=15?primaryLane:supported[0]?.lane??primaryLane;
- const recommendedNeed=lanes.find(l=>l.lane===recommended)!.need;
 
  // ---- Transparent 100-point model ----
  const need=lane.eligible?lane.need:0;
@@ -253,6 +279,8 @@ export function qualifyProspect(input:QualificationInput):Qualification{
  if(has(i.street)||has(i.postcode)){conf+=2;confWhy.push('Address recorded.');}
  if(check){conf+=2;confWhy.push('Website checked '+check.checked_at.slice(0,10)+'.');}
  if(m?.reviewed_at){conf+=3;confWhy.push('Manual review recorded.');}
+ if(m?.registry_result==='found_match'&&has(m.registry_url)){conf+=2;confWhy.push('Official registry record linked as supporting identity evidence. It does not confirm current operation or the storefront.');}
+ else if(m?.registry_result==='possible_match'&&has(m.registry_url)){confWhy.push('Possible official registry match recorded; identity needs further review.');}
  if(i.verificationStatus==='verified'&&i.operationalStatus==='operating'){conf+=3;confWhy.push('Verified operating in CRM.');}
  conf=clamp(conf,0,15);if(!confWhy.length)confWhy.push('No checkable evidence yet.');
  const penalties:Penalty[]=[];
@@ -297,7 +325,9 @@ export function qualifyProspect(input:QualificationInput):Qualification{
  if(!identityOk)unmet.push('Identity not confirmed');
  if(!activeOk)unmet.push('Activity not confirmed');
  if(!reachable)unmet.push('No public contact route');
- if(recommendedNeed<15)unmet.push('Service need not supported by evidence');
+ // Qualification and pitch readiness must be supported by the campaign's primary lane.
+ // A strong alternative service cannot make a weak campaign fit look pitch-ready.
+ if(need<15)unmet.push('Service need not supported by evidence for '+opportunityLabels[primaryLane]);
  if(fit<8)unmet.push('Geographic relevance not shown');
  if(i.duplicateWarning)unmet.push('Unresolved duplicate warning');
  if(penalties.some(p=>p.key==='conflict'||p.key==='inactive'))unmet.push('Conflicting or inactive evidence');
@@ -330,12 +360,15 @@ export function qualifyProspect(input:QualificationInput):Qualification{
  if(overridden.length)reasons.push('Manually set: '+overridden.map(x=>x==='primaryOpportunity'?'opportunity':x==='evidenceConfidence'?'confidence':'next action').join(', ')+'.');
  const summary=(excludedReason??(opportunityLabels[primary]+(strength==='unknown'?' need is not yet shown: ':lane.state==='verified_present'?' need looks low: ':' need is '+strength+': ')+lane.why)).slice(0,240);
  const rationale=(opportunityLabels[primary]+' · '+strengthLabels[strength]+': '+(excludedReason||lane.why)).slice(0,400);
- return {researchStatus,websitePresence,gbpStatus,websiteState:web.state,gbpState:gbp.state,
+ return {researchStatus,websitePresence,gbpLinkStatus,websiteState:web.state,gbpState:gbp.state,
   primaryOpportunity:primary,opportunityStrength:strength,evidenceConfidence:confidence,contactReadiness:readiness,
   nextAction:next,rationale,reasons,summary,score,parts,penalties,lanes,secondary,recommended,recommendedOutsideCampaign:recommended!==primaryLane,tasks,qualified,unmet,progress,
   identityConfirmed:identityOk,activeConfirmed:m?.active==='confirmed'||(i.verificationStatus==='verified'&&i.operationalStatus==='operating'),
+  targetFit:targetFit.fit,targetFitLabel:targetFit.label,targetFitReason:targetFit.reason,
   reviewNote:m?.note??null,reviewedAt:m?.reviewed_at??null,websiteIssues:web.check?.status==='reachable'?web.check.issues.map(x=>websiteIssueLabels[x]):[],
-  industry,legalStructure,isPriorityLead:!excludedReason&&i.triageStatus!=='held'&&(strength==='strong'||strength==='moderate'),
+  industry,legalStructure,isPriorityLead:!excludedReason&&i.triageStatus!=='held'&&
+   targetFit.fit!=='possible_out_of_scope'&&primaryLaneScore.need>=15&&
+   (primaryLaneScore.state==='verified_missing'||primaryLaneScore.state==='likely_weak'),
   excludedReason,overridden};
 }
 
@@ -347,7 +380,14 @@ function pickRaw(raw:Record<string,unknown>|null|undefined,keys:string[]):string
 }
 const oneOf=<T extends string>(list:readonly T[],v:unknown):T|null=>list.includes(v as T)?v as T:null;
 function yearOf(v:string|null):number|null{const m=(v||'').match(/\b(19|20)\d{2}\b/);return m?Number(m[0]):null;}
-function intOf(v:string|null):number|null{const m=(v||'').match(/\d+/);const n=m?Number(m[0]):NaN;return Number.isFinite(n)&&n>0?n:null;}
+export function employeeCountOf(v:string|null):number|null{
+ const text=(v||'').trim().toLowerCase();if(!text)return null;
+ if(/\b(?:less than|fewer than|under|below)\s*10\b|<\s*10\b/.test(text))return 9;
+ const range=text.match(/\b(\d+)\s*(?:-|–|to)\s*(\d+)\b/);
+ if(range)return Math.min(Number(range[1]),Number(range[2]));
+ const n=text.match(/\d+/);const value=n?Number(n[0]):NaN;
+ return Number.isFinite(value)&&value>0?value:null;
+}
 export type StagedRowForQualification={
  name:string|null;city:string|null;category:string|null;website_url:string|null;phone:string|null;
  source_url:string|null;source_type:string|null;review_status:string;raw_data:Record<string,unknown>|null;
@@ -355,6 +395,7 @@ export type StagedRowForQualification={
  next_action_override?:string|null;disqualification_reason?:string|null;
 };
 export function stagedStreet(raw:Record<string,unknown>):string|null{
+ if(hasEntityRegistryContext(raw))return null;
  const street=pickRaw(raw,['street','streetaddress','address']);
  if(!street)return null;
  const num=pickRaw(raw,['housenumber','streetnumber']);
@@ -362,11 +403,23 @@ export function stagedStreet(raw:Record<string,unknown>):string|null{
 }
 export function qualifyStagedRow(row:StagedRowForQualification,opts:{targetService:TargetService|null;duplicateWarning:boolean;targetArea?:string|null;hasDemo?:boolean;now?:Date}):Qualification{
  const raw=row.raw_data||{};
+ const entityRegistry=hasEntityRegistryContext(raw);
+ const review=readReview(raw);
+ const targetWebsite=review.manual?.website_url||recordedWebsite(row.website_url,raw);
+ const rawWebsite=classifyWebPresence(row.website_url||pickRaw(raw,['website','websiteurl','webaddress','url','businesswebsite']));
+ const extraPresence=(pickRaw(raw,['thirdpartyurls','third_party_urls'])||'').split(/\s+/)
+  .map(url=>classifyWebPresence(url)).find(p=>['social','listing','ordering'].includes(p.kind));
+ const recordedProfile=pickRaw(raw,['discovered_social_profile_url','discovered_ordering_url'])||
+  (['social','listing','ordering'].includes(rawWebsite.kind)?rawWebsite.url:extraPresence?.url??null);
+ const localAudit=review.local_lighthouse;
+ const auditAge=localAudit?((opts.now??new Date()).getTime()-Date.parse(localAudit.assessed_at)):Infinity;
+ const audit=localAudit&&targetWebsite&&sameLighthousePage(localAudit.website_url,targetWebsite)&&
+  Number.isFinite(auditAge)&&auditAge>=0&&auditAge<=7*24*60*60_000?auditSummary(localAudit):null;
  const count=Number(pickRaw(raw,['locationcount','locations','numberoflocations']));
  return qualifyProspect({
-  name:row.name||'',category:row.category,city:row.city,street:stagedStreet(raw),
-  postcode:pickRaw(raw,['postcode','postalcode','zipcode','zip']),
-  websiteUrl:row.website_url,profileUrl:pickRaw(raw,['discovered_social_profile_url']),
+  name:row.name||'',category:row.category,city:entityRegistry?null:row.city,street:stagedStreet(raw),
+  postcode:entityRegistry?null:pickRaw(raw,['postcode','postalcode','zipcode','zip']),
+  websiteUrl:recordedWebsite(row.website_url,raw),profileUrl:recordedProfile,
   gbpUrl:pickRaw(raw,['googlebusinessurl','gbpurl','googlebusinessprofile','googlemapsurl']),
   sourceUrl:row.source_url,sourceType:row.source_type,phone:row.phone,
   email:pickRaw(raw,['email','contactemail']),contactName:pickRaw(raw,['contactname','owner','ownername']),
@@ -374,11 +427,12 @@ export function qualifyStagedRow(row:StagedRowForQualification,opts:{targetServi
   locationCount:Number.isInteger(count)&&count>0?count:null,
   legalStructure:pickRaw(raw,['legal_structure','businesstype']),
   industryEvidence:pickRaw(raw,['servicesprovided','original_category','industry']),
-  employees:intOf(pickRaw(raw,['numberemployees','employees'])),establishedYear:yearOf(pickRaw(raw,['datebusinessestablished'])),
-  neighborhood:pickRaw(raw,['neighborhood','search_area']),targetArea:opts.targetArea??null,review:readReview(raw),
+  employees:employeeCountOf(pickRaw(raw,['numberemployees','employees'])),establishedYear:yearOf(pickRaw(raw,['datebusinessestablished'])),
+ // search_area is the discovery request area, not the business's verified neighborhood.
+  neighborhood:pickRaw(raw,['neighborhood']),targetArea:opts.targetArea??null,review,
   triageStatus:oneOf(['review_needed','shortlisted','held','disqualified'] as const,row.triage_status)??'review_needed',
   imported:row.review_status==='imported'||row.review_status==='duplicate',hasDemo:opts.hasDemo,
-  disqualificationReason:row.disqualification_reason,duplicateWarning:opts.duplicateWarning,audit:null,
+  disqualificationReason:row.disqualification_reason,duplicateWarning:opts.duplicateWarning,audit,
   targetService:opts.targetService,now:opts.now,
   overrides:{primaryOpportunity:oneOf(OPPORTUNITIES,row.primary_opportunity_override),
    evidenceConfidence:oneOf(CONFIDENCES,row.evidence_confidence_override),
@@ -411,8 +465,8 @@ export function qualifyBusiness(b:BusinessForQualification,opts:{
   sourceUrl:opts.sourceUrl,sourceType:opts.sourceType,phone:b.phone,email:b.contact_email,contactName:b.contact_name??null,
   serviceAreaEvidence:serviceAreaEvidence(b.service_area),locationCount:null,
   legalStructure:pickRaw(raw,['legal_structure','businesstype']),industryEvidence:pickRaw(raw,['servicesprovided','original_category']),
-  employees:intOf(pickRaw(raw,['numberemployees'])),establishedYear:yearOf(pickRaw(raw,['datebusinessestablished'])),
-  neighborhood:pickRaw(raw,['neighborhood','search_area']),targetArea:opts.targetArea??null,review:readReview(raw),
+  employees:employeeCountOf(pickRaw(raw,['numberemployees','employees'])),establishedYear:yearOf(pickRaw(raw,['datebusinessestablished'])),
+ neighborhood:pickRaw(raw,['neighborhood']),targetArea:opts.targetArea??null,review:readReview(raw),
   verificationStatus:b.verification_status,operationalStatus:b.operational_status,pipelineStatus:b.pipeline_status,
   triageStatus:'shortlisted',imported:true,duplicateWarning:false,audit:opts.audit,targetService:opts.targetService,
   hasDemo:opts.hasDemo,now:opts.now,

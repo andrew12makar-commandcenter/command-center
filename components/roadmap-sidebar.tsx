@@ -3,15 +3,15 @@ import {AlertTriangle,ArrowUpRight,BookOpen,Check,ChevronRight,Circle,LoaderCirc
 import type {TrackedProject} from '@/lib/project-roadmap';
 import type {ProgressAvailability} from '@/lib/project-roadmap-server';
 
-export default function RoadmapSidebar({projects,availability}:{
- projects:TrackedProject[];availability:ProgressAvailability
+export default function RoadmapSidebar({projects,availability,planHref='/app/roadmap'}:{
+ projects:TrackedProject[];availability:ProgressAvailability;planHref?:string
 }){
  return <section aria-label="Venture build progress" className="mt-7 border-t border-white/[.08] pt-6">
   <div className="mb-3 flex items-center justify-between gap-3 px-1">
    <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.19em] text-[#93b4bf]">
     <Target size={13} className="text-[#94dce5]"/> BUILD PROGRESS
    </span>
-   <Link href="/app/roadmap" className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#a0e1e8] hover:text-white">
+   <Link href={planHref} className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#a0e1e8] hover:text-white">
     Open plan <ArrowUpRight size={12}/>
    </Link>
   </div>
@@ -36,22 +36,27 @@ export default function RoadmapSidebar({projects,availability}:{
       style={{width:project.percent+'%'}}/>
     </div>
     <p className="mt-1.5 text-[10px] text-[#8fa9b5]">{project.completed} / {project.total} verified checkpoints</p>
-    {project.id==='seo'&&<div className="mt-4 border-t border-white/[.09] pt-3">
-     <p className="text-[9px] font-bold uppercase tracking-[.15em] text-[#88aab5]">Website sprint</p>
+    {project.id==='seo'&&(()=>{
+     const sprintStage=project.stages.find(stage=>stage.id===project.current?.stageId)
+      ??project.stages.find(stage=>stage.steps.some(item=>item.status==='in_progress'))
+      ??project.stages[0];
+     const currentIndex=Math.max(0,sprintStage.steps.findIndex(item=>item.id===project.current?.id));
+     const visibleSteps=sprintStage.steps.slice(Math.max(0,currentIndex-2),Math.min(sprintStage.steps.length,currentIndex+5));
+     return <div className="mt-4 border-t border-white/[.09] pt-3">
+     <p className="text-[9px] font-bold uppercase tracking-[.15em] text-[#88aab5]">{sprintStage.title.replace(/^\d+\s*[·.]\s*/,'')} / Current sprint</p>
      <ol className="mt-2 space-y-2">
-      {project.stages.find(stage=>stage.id==='websites')?.steps
-       .filter(item=>['seo-site-facts','seo-site-source-media','seo-site-rights','seo-site-ai-media','seo-site-variance','seo-site-motion','seo-site-visual-qa'].includes(item.id))
+      {visibleSteps
        .map(item=>{
         const icon=item.status==='completed'?<Check size={11}/>:item.status==='in_progress'?<LoaderCircle size={11}/>:item.status==='blocked'?<AlertTriangle size={11}/>:<Circle size={9}/>;
         const label=item.status==='completed'?'Done':item.status==='in_progress'?'Active':item.status==='blocked'?'Blocked':'Queued';
         const color=item.status==='completed'?'text-[#a9dfc4]':item.status==='in_progress'?'text-[#8fe1e8]':item.status==='blocked'?'text-[#e4bd8d]':'text-[#809aa6]';
         return <li key={item.id} className="flex items-start justify-between gap-2 text-[10px] leading-4">
-         <Link href={'/app/roadmap?project=seo#'+item.id} className="min-w-0 text-[#bed0d6] hover:text-white">{item.title}</Link>
+        <Link href={planHref+(planHref.includes('?')?'&':'?')+'project=seo#'+item.id} className="min-w-0 text-[#bed0d6] hover:text-white">{item.title}</Link>
          <span className={'flex shrink-0 items-center gap-1 font-semibold '+color}>{icon}{label}</span>
         </li>;
        })}
      </ol>
-    </div>}
+    </div>})()}
     <div className="mt-4 border-t border-white/[.09] pt-3">
      <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.13em] text-[#98dee3]">
       <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[#8bd7df]"/>
@@ -66,7 +71,7 @@ export default function RoadmapSidebar({projects,availability}:{
      {project.blocked.length>0&&<p className="mt-2 text-[11px] text-[#e0bb8f]">
       {project.blocked.length} blocked checkpoint{project.blocked.length===1?'':'s'}
      </p>}
-     <Link href={'/app/roadmap?project='+project.id+(project.current?'#'+project.current.id:'')}
+     <Link href={planHref+(planHref.includes('?')?'&':'?')+'project='+project.id+(project.current?'#'+project.current.id:'')}
       className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-[#92dfe7] hover:text-white">
       Continue <ChevronRight size={13}/>
      </Link>

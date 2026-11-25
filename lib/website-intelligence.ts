@@ -42,8 +42,8 @@ const ipv4=(s:string)=>/^(?:\d{1,3}\.){3}\d{1,3}$/.test(s);
 // Reject private network hostnames or credentials. Google itself fetches the target.
 export function publicWebsite(value:string):string{
  const presence=classifyWebPresence(value);
- if(presence.kind==='social'||presence.kind==='listing')
-  throw Error('Social profiles and directories are not first-party business websites and cannot receive business PageSpeed audits.');
+ if(presence.kind==='social'||presence.kind==='listing'||presence.kind==='ordering')
+  throw Error('Social profiles, directories and third-party ordering pages are not first-party business websites and cannot receive business PageSpeed audits.');
  if(!value||value.length>2000)throw Error('A valid public website URL is required.');
  let url:URL;try{url=new URL(value);}catch{throw Error('Website URL is not valid.');}
  const host=url.hostname.toLowerCase().replace(/\.$/,'');

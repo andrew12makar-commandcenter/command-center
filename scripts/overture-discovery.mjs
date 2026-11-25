@@ -127,7 +127,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const by=(k)=>Object.entries(result.candidates.reduce((m,c)=>{for(const v of [].concat(c[k]))m[v]=(m[v]||0)+1;return m;},{})).sort((a,b)=>b[1]-a[1]);
   console.log(`\n${result.counts.unique} unique candidates (${result.counts.flaggedDuplicates} flagged as possible duplicates; ${result.counts.excludedOutsideAreaOrNonProspect} rows dropped as outside the areas' postcodes or not a business prospect).`);
   const likely=result.candidates.filter(c=>c.website&&!c.flags.some(f=>/brand|multi_location|institutional|practitioner/.test(f))).length;
-  console.log(`${likely} look like independent local businesses with a website (listed first in the CSV).`);
+  console.log(`${likely} have an independent website URL in the source (existing sites are queued for audit after no-site and third-party-only clues).`);
   console.log('By template hint: '+by('templateHint').map(([k,v])=>`${k} ${v}`).join(', '));
   console.log('Review flags: '+(by('flags').map(([k,v])=>`${k} ${v}`).join(', ')||'none'));
   console.log('Saved: '+join(out,'candidates.json'));

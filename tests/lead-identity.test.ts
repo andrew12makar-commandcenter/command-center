@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {collectAllPages,potentialMatches,strongLocationKey,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '../lib/lead-identity.ts';
+import {collectAllPages,potentialMatches,phonesConflict,strongLocationKey,streetFromRaw,postcodeFromRaw,researchServiceArea,type BusinessIdentity} from '../lib/lead-identity.ts';
 const lead=(id:string,city:string|null,street:string|null=null):BusinessIdentity=>({
  id,name:'Dr. Smith Clinic',city,street_address:street,postal_code:'02135',
  phone:'617-555-0101',website_url:null
@@ -28,6 +28,24 @@ test('same name and city but different street is not a strong match',()=>{
   raw_data:{street:'Main Street',housenumber:'20',postcode:'02135'}},
   [lead('1','Brighton','10 Main Street')]);
  assert.equal(matched[0].strength,'possible');
+});
+test('same address plus business domain flags a possible DBA alias without requiring the same name',()=>{
+ const candidate={name:'La Flaca y el Gordo Inc.',city:'Brighton',phone:null,website_url:'https://peka.example/',
+  contact_email:'info@peka.example',raw_data:{street:'304 Washington St',postcode:'02135'}};
+ const existing={...lead('p','Brighton','304 Washington St'),name:'Peka Restaurant',website_url:'https://www.peka.example/',contact_email:'owner@peka.example'};
+ const matches=potentialMatches(candidate,[existing]);
+ assert.equal(matches.length,1);assert.equal(matches[0].strength,'possible');assert.match(matches[0].reason,/possible legal-name or DBA/);
+});
+test('free email providers do not create business-domain duplicate signals',()=>{
+ const candidate={name:'Different Business',city:'Brighton',phone:null,website_url:null,contact_email:'owner@gmail.com',raw_data:{street:'304 Washington St',postcode:'02135'}};
+ const existing={...lead('p','Brighton','304 Washington St'),name:'Peka Restaurant',contact_email:'staff@gmail.com'};
+ assert.equal(potentialMatches(candidate,[existing]).length,0);
+});
+test('phone conflicts warn across source formatting without choosing either number',()=>{
+ assert.equal(phonesConflict('(617) 782-8663','617.631.3711'),true);
+ assert.equal(phonesConflict('1-617-782-8663','(617) 782-8663'),false);
+ assert.equal(phonesConflict('617-782-8663',null),false);
+ assert.equal(phonesConflict('617-782-8663','extension 4'),false);
 });
 test('OSM address and scan area are not confused with an actual service area',()=>{
  const data={street:'Beacon St',housenumber:'101',postcode:'02135',search_area:'Brighton'};

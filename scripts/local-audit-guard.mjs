@@ -78,6 +78,17 @@ export class LocalAuditPreflightError extends Error{
  }
 }
 
+function isCertificateFailure(error){
+ const known=new Set(['ERR_TLS_CERT_ALTNAME_INVALID','ERR_TLS_CERT_SIGNATURE_ALGORITHM_UNSUPPORTED',
+  'CERT_HAS_EXPIRED','CERT_NOT_YET_VALID','DEPTH_ZERO_SELF_SIGNED_CERT','SELF_SIGNED_CERT_IN_CHAIN',
+  'UNABLE_TO_VERIFY_LEAF_SIGNATURE','ERR_CERT_COMMON_NAME_INVALID']);
+ let current=error;
+ for(let depth=0;depth<5&&current;depth++,current=current.cause){
+  if(known.has(current.code)||known.has(current.name))return true;
+ }
+ return false;
+}
+
 const fail=(code,message)=>{throw new LocalAuditPreflightError(code,message);};
 
 // The redirect checks remain conservative: no browser is launched before
@@ -105,7 +116,11 @@ export async function preflightPublicWebsite(input,{resolver=lookup,request=fetc
     response=await request(url,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(12000),headers});
     await response.body?.cancel?.().catch(()=>{});
    }
-  }catch{fail('local-network','The HTTP preflight could not connect or timed out. The website was not audited.');}
+  }catch(error){
+   if(isCertificateFailure(error))
+    fail('local-tls','The website TLS certificate could not be verified for this domain. Confirm the browser warning before treating it as a sales issue.');
+   fail('local-network','The HTTP preflight could not connect or timed out. The website was not audited.');
+  }
   if([301,302,303,307,308].includes(response.status)){
    const location=response.headers.get('location');
    if(!location)fail('local-redirect','The website redirected without a destination.');

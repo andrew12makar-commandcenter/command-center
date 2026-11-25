@@ -43,6 +43,20 @@ test('verified, measured business has fewer unknowns and keeps recorded links',(
  assert.ok(!b.unknowns.some(x=>/currently operating/.test(x)));
 });
 
+test('identity and operating review does not claim an exact CRM address is verified',()=>{
+ const data=input();
+ const q=qualifyProspect({name:'Nakhon',category:'restaurant',city:'Brighton',street:'296 Washington St',postcode:'02135',
+  websiteUrl:null,profileUrl:null,gbpUrl:'https://maps.google.com/?cid=4',sourceUrl:'https://openstreetmap.org/node/1',
+  sourceType:'openstreetmap',phone:'617',email:null,contactName:null,serviceAreaEvidence:null,locationCount:null,
+  triageStatus:'shortlisted',imported:true,duplicateWarning:false,audit:null,targetService:'website_design',
+  verificationStatus:'pending',operationalStatus:'unknown',review:{manual:{identity:'confirmed',active:'confirmed',reviewed_at:'2026-10-14'}}});
+ const brief=buildPitchBrief({...data,business:{...data.business,name:'Nakhon',category:'restaurant',street_address:'296 Washington St',city:'Brighton',state:'MA',postal_code:'02135'},q});
+ assert.equal(brief.locationVerified,false);
+ assert.match(brief.location,/identity and operation review recorded.*address is not CRM-verified/);
+ assert.ok(brief.unknowns.some(item=>/exact address/.test(item)));
+ assert.ok(brief.doNotClaim.some(item=>/exact address/.test(item)));
+});
+
 test('location is not repeated when the street already holds the full address',()=>{
  const b=buildPitchBrief(input({},null,{street_address:'72 Saybrook Street, #3, Boston, MA 02135',city:'Boston',state:'MA',postal_code:'02135'}));
  assert.equal(b.location,'72 Saybrook Street, #3, Boston, MA 02135 (as recorded; not verified)');
