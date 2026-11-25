@@ -312,10 +312,11 @@ export const CLIENT_SITES: ClientSite[] = [
     name: 'Cigars & More',
     client: 'Cigars & More (owner and business facts not yet verified)',
     collection: 'demo',
-    summary: 'Client Demo 08, Digital Humidor demo, preview only (r1). A static, dependency-free demonstration site for Cigars & More: hero, The Store, a Digital Humidor with six interior views, an interior gallery, and a Visit section. Not deployed to any public host; owner approval is required first. Opens inside the Command Center (behind the login) from the copy in this repo at sites/cigars-and-more/site, served at /app/demo-sites/cigars-and-more. Real store photos and videos (IMG_2013.jpg to IMG_2021.mov) are not in the repo yet; every photo spot shows a labeled Photo pending panel. Address, hours and phone are null in site/business.js until the verified brief arrives (shown as Pending verification). QA 98/98 with pending media. Source of record is the private GitLab project cigars-and-more-site, branch r1 @ 6ff5134b; originally built on GitHub command-center branch claude/cigars-more-storefront-ggh2sl @ 388cc35. Not on a custom domain.',
-    stage: 'In build',
-    liveUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/cigars-and-more-site',
-    hosting: 'Not deployed to any public host (owner approval required before a Cloudflare Pages preview). Viewable inside the Command Center only, behind the /app login, at /app/demo-sites/cigars-and-more. Source is the private GitLab project cigars-and-more-site, branch r1.',
+    summary: 'Client Demo 08, Digital Humidor demo, preview only (r1). A static, dependency-free demonstration site for Cigars & More: hero, The Store, a Digital Humidor with six interior views, an interior gallery, and a Visit section. Preview on Vercel at cigars-and-more-preview.vercel.app (noindex, demo banner, unlisted but open; not on a custom domain). Real store photos and videos (IMG_2013.jpg to IMG_2021.mov) are not in the repo yet; every photo spot shows a labeled Photo pending panel. Address, hours and phone are null in site/business.js until the verified brief arrives (shown as Pending verification). QA 98/98 with pending media. Source of record is the private GitLab project cigars-and-more-site, branch r1 @ 6ff5134b; the deployed files are byte-identical to GitHub command-center sites/cigars-and-more/site @ ab1d699. Owner approval still needed before anything beyond this preview.',
+    stage: 'In review',
+    liveUrl: 'https://cigars-and-more-preview.vercel.app',
+    pinnedUrl: 'https://cigars-and-more-preview-elsastc54-campus2care-archs-projects.vercel.app',
+    hosting: 'Vercel project cigars-and-more-preview (campus2care-arch team), static files only, noindex (meta tag and X-Robots-Tag header), Vercel Authentication off so the link opens without a Vercel login. Deployment dpl_4bGeoCBDhGMY6tBBerNgZYW2VdmE, Nov 25. Also viewable inside the Command Center behind the login at /app/demo-sites/cigars-and-more.',
     internalPreview: '/app/demo-sites/cigars-and-more/index.html',
     thumbnail: { src: '/client-sites/cigars-and-more.jpg', alt: 'Cigars & More demo: dark hero with the store name, Visit the Store and Explore the Interior buttons, and a labeled photo-pending panel where the storefront photo goes', width: 1200, height: 750 },
     repo: {
@@ -328,7 +329,8 @@ export const CLIENT_SITES: ClientSite[] = [
       {
         name: 'r1',
         owner: 'Andrew',
-        note: 'Demo only; not deployed. GitLab r1 head 6ff5134b0c7bd9da54b44d96cbdf03aa097e263c. Original build: GitHub andrew12makar-commandcenter/command-center branch claude/cigars-more-storefront-ggh2sl @ 388cc35. Photos pending (media-src/ is git-ignored). Business facts pending in site/business.js. QA 98/98 on the source at 388cc35 with pending media. Do not deploy without owner approval.',
+        previewUrl: 'https://cigars-and-more-preview.vercel.app',
+        note: 'Preview on Vercel (cigars-and-more-preview.vercel.app, pinned deployment cigars-and-more-preview-elsastc54-campus2care-archs-projects.vercel.app); not on a custom domain. GitLab r1 head 6ff5134b0c7bd9da54b44d96cbdf03aa097e263c. Original build: GitHub andrew12makar-commandcenter/command-center branch claude/cigars-more-storefront-ggh2sl @ 388cc35. Photos pending (media-src/ is git-ignored). Business facts pending in site/business.js. QA 98/98 on the source at 388cc35 with pending media. No custom domain or further publication without owner approval.',
         commitSha: '6ff5134b0c7bd9da54b44d96cbdf03aa097e263c',
         commitMessage: 'Remove temporary encoding test file',
         commitDate: '2026-11-18T21:10:15Z',
@@ -459,10 +461,10 @@ export function hasHostedPreview(site: ClientSite): boolean {
   return !site.liveUrl.replace(/\/+$/, '').startsWith(repoUrl(site));
 }
 
-/** What the dashboard opens and embeds: the in-app copy if there is one, else the hosted preview, else nothing. */
+/** What the dashboard opens and embeds: the hosted preview, else the in-app copy, else nothing. */
 export function previewSrc(site: ClientSite): string | null {
-  if (site.internalPreview) return site.internalPreview;
-  return hasHostedPreview(site) ? site.liveUrl : null;
+  if (hasHostedPreview(site)) return site.liveUrl;
+  return site.internalPreview ?? null;
 }
 
 export function branchUrl(site: ClientSite, branch: string): string {

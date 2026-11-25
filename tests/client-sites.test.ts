@@ -205,7 +205,7 @@ test('Kiki’s Kwik-Mart r1 is one Client Demo 07 on GitLab with the verified Pa
   for (const n of ['04', '05', '06', '07', '08']) assert.equal(CLIENT_SITES.filter((s) => s.summary.startsWith(`Client Demo ${n}`) || s.summary.includes(`Client Demo ${n},`) || s.summary.includes(`Client Demo ${n} (`)).length, 1, `Client Demo ${n}`);
 });
 
-test('Cigars & More r1 is Client Demo 08 on GitLab, not publicly deployed, viewable inside the Command Center', () => {
+test('Cigars & More r1 is Client Demo 08 on GitLab with a hosted Vercel preview (and an in-app copy)', () => {
   const matches = CLIENT_SITES.filter((s) => /cigars/i.test(`${s.slug} ${s.name}`));
   assert.equal(matches.length, 1);
   const site = getClientSite('cigars-and-more');
@@ -213,18 +213,18 @@ test('Cigars & More r1 is Client Demo 08 on GitLab, not publicly deployed, viewa
   assert.equal(site.name, 'Cigars & More');
   assert.equal(site.collection, 'demo');
   assert.equal(site.alsoIn, undefined);
-  assert.equal(site.stage, 'In build');
+  assert.equal(site.stage, 'In review');
   assert.match(site.summary, /^Client Demo 08/);
   assert.match(site.summary, /Digital Humidor/);
-  assert.match(site.summary, /not deployed/i);
-  assert.match(site.hosting, /Not deployed/);
-  assert.equal(site.liveUrl, 'https://gitlab.com/andrew-makar-personal-projects-group/cigars-and-more-site');
-  assert.equal(site.pinnedUrl, undefined);
+  assert.match(site.summary, /noindex/);
+  assert.match(site.hosting, /Vercel Authentication off/);
+  assert.equal(site.liveUrl, 'https://cigars-and-more-preview.vercel.app');
+  assert.equal(site.pinnedUrl, 'https://cigars-and-more-preview-elsastc54-campus2care-archs-projects.vercel.app');
   assert.equal(site.thumbnail?.src, '/client-sites/cigars-and-more.jpg');
   assert.ok(existsSync(`public${site.thumbnail?.src}`));
   assert.equal(site.internalPreview, '/app/demo-sites/cigars-and-more/index.html');
-  assert.equal(previewSrc(site), '/app/demo-sites/cigars-and-more/index.html');
-  assert.equal(hasHostedPreview(site), false);
+  assert.equal(hasHostedPreview(site), true);
+  assert.equal(previewSrc(site), site.liveUrl);
   assert.equal(site.repo.host, 'gitlab');
   assert.equal(site.repo.name, 'cigars-and-more-site');
   assert.equal(site.repo.defaultBranch, 'r1');
@@ -232,7 +232,7 @@ test('Cigars & More r1 is Client Demo 08 on GitLab, not publicly deployed, viewa
   assert.equal(branchUrl(site, 'r1'), 'https://gitlab.com/andrew-makar-personal-projects-group/cigars-and-more-site/-/tree/r1');
   const r1 = site.branches[0];
   assert.deepEqual(site.branches.map((b) => b.name), ['r1']);
-  assert.equal(r1?.previewUrl, undefined);
+  assert.equal(r1?.previewUrl, site.liveUrl);
   assert.equal(r1?.commitSha, '6ff5134b0c7bd9da54b44d96cbdf03aa097e263c');
   assert.equal(r1?.commitUrl, `https://gitlab.com/andrew-makar-personal-projects-group/cigars-and-more-site/-/commit/${r1?.commitSha}`);
   assert.match(r1?.note ?? '', /388cc35/);
@@ -276,8 +276,10 @@ test('Los Amigos Taqueria Brighton (Client Demo 12, Lane B) is a preview-only de
 test('sites with nothing deployed are not framed; deployed previews are', () => {
   const cigars = getClientSite('cigars-and-more');
   assert.ok(cigars);
-  assert.equal(hasHostedPreview(cigars), false);
-  for (const slug of ['ensueno-skin-care', 'los-amigos-taqueria', 'brighton-cellar-gourmet', 'circle-tavern']) {
+  // A site whose liveUrl is only its source repository has nothing deployed and is not framed.
+  assert.equal(hasHostedPreview({ ...cigars, liveUrl: repoUrl(cigars) }), false);
+  assert.equal(hasHostedPreview({ ...cigars, liveUrl: `${repoUrl(cigars)}/` }), false);
+  for (const slug of ['cigars-and-more', 'ensueno-skin-care', 'los-amigos-taqueria', 'brighton-cellar-gourmet', 'circle-tavern']) {
     const site = getClientSite(slug);
     assert.ok(site);
     assert.equal(hasHostedPreview(site), true, slug);
@@ -294,10 +296,11 @@ test('Little Pizza King has a hosted preview and a matching source revision', ()
   assert.equal(site.branches[0]?.commitSha, '915ba7cf005667603bef2b1a1ac8407859b97931');
 });
 
-test('previewSrc prefers the in-app copy, then a hosted preview, else nothing', () => {
+test('previewSrc prefers a hosted preview, then the in-app copy, else nothing', () => {
   const hosted = getClientSite('johnnyds');
   assert.ok(hosted);
   assert.equal(previewSrc(hosted), hosted.liveUrl);
+  assert.equal(previewSrc({ ...hosted, internalPreview: '/app/demo-sites/x' }), hosted.liveUrl);
   const base = { ...hosted, liveUrl: repoUrl(hosted) };
   assert.equal(previewSrc(base), null);
   assert.equal(previewSrc({ ...base, internalPreview: '/app/demo-sites/x' }), '/app/demo-sites/x');

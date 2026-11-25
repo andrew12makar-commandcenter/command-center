@@ -55,7 +55,7 @@ gate, booking, lounge, 360° claim or autoplay audio.
 | QA | 98/98 checks pass with pending media; 101/101 with synthetic test media | `qa/run-qa.mjs`; evidence JPEGs in `qa/evidence/` (full screenshots regenerate into git-ignored `qa/screenshots/`) |
 | Real store media | **Blocked:** source files not reachable from the build environment | ASSET-MANIFEST.md |
 | Business facts | **Pending** verified brief | `site/business.js` |
-| Preview deploy | Not done; no hosting credentials in this environment, and not authorized | — |
+| Preview deploy | Done 2026-11-25: Vercel project `cigars-and-more-preview` → https://cigars-and-more-preview.vercel.app (noindex, demo banner, open link; files byte-identical to `site/`) | Command Center card links and embeds it |
 
 ## Before any publication
 - Confirm the federal, Massachusetts and Boston rules for tobacco retailers' websites (21+ wording;
