@@ -42,6 +42,8 @@ export type ClientSite = {
   liveUrl: string;
   /** Immutable host URL for the same release, if one exists. */
   pinnedUrl?: string;
+  /** Path inside the Command Center that serves a copy of the site behind the /app login (lib/demo-site-files.ts). For demos with no hosted preview yet. */
+  internalPreview?: string;
   hosting: string;
   saleNote?: string;
   repo: ClientSiteRepo;
@@ -310,10 +312,12 @@ export const CLIENT_SITES: ClientSite[] = [
     name: 'Cigars & More',
     client: 'Cigars & More (owner and business facts not yet verified)',
     collection: 'demo',
-    summary: 'Client Demo 08, Digital Humidor demo, preview only (r1). A static, dependency-free demonstration site for Cigars & More: hero, The Store, a Digital Humidor with six interior views, an interior gallery, and a Visit section. Not deployed; owner approval is required before any preview host is set up, so this card has no Pages URL yet. Real store photos and videos (IMG_2013.jpg to IMG_2021.mov) are not in the repo yet — every photo spot shows a labeled Photo pending panel. Address, hours and phone are null in site/business.js until the verified brief arrives (shown as Pending verification). QA 98/98 with pending media. Source repo is the private GitLab project cigars-and-more-site, branch r1 @ 6ff5134b. Originally built in GitHub command-center on branch claude/cigars-more-storefront-ggh2sl @ 388cc35. Not on a custom domain.',
+    summary: 'Client Demo 08, Digital Humidor demo, preview only (r1). A static, dependency-free demonstration site for Cigars & More: hero, The Store, a Digital Humidor with six interior views, an interior gallery, and a Visit section. Not deployed to any public host; owner approval is required first. Opens inside the Command Center (behind the login) from the copy in this repo at sites/cigars-and-more/site, served at /app/demo-sites/cigars-and-more. Real store photos and videos (IMG_2013.jpg to IMG_2021.mov) are not in the repo yet; every photo spot shows a labeled Photo pending panel. Address, hours and phone are null in site/business.js until the verified brief arrives (shown as Pending verification). QA 98/98 with pending media. Source of record is the private GitLab project cigars-and-more-site, branch r1 @ 6ff5134b; originally built on GitHub command-center branch claude/cigars-more-storefront-ggh2sl @ 388cc35. Not on a custom domain.',
     stage: 'In build',
     liveUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/cigars-and-more-site',
-    hosting: 'Not deployed. Owner approval is required before any Cloudflare Pages (or other) preview. Source is the private GitLab project cigars-and-more-site, branch r1.',
+    hosting: 'Not deployed to any public host (owner approval required before a Cloudflare Pages preview). Viewable inside the Command Center only, behind the /app login, at /app/demo-sites/cigars-and-more. Source is the private GitLab project cigars-and-more-site, branch r1.',
+    internalPreview: '/app/demo-sites/cigars-and-more/index.html',
+    thumbnail: { src: '/client-sites/cigars-and-more.jpg', alt: 'Cigars & More demo: dark hero with the store name, Visit the Store and Explore the Interior buttons, and a labeled photo-pending panel where the storefront photo goes', width: 1200, height: 750 },
     repo: {
       host: 'gitlab',
       owner: 'andrew-makar-personal-projects-group',
@@ -453,6 +457,12 @@ export function repoUrl(site: ClientSite): string {
 /** False when liveUrl only points at the source repository (nothing deployed yet), which cannot be framed. */
 export function hasHostedPreview(site: ClientSite): boolean {
   return !site.liveUrl.replace(/\/+$/, '').startsWith(repoUrl(site));
+}
+
+/** What the dashboard opens and embeds: the in-app copy if there is one, else the hosted preview, else nothing. */
+export function previewSrc(site: ClientSite): string | null {
+  if (site.internalPreview) return site.internalPreview;
+  return hasHostedPreview(site) ? site.liveUrl : null;
 }
 
 export function branchUrl(site: ClientSite, branch: string): string {

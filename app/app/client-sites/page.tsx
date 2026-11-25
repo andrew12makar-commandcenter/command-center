@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight, Globe } from 'lucide-react';
 import { requireWorkspace } from '@/lib/workspace';
-import { CLIENT_SITES, COLLECTION_LABELS, sitesInCollection, type ClientSite, type ClientSiteCollection } from '@/lib/client-sites';
+import { CLIENT_SITES, COLLECTION_LABELS, sitesInCollection, previewSrc, type ClientSite, type ClientSiteCollection } from '@/lib/client-sites';
 import { getSiteActivity, type SiteActivity } from '@/lib/client-sites-server';
 import { formatWhen, StageBadge } from './ui';
 
@@ -22,8 +22,15 @@ function SiteCard({ site, activity }: { site: ClientSite; activity: SiteActivity
     <p className="muted mt-3 text-sm leading-6">{site.summary}</p>
     {site.saleNote && <p className="mt-3 text-sm text-emerald-100">{site.saleNote}</p>}
     <dl className="mt-5 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-      <dt className="muted text-xs leading-5">{primaryLabel(site)}</dt>
-      <dd className="min-w-0 break-all"><a className="text-cyan-200 underline" href={site.liveUrl} target="_blank" rel="noopener noreferrer">{site.liveUrl.replace(/^https:\/\//, '')} ↗</a></dd>
+      {site.internalPreview ? <>
+        <dt className="muted text-xs leading-5">{primaryLabel(site)}</dt>
+        <dd className="min-w-0 break-all"><a className="text-cyan-200 underline" href={previewSrc(site) ?? undefined} target="_blank" rel="noopener noreferrer">Open inside Command Center ↗</a></dd>
+        <dt className="muted text-xs leading-5">Source</dt>
+        <dd className="min-w-0 break-all"><a className="text-cyan-200 underline" href={site.liveUrl} target="_blank" rel="noopener noreferrer">{site.liveUrl.replace(/^https:\/\//, '')} ↗</a></dd>
+      </> : <>
+        <dt className="muted text-xs leading-5">{primaryLabel(site)}</dt>
+        <dd className="min-w-0 break-all"><a className="text-cyan-200 underline" href={site.liveUrl} target="_blank" rel="noopener noreferrer">{site.liveUrl.replace(/^https:\/\//, '')} ↗</a></dd>
+      </>}
       {site.pinnedUrl && <>
         <dt className="muted text-xs leading-5">Pinned</dt>
         <dd className="min-w-0 break-all"><a className="text-cyan-200 underline" href={site.pinnedUrl} target="_blank" rel="noopener noreferrer">{site.pinnedUrl.replace(/^https:\/\//, '')} ↗</a></dd>

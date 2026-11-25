@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CLIENT_SITES, branchUrl, getClientSite, hasHostedPreview, isOpenState, openItems, parseStatusMarkdown, repoUrl, sitesInCollection } from '../lib/client-sites.ts';
+import { CLIENT_SITES, branchUrl, getClientSite, hasHostedPreview, isOpenState, openItems, parseStatusMarkdown, previewSrc, repoUrl, sitesInCollection } from '../lib/client-sites.ts';
+import { existsSync } from 'node:fs';
+import { INTERNAL_DEMO_SITES, internalDemoUrl, resolveDemoFile } from '../lib/demo-site-files.ts';
 
 const SAMPLE = `# Status: 2 Nov 2026
 
@@ -120,7 +122,7 @@ test('Zisis Convenience r1 is Client Demo 04 on GitLab with the verified Pages p
   assert.equal(site.thumbnail?.src, '/client-sites/zisis-convenience.jpg');
   assert.ok((site.thumbnail?.alt ?? '').length > 10);
   // only Zisis and Brighton Cellar carry thumbnails; other entries unchanged
-  assert.deepEqual(CLIENT_SITES.filter((s) => s.thumbnail).map((s) => s.slug), ['zisis-convenience', 'brighton-cellar-gourmet', 'kikis-kwikmart', 'ensueno-skin-care', 'los-amigos-taqueria', 'little-pizza-king']);
+  assert.deepEqual(CLIENT_SITES.filter((s) => s.thumbnail).map((s) => s.slug), ['zisis-convenience', 'brighton-cellar-gourmet', 'kikis-kwikmart', 'cigars-and-more', 'ensueno-skin-care', 'los-amigos-taqueria', 'little-pizza-king']);
 });
 
 test('Brighton Cellar & Gourmet r1 is one Client Demo on GitLab with the verified Pages preview and a thumbnail', () => {
@@ -203,7 +205,7 @@ test('Kiki’s Kwik-Mart r1 is one Client Demo 07 on GitLab with the verified Pa
   for (const n of ['04', '05', '06', '07', '08']) assert.equal(CLIENT_SITES.filter((s) => s.summary.startsWith(`Client Demo ${n}`) || s.summary.includes(`Client Demo ${n},`) || s.summary.includes(`Client Demo ${n} (`)).length, 1, `Client Demo ${n}`);
 });
 
-test('Cigars & More r1 is Client Demo 08 on GitLab, not yet deployed', () => {
+test('Cigars & More r1 is Client Demo 08 on GitLab, not publicly deployed, viewable inside the Command Center', () => {
   const matches = CLIENT_SITES.filter((s) => /cigars/i.test(`${s.slug} ${s.name}`));
   assert.equal(matches.length, 1);
   const site = getClientSite('cigars-and-more');
@@ -218,7 +220,11 @@ test('Cigars & More r1 is Client Demo 08 on GitLab, not yet deployed', () => {
   assert.match(site.hosting, /Not deployed/);
   assert.equal(site.liveUrl, 'https://gitlab.com/andrew-makar-personal-projects-group/cigars-and-more-site');
   assert.equal(site.pinnedUrl, undefined);
-  assert.equal(site.thumbnail, undefined);
+  assert.equal(site.thumbnail?.src, '/client-sites/cigars-and-more.jpg');
+  assert.ok(existsSync(`public${site.thumbnail?.src}`));
+  assert.equal(site.internalPreview, '/app/demo-sites/cigars-and-more/index.html');
+  assert.equal(previewSrc(site), '/app/demo-sites/cigars-and-more/index.html');
+  assert.equal(hasHostedPreview(site), false);
   assert.equal(site.repo.host, 'gitlab');
   assert.equal(site.repo.name, 'cigars-and-more-site');
   assert.equal(site.repo.defaultBranch, 'r1');
@@ -286,4 +292,47 @@ test('Little Pizza King has a hosted preview and a matching source revision', ()
   assert.equal(site.liveUrl, 'https://r1.little-pizza-king-preview.pages.dev');
   assert.equal(hasHostedPreview(site), true);
   assert.equal(site.branches[0]?.commitSha, '915ba7cf005667603bef2b1a1ac8407859b97931');
+});
+
+test('previewSrc prefers the in-app copy, then a hosted preview, else nothing', () => {
+  const hosted = getClientSite('johnnyds');
+  assert.ok(hosted);
+  assert.equal(previewSrc(hosted), hosted.liveUrl);
+  const base = { ...hosted, liveUrl: repoUrl(hosted) };
+  assert.equal(previewSrc(base), null);
+  assert.equal(previewSrc({ ...base, internalPreview: '/app/demo-sites/x' }), '/app/demo-sites/x');
+});
+
+test('every internalPreview is served by an in-repo demo folder that has an index.html', () => {
+  for (const site of CLIENT_SITES.filter((s) => s.internalPreview)) {
+    assert.equal(site.internalPreview, internalDemoUrl(site.slug));
+    const dir = INTERNAL_DEMO_SITES[site.slug];
+    assert.ok(dir, `${site.slug} is not in INTERNAL_DEMO_SITES`);
+    assert.ok(existsSync(`${dir}/index.html`), `${dir}/index.html missing`);
+  }
+});
+
+test('resolveDemoFile serves only known demo files and never leaves the site folder', () => {
+  const index = resolveDemoFile('cigars-and-more', ['index.html']);
+  assert.ok(index);
+  assert.match(index.contentType, /text\/html/);
+  assert.ok(existsSync(index.file));
+  const css = resolveDemoFile('cigars-and-more', ['styles.css']);
+  assert.ok(css && existsSync(css.file));
+  assert.equal(resolveDemoFile('cigars-and-more', []), null); // bare slug is redirected by the route
+  assert.ok(resolveDemoFile('cigars-and-more', ['media', 'media.generated.js']));
+  assert.equal(resolveDemoFile('unknown-site', []), null);
+  assert.equal(resolveDemoFile('cigars-and-more', ['..', 'scripts', 'prepare_media.py']), null);
+  assert.equal(resolveDemoFile('cigars-and-more', ['..', '..', '..', 'package.json']), null);
+  assert.equal(resolveDemoFile('cigars-and-more', ['.env']), null);
+  assert.equal(resolveDemoFile('cigars-and-more', ['media', '../../../package.json']), null);
+  assert.equal(resolveDemoFile('cigars-and-more', ['media/../../scripts/prepare_media.py']), null);
+  assert.equal(resolveDemoFile('cigars-and-more', ['README']), null);
+});
+
+test('internal demos open at .../<slug>/index.html so relative assets and #anchors resolve', () => {
+  assert.equal(internalDemoUrl('cigars-and-more'), '/app/demo-sites/cigars-and-more/index.html');
+  const page = new URL(internalDemoUrl('cigars-and-more'), 'http://cc.local');
+  assert.equal(new URL('styles.css', page).pathname, '/app/demo-sites/cigars-and-more/styles.css');
+  assert.equal(new URL('#visit', page).pathname, page.pathname);
 });
