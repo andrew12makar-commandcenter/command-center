@@ -482,6 +482,36 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    slug: 'yk-mini-market',
+    name: 'Y & K Mini Market',
+    client: 'Y & K Mini Market · neighborhood grocery (part of the Y&K / Cowboy Supermarket group), 248 Market Street, Brighton, MA 02135 (owner not contacted)',
+    collection: 'demo',
+    summary: 'Client Demo 22 (Lane B), pitch demo, preview only (r1, Nov 25). Bilingual English / Español concept for a grocery whose Maps website is the Y&K group site, where no location link opens the Brighton store. Sunny yellow, market green and tomato with geometric type and an arched produce hero; the language toggle switches the whole page, including the Boston-time open status and holiday notice, and is remembered in the browser. Hours from Google Maps (Mon–Sat 7–9, Sun 7–7), the Ria money transfer counter inside, an empty “Weekly especiales” chalkboard and eight owner-to-add slots (no invented prices, stock or services), and the three Y&K stores each with directions to its own address. Scroll-driven transitions, hero included, look the same scrolling down and up. Two Unsplash photos without brands, captioned illustrative; no logo. Owner to confirm: hours (group site says 5–9), name, Spanish wording, services in Brighton. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.yk-mini-market-preview.pages.dev',
+    pinnedUrl: 'https://687e3274.yk-mini-market-preview.pages.dev',
+    hosting: 'Cloudflare Pages project yk-mini-market-preview (Andrew personal account), preview branch r1 only (no production deployment), noindex. Not behind Cloudflare Access: the link is unlisted but open.',
+    thumbnail: { src: '/client-sites/yk-mini-market.jpg', alt: 'Y & K Mini Market preview: yellow hero with the name in green geometric type, Call, Directions and See hours buttons, an Español toggle, and an illustrative produce shelf photo', width: 1200, height: 750 },
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'yk-mini-market-site',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'President Claude (Lane B)',
+        previewUrl: 'https://r1.yk-mini-market-preview.pages.dev',
+        note: 'First build (Claude Opus 5.5, Lane B session on the President account), Nov 25, 2026. Facts from the Google Maps listing and the Y&K group site, read Nov 25 (no reviews used); sources and owner questions in docs/. Pushed to GitLab (private) after a verified Desktop checkpoint (20261125T175913Z-213e650d64, bundle verify, restore and fsck PASS) and deployed as Cloudflare Pages preview 687e3274 built from 213e650d. QA 84/84 on the live preview at 375, 390, 768 and 1440 wide in English and Spanish (language toggle and reload, every Spanish key present, hours incl. DST and holidays in both languages, store directions, hero and specials transitions mirrored on scroll-up, reduced motion, no-JS, no external requests), zero axe violations in both languages. Lighthouse and physical-device tests not run.',
+        commitSha: '213e650d644b9559a0a35e2bc79ce3b5ea1d22f1',
+        commitMessage: 'r1: Y & K Mini Market Brighton concept demo (Client Demo 22)',
+        commitDate: '2026-11-25T17:58:29Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/yk-mini-market-site/-/commit/213e650d644b9559a0a35e2bc79ce3b5ea1d22f1',
+      },
+    ],
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {
