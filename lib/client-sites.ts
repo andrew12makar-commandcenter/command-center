@@ -512,6 +512,36 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    slug: 'huntington-markets',
+    name: 'Huntington Markets',
+    client: 'Huntington Markets · convenience store with a retail all-alcohol licence, 1795 Commonwealth Avenue, Brighton, MA 02135, at the Chiswick Road Green Line stop (owner not contacted)',
+    collection: 'demo',
+    summary: 'Client Demo 24 (Lane B), pitch demo, preview only (r1, Nov 25). Concept for a convenience store with no website. Night navy and amber with condensed transit-sign type, a Green Line hero and a “B · Chiswick Road” sign. A departure-board hours table with a live “closes in” countdown, Boston-time open status and holiday notice (Maps: weekdays 7–10, weekends 8–10); the three nearest Green Line platforms with distances from MBTA stop data; the active City of Boston retail all-alcohol licence with a 21+ ID guide drawn from M.G.L. c.138 § 34B; six owner-to-add slots. No stock, prices, brands, staff names, reviews or alcohol imagery. Scroll-driven transitions, hero included, look the same scrolling down and up. Two Unsplash photos, captioned illustrative; no logo. Owner to confirm: closing time (licence and directories say 10:30), name, a possibly related Huntington Ave store. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.huntington-markets-preview.pages.dev',
+    pinnedUrl: 'https://0b08f1bf.huntington-markets-preview.pages.dev',
+    hosting: 'Cloudflare Pages project huntington-markets-preview (Andrew personal account), preview branch r1 only (no production deployment), noindex. Not behind Cloudflare Access: the link is unlisted but open.',
+    thumbnail: { src: '/client-sites/huntington-markets.jpg', alt: 'Huntington Markets preview: navy hero with the name in white and amber condensed type, Call, Directions and Today’s hours buttons, and an illustrative Green Line trolley photo with a Chiswick Road sign', width: 1200, height: 750 },
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'huntington-markets-site',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'President Claude (Lane B)',
+        previewUrl: 'https://r1.huntington-markets-preview.pages.dev',
+        note: 'First build (Claude Opus 5.5, Lane B session on the President account), Nov 25, 2026. Facts from the Google Maps listing, City of Boston Licensing Board data and the MBTA v3 API, read Nov 25 (no reviews used); sources and owner questions in docs/. Pushed to GitLab (private) after a verified Desktop checkpoint (20261125T190006Z-6aced2d7cc, bundle verify, restore and fsck PASS) and deployed as Cloudflare Pages preview 0b08f1bf built from 6aced2d7. QA 72/72 on the live preview at 375, 390, 768 and 1440 wide (hours board and countdown incl. DST and holidays, transit and statute links, no prices/names/reviews, hero and slot transitions mirrored on scroll-up, reduced motion, no-JS, no external requests), zero axe violations on the settled page. Lighthouse and physical-device tests not run.',
+        commitSha: '6aced2d7cc061f1f0d97bb2ef2e6ee849a8c3a33',
+        commitMessage: 'r1: Huntington Markets Brighton concept demo (Client Demo 24)',
+        commitDate: '2026-11-25T18:50:15Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/huntington-markets-site/-/commit/6aced2d7cc061f1f0d97bb2ef2e6ee849a8c3a33',
+      },
+    ],
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {

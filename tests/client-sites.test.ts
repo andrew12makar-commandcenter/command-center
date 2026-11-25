@@ -120,7 +120,7 @@ test('Zisis Convenience r1 is Client Demo 04 on GitLab with the verified Pages p
   assert.equal(site.thumbnail?.src, '/client-sites/zisis-convenience.jpg');
   assert.ok((site.thumbnail?.alt ?? '').length > 10);
   // only Zisis and Brighton Cellar carry thumbnails; other entries unchanged
-  assert.deepEqual(CLIENT_SITES.filter((s) => s.thumbnail).map((s) => s.slug), ['zisis-convenience', 'brighton-cellar-gourmet', 'kikis-kwikmart', 'ensueno-skin-care', 'los-amigos-taqueria', 'little-pizza-king', 'kikis-laundromat', 'hippopo-kitchen', 'yk-mini-market']);
+  assert.deepEqual(CLIENT_SITES.filter((s) => s.thumbnail).map((s) => s.slug), ['zisis-convenience', 'brighton-cellar-gourmet', 'kikis-kwikmart', 'ensueno-skin-care', 'los-amigos-taqueria', 'little-pizza-king', 'kikis-laundromat', 'hippopo-kitchen', 'yk-mini-market', 'huntington-markets']);
 });
 
 test('Brighton Cellar & Gourmet r1 is one Client Demo on GitLab with the verified Pages preview and a thumbnail', () => {
@@ -150,7 +150,7 @@ test('Brighton Cellar & Gourmet r1 is one Client Demo on GitLab with the verifie
 });
 
 test('Client Demos lists Universal Barber Shop r4, Johnny D\'s r8, Zisis r1, Oliveira r1, Brighton Cellar r1, Kiki\'s r1 and Circle Tavern (sold, also shown as a demo)', () => {
-  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,oliveira-deli,brighton-cellar-gourmet,kikis-kwikmart,cigars-and-more,ensueno-skin-care,los-amigos-taqueria,little-pizza-king,kikis-laundromat,hippopo-kitchen,yk-mini-market,circle-tavern');
+  assert.equal(sitesInCollection('demo').map((s) => s.slug).join(','), 'johnnyds,universal-barber,zisis-convenience,oliveira-deli,brighton-cellar-gourmet,kikis-kwikmart,cigars-and-more,ensueno-skin-care,los-amigos-taqueria,little-pizza-king,kikis-laundromat,hippopo-kitchen,yk-mini-market,huntington-markets,circle-tavern');
   const u = getClientSite('universal-barber');
   assert.ok(u);
   assert.equal(u.collection, 'demo');
@@ -271,7 +271,7 @@ test('sites with nothing deployed are not framed; deployed previews are', () => 
   const cigars = getClientSite('cigars-and-more');
   assert.ok(cigars);
   assert.equal(hasHostedPreview(cigars), false);
-  for (const slug of ['ensueno-skin-care', 'los-amigos-taqueria', 'little-pizza-king', 'kikis-laundromat', 'hippopo-kitchen', 'yk-mini-market', 'brighton-cellar-gourmet', 'circle-tavern']) {
+  for (const slug of ['ensueno-skin-care', 'los-amigos-taqueria', 'little-pizza-king', 'kikis-laundromat', 'hippopo-kitchen', 'yk-mini-market', 'huntington-markets', 'brighton-cellar-gourmet', 'circle-tavern']) {
     const site = getClientSite(slug);
     assert.ok(site);
     assert.equal(hasHostedPreview(site), true, slug);
@@ -334,4 +334,19 @@ test('Y & K Mini Market (Client Demo 22, Lane B) is a bilingual preview-only dem
   assert.match(site.branches[0]?.commitDate ?? '', /Z$/);
   assert.equal(site.thumbnail?.src, '/client-sites/yk-mini-market.jpg');
   assert.match(site.summary, /Español/);
+});
+
+test('Huntington Markets (Client Demo 24, Lane B) is a preview-only demo with no staff names', () => {
+  const site = getClientSite('huntington-markets');
+  assert.ok(site);
+  assert.equal(site.collection, 'demo');
+  assert.equal(site.stage, 'In review');
+  assert.equal(site.liveUrl, 'https://r1.huntington-markets-preview.pages.dev');
+  assert.equal(site.pinnedUrl, 'https://0b08f1bf.huntington-markets-preview.pages.dev');
+  assert.equal(repoUrl(site), 'https://gitlab.com/andrew-makar-personal-projects-group/huntington-markets-site');
+  assert.equal(hasHostedPreview(site), true);
+  assert.equal(site.branches[0]?.commitSha, '6aced2d7cc061f1f0d97bb2ef2e6ee849a8c3a33');
+  assert.match(site.branches[0]?.commitDate ?? '', /Z$/);
+  assert.equal(site.thumbnail?.src, '/client-sites/huntington-markets.jpg');
+  assert.doesNotMatch(JSON.stringify(site), /manager|licensee|applicant/i);
 });
