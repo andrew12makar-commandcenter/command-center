@@ -422,6 +422,36 @@ export const CLIENT_SITES: ClientSite[] = [
       },
     ],
   },
+  {
+    slug: 'kikis-laundromat',
+    name: 'Kiki’s Laundromat',
+    client: 'Kiki’s Laundromat · self-service laundromat, 249 Faneuil Street, Brighton, MA 02135 (owner not contacted; not related to Kiki’s Kwik-Mart)',
+    collection: 'demo',
+    summary: 'Client Demo 18 (Lane B), pitch demo, preview only (r1, Nov 25). Concept for a laundromat with no website and no public phone, so it states only what its Google Maps listing shows: the address, open every day 5 AM–10 PM, self-service, wheelchair-accessible entrance. Soft mint and deep teal with rounded type and a washer-door hero. A visit planner (day and arrival time) shows open or closed and time left before the 10 PM close, in Boston time, and flags holidays because none are posted. Seven dashed “Owner to add” slots (prices, how to pay, machines, supplies, extra services, parking, help contact) are the pitch. A machine-help message preview shows what a report would say and sends and stores nothing. No phone, prices, reviews or ratings. Scroll-driven transitions, hero included, look the same scrolling down and up. Three Unsplash photos, all captioned illustrative; no logo. Owner to confirm: contact route, holiday hours, and everything in the slots. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.kikis-laundromat-preview.pages.dev',
+    pinnedUrl: 'https://6cd8a828.kikis-laundromat-preview.pages.dev',
+    hosting: 'Cloudflare Pages project kikis-laundromat-preview (Andrew personal account), preview branch r1 only (no production deployment), noindex. Not behind Cloudflare Access: the link is unlisted but open.',
+    thumbnail: { src: '/client-sites/kikis-laundromat.jpg', alt: 'Kiki’s Laundromat preview: mint hero with the name in teal and red rounded type, Directions, Will it be open? and Machine help buttons, and an illustrative washer-door photo', width: 1200, height: 750 },
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'kikis-laundromat-site',
+      defaultBranch: 'r1',
+    },
+    branches: [
+      {
+        name: 'r1',
+        owner: 'President Claude (Lane B)',
+        previewUrl: 'https://r1.kikis-laundromat-preview.pages.dev',
+        note: 'First build (Claude Opus 5.5, Lane B session on the President account), Nov 25, 2026. Facts from the Google Maps listing read Nov 25 (no website, no public phone; no reviews used); sources and owner questions in docs/. Pushed to GitLab (private) after a verified Desktop checkpoint (20261125T163246Z-43a2addbee, bundle verify, restore and fsck PASS) and deployed as Cloudflare Pages preview 6cd8a828 built from 43a2addb. QA 110/110 on the live preview at 375, 390, 768 and 1440 wide (visit planner incl. DST and holidays, help preview sends and stores nothing and cannot submit, no phone/prices/reviews, hero and slot transitions mirrored on scroll-up, reduced motion, no-JS, no external requests), zero axe violations. Lighthouse and physical-device tests not run.',
+        commitSha: '43a2addbee25fc0f9e1c95acfcaef43a5a5790d0',
+        commitMessage: 'Hero: keep the washer door inside its column from 900 to 1440 px',
+        commitDate: '2026-11-25T16:32:04Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/kikis-laundromat-site/-/commit/43a2addbee25fc0f9e1c95acfcaef43a5a5790d0',
+      },
+    ],
+  },
 ];
 
 export function getClientSite(slug: string): ClientSite | undefined {
