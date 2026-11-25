@@ -393,39 +393,34 @@ export const CLIENT_SITES: ClientSite[] = [
     ],
   },
   {
-    "slug": "little-pizza-king",
-    "name": "Little Pizza King",
-    "client": "Little Pizza King · 389 Washington Street, Brighton, MA 02135 (owner not contacted)",
-    "collection": "demo",
-    "summary": "Client Demo 16 (Lane B). Concept preview with a searchable menu, catering tray planner, Greek kitchen section, Boston-time hours and holiday closures. Ordering opens the shop’s Toast page. All photography is illustrative. Owner questions cover the two websites, differing phones and prices, and the 2731 address prefix.",
-    "stage": "In review",
-    "liveUrl": "https://r1.little-pizza-king-preview.pages.dev",
-    "pinnedUrl": "https://dafe419c.little-pizza-king-preview.pages.dev",
-    "hosting": "Cloudflare Pages little-pizza-king-preview, preview branch r1, noindex, no custom domain.",
-    "thumbnail": {
-      "src": "/client-sites/little-pizza-king.jpg",
-      "alt": "Little Pizza King concept preview with an illustrative pizza photograph and menu and ordering links",
-      "width": 1200,
-      "height": 750
+    slug: 'little-pizza-king',
+    name: 'Little Pizza King',
+    client: 'Little Pizza King · pizza, subs and Italian-Greek kitchen since 1995, 389 Washington Street, Brighton, MA 02135 (owner not contacted)',
+    collection: 'demo',
+    summary: 'Client Demo 16 (Lane B), pitch demo, preview only (r1, Nov 25). Concept for a shop that already runs lpkbrighton.com plus a second Slice storefront, keeping its menu facts and its own Toast ordering. Flour cream, tomato red and oven-char with heavy slab type and a checkerboard plate. Hero with Order online, Call and Directions; a searchable menu of 148 dishes in 8 sections with small, large and 22-inch sizes; a party tray planner built from the shop’s catering guide (half tray 6–10, full 12–16, two days’ notice) with a live ticket, earliest date and copy-to-clipboard; a Greek kitchen section; hours with a Boston-time open status that knows the yearly closures (Thanksgiving, Christmas, Orthodox Easter). Order buttons open the shop’s Toast page; catering is by phone; no prices shown (Toast and Slice disagree). Scroll-driven transitions, hero included, look the same scrolling down and up. Three Unsplash photos, all captioned illustrative; no logo. Owner to confirm: which website and phone, prices, the “2731” address prefix, lunchbox special. Not on a custom domain.',
+    stage: 'In review',
+    liveUrl: 'https://r1.little-pizza-king-preview.pages.dev',
+    pinnedUrl: 'https://dafe419c.little-pizza-king-preview.pages.dev',
+    hosting: 'Cloudflare Pages project little-pizza-king-preview (Andrew personal account), preview branch r1 only (no production deployment), noindex. Not behind Cloudflare Access: the link is unlisted but open.',
+    thumbnail: { src: '/client-sites/little-pizza-king.jpg', alt: 'Little Pizza King preview: cream hero with the name in red slab type, Order online, Call and Directions buttons, and an illustrative pizza on a checkerboard plate', width: 1200, height: 750 },
+    repo: {
+      host: 'gitlab',
+      owner: 'andrew-makar-personal-projects-group',
+      name: 'little-pizza-king-site',
+      defaultBranch: 'r1',
     },
-    "repo": {
-      "host": "gitlab",
-      "owner": "andrew-makar-personal-projects-group",
-      "name": "little-pizza-king-site",
-      "defaultBranch": "r1"
-    },
-    "branches": [
+    branches: [
       {
-        "name": "r1",
-        "owner": "President Lane B (Claude build; Codex release)",
-        "previewUrl": "https://r1.little-pizza-king-preview.pages.dev",
-        "note": "Built from first-party sources read November 25. Local QA 113/113. Verified Desktop bundle and independent restore before push.",
-        "commitSha": "915ba7cf005667603bef2b1a1ac8407859b97931",
-        "commitMessage": "r1: Little Pizza King Brighton concept demo (Client Demo 16)",
-        "commitDate": "2026-11-25T01:08:51-05:00",
-        "commitUrl": "https://gitlab.com/andrew-makar-personal-projects-group/little-pizza-king-site/-/commit/915ba7cf005667603bef2b1a1ac8407859b97931"
-      }
-    ]
+        name: 'r1',
+        owner: 'President Lane B (Claude build; Codex release)',
+        previewUrl: 'https://r1.little-pizza-king-preview.pages.dev',
+        note: 'First build (Claude Opus 5.5, Lane B session on the President account), Nov 25, 2026. Facts from lpkbrighton.com (menu, catering, contact, about) and its Toast ordering page, read Nov 25; sources and owner questions in docs/. Desktop checkpoint 20261125T061013Z-915ba7cf00 (bundle verify, restore and fsck PASS) before push; deployed as Cloudflare Pages preview dafe419c built from 915ba7cf. QA 113/113 at 375, 390, 768 and 1440 wide (menu search, tray planner sizing and saved plan, order dialog with focus return, Toast/call/directions/Facebook links, hours incl. DST and the three yearly closures, hero and menu transitions mirrored on scroll-up, reduced motion, no-JS, no external requests), zero axe violations; live files match the local build. Lighthouse and physical-device tests not run.',
+        commitSha: '915ba7cf005667603bef2b1a1ac8407859b97931',
+        commitMessage: 'r1: Little Pizza King Brighton concept demo (Client Demo 16)',
+        commitDate: '2026-11-25T06:08:51Z',
+        commitUrl: 'https://gitlab.com/andrew-makar-personal-projects-group/little-pizza-king-site/-/commit/915ba7cf005667603bef2b1a1ac8407859b97931',
+      },
+    ],
   },
 ];
 
