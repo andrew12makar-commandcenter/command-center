@@ -64,6 +64,14 @@ const HELD_CORE_ROWS: Record<string, string> = {
   cafemirror: 'Held 2026-10-18: a later check found no independent second need; the Yellow Pages hours difference alone is not enough.',
 };
 
+// Businesses the founder removed from the lead lists entirely. They are dropped
+// from every source (core, carry-forward and expanded additions); the research
+// docs keep their history.
+const REMOVED_LEADS: Record<string, string> = {
+  dorrsliquormart: 'Removed 2026-11-24 by the founder: the store now has its own website (dorrsliquors.com).',
+};
+const leadKey = (business: string) => business.toLowerCase().split(' · ')[0].replace(/[^a-z0-9]/g, '');
+
 export function getBrightonShortlist(): BrightonShortlistLead[] {
   const markdown = readFileSync(join(process.cwd(), 'docs/brighton-website-plus-maps-shortlist-2026-10-17.md'), 'utf8');
 
@@ -168,7 +176,7 @@ export function getBrightonShortlist(): BrightonShortlistLead[] {
     return !existingNames.some((existing) => existing === key || existing.startsWith(key) || key.startsWith(existing));
   });
 
-  return [...current, ...additions, ...uniqueExpansion].map((lead, index) => {
+  return [...current, ...additions, ...uniqueExpansion].filter((lead) => !REMOVED_LEADS[leadKey(lead.business)]).map((lead, index) => {
     const holdNote = lead.rosterStage === 'Core shortlist' ? HELD_CORE_ROWS[lead.business.toLowerCase().split(' · ')[0].replace(/[^a-z0-9]/g, '')] : undefined;
     return { ...lead, rank: index + 1, qualified: lead.rosterStage !== 'Carry-forward · recheck' && !holdNote, ...(holdNote ? { holdNote } : {}) };
   });

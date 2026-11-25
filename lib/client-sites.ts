@@ -415,6 +415,11 @@ export function repoUrl(site: ClientSite): string {
   return `${host}/${site.repo.owner}/${site.repo.name}`;
 }
 
+/** False when liveUrl only points at the source repository (nothing deployed yet), which cannot be framed. */
+export function hasHostedPreview(site: ClientSite): boolean {
+  return !site.liveUrl.replace(/\/+$/, '').startsWith(repoUrl(site));
+}
+
 export function branchUrl(site: ClientSite, branch: string): string {
   const encoded = branch.split('/').map(encodeURIComponent).join('/');
   if (repoHost(site) === 'gitlab') {
