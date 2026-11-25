@@ -278,7 +278,6 @@ test('sites with nothing deployed are not framed; deployed previews are', () => 
   }
 });
 
-
 test('Little Pizza King has a hosted preview and a matching source revision', () => {
   const site = getClientSite('little-pizza-king');
   assert.ok(site);
@@ -286,4 +285,7 @@ test('Little Pizza King has a hosted preview and a matching source revision', ()
   assert.equal(site.liveUrl, 'https://r1.little-pizza-king-preview.pages.dev');
   assert.equal(hasHostedPreview(site), true);
   assert.equal(site.branches[0]?.commitSha, '915ba7cf005667603bef2b1a1ac8407859b97931');
+  assert.match(site.branches[0]?.commitDate ?? '', /Z$/);
+  assert.equal(site.thumbnail?.src, '/client-sites/little-pizza-king.jpg');
+  assert.match(site.summary, /Toast/);
 });
